@@ -228,7 +228,9 @@ function renderLobbyPlayers(players) {
   const readyCount = readyPlayers.length;
 
   if (headerPlayerCount) {
-    headerPlayerCount.textContent = `${readyCount} / ${players.length || 8} LISTOS`;
+    headerPlayerCount.textContent = (players.length === 0)
+      ? 'ESPERANDO CHAVALES...'
+      : `${readyCount} / ${players.length} LISTOS`;
   }
 
   // Update J1 pill & hint
@@ -258,6 +260,12 @@ function renderLobbyPlayers(players) {
   // 1. Sync 2D Lounge Physics Room
   if (window.LobbyRoom && typeof LobbyRoom.syncPlayers === 'function') {
     LobbyRoom.syncPlayers(players);
+  }
+  const loungeReadyBadge = document.getElementById('lounge-ready-badge');
+  if (loungeReadyBadge) {
+    loungeReadyBadge.textContent = (players.length === 0)
+      ? '0 LISTOS'
+      : `${readyCount} / ${players.length} LISTOS`;
   }
 
   // 2. Render Dressing Room (En el vestidor) Sidebar List
@@ -745,7 +753,7 @@ function updateStandaloneArcadeHud(level, teams) {
       neonBorder: '#f43f5e',
       tag: '★ MODO INDEPENDIENTE ★',
       title: '🎯 BUTTON BASH!',
-      sub: 'Fija X y después fija Y desde tu móvil',
+      sub: 'Dardos y kalimotxo',
       showCenter: true,
       showAdmin: true
     },
@@ -754,7 +762,7 @@ function updateStandaloneArcadeHud(level, teams) {
       neonBorder: '#f43f5e',
       tag: '★ MODO INDEPENDIENTE ★',
       title: '🎯 BUTTON BASH!',
-      sub: 'Fija X y después fija Y desde tu móvil',
+      sub: 'Dardos y kalimotxo',
       showCenter: true,
       showAdmin: true
     },
@@ -1232,16 +1240,18 @@ socket.on('bench_message_broadcast', (data) => {
     </div>
   `;
 
-  // Random staggered horizontal placement
-  const randomX = 12 + Math.random() * 60;
+  // Random staggered placement anywhere across the TV screen (floating clouds)
+  const randomX = 8 + Math.random() * 68;
+  const randomY = 12 + Math.random() * 62;
   bubble.style.left = `${randomX}%`;
+  bubble.style.top = `${randomY}%`;
 
   overlay.appendChild(bubble);
 
   setTimeout(() => {
     bubble.classList.add('fade-out');
-    setTimeout(() => bubble.remove(), 600);
-  }, 3500);
+    setTimeout(() => bubble.remove(), 800);
+  }, 4200);
 });
 
 // MEME: Android detected inside joke!

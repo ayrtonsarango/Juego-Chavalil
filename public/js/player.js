@@ -71,6 +71,7 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
+let currentGameState = null;
 let lastHeatData = null;
 let currentMinigameType = 'race';
 
@@ -110,7 +111,14 @@ function showActiveGamepad(gType) {
     if (padHax) padHax.style.display = 'flex';
   } else if (gType === 'buttonbash' || gType === 'bash') {
     if (typeof resetBashPrankState === 'function') resetBashPrankState();
-    if (padBash) padBash.style.display = 'flex';
+    const boxBench = document.getElementById('box-bench-spectator');
+    if (lastButtonBashActiveShooterId && lastButtonBashActiveShooterId !== socket.id) {
+      if (padBash) padBash.style.display = 'none';
+      if (boxBench) boxBench.style.display = 'flex';
+    } else {
+      if (padBash) padBash.style.display = 'flex';
+      if (boxBench) boxBench.style.display = 'none';
+    }
   } else if (gType === 'brawler' || gType === 'smash' || gType === 'opensmash') {
     if (padSmash) padSmash.style.display = 'flex';
   } else {
@@ -726,6 +734,7 @@ function renderMobilePodium(gameState, players, me) {
 
 // Update Mobile Controller View according to state
 function updateControllerState(gameState, players) {
+  currentGameState = gameState;
   const me = players.find(p => p.id === socket.id);
   if (!me) return;
 
@@ -860,7 +869,7 @@ function updateControllerState(gameState, players) {
     if (lastHeatData && lastHeatData.activePlayerIds && !lastHeatData.activePlayerIds.includes(me.id)) {
       if (boxBench) boxBench.style.display = 'flex';
       minigameTeamBanner.textContent = `🛋️ BANQUILLO (${lastHeatData.heatIndex}/${lastHeatData.totalHeats})`;
-      const pads = ['pad-race', 'pad-smash', 'pad-curve', 'pad-tank', 'pad-headsoccer', 'pad-bomberman', 'pad-haxball'];
+      const pads = ['pad-race', 'pad-smash', 'pad-curve', 'pad-tank', 'pad-headsoccer', 'pad-bomberman', 'pad-haxball', 'pad-buttonbash'];
       pads.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
@@ -1116,27 +1125,46 @@ socket.on('character_theme_broadcast', (data) => {
   }
 });
 
+let lastButtonBashActiveShooterId = null;
+
 socket.on('minigame_event_broadcast', (data) => {
   if (!data) return;
   if (data.type === 'buttonbash_turn') {
+    lastButtonBashActiveShooterId = data.activePlayerId;
     const isMyTurn = data.activePlayerId === socket.id;
-    const bashTurnTitle = document.getElementById('bash-turn-title');
-    const bashTurnSub = document.getElementById('bash-turn-sub');
     const btnBashTarget = document.getElementById('btn-bash-target');
+    const padButtonBash = document.getElementById('pad-buttonbash');
+    const boxBench = document.getElementById('box-bench-spectator');
+    const benchHeatStatus = document.getElementById('bench-heat-status');
     const mobilePrankOverlay = document.getElementById('bash-mobile-prank-overlay');
 
     if (isMyTurn) {
-      if (bashTurnTitle) bashTurnTitle.textContent = '🎯 ¡TU TURNO!';
-      if (bashTurnSub) bashTurnSub.textContent = '';
+      if (boxBench) boxBench.style.display = 'none';
+      if (padButtonBash) padButtonBash.style.display = 'flex';
       if (btnBashTarget) {
         btnBashTarget.disabled = false;
         btnBashTarget.classList.remove('locked');
       }
       if (mobilePrankOverlay) mobilePrankOverlay.style.display = 'none';
+      if (minigameTeamBanner) {
+        minigameTeamBanner.textContent = '🎯 ¡TU TURNO! (Apunta y lanza)';
+        minigameTeamBanner.style.background = '#0284c7';
+        minigameTeamBanner.style.color = '#ffffff';
+      }
       safeVibrate([80, 40, 80]);
     } else {
-      if (bashTurnTitle) bashTurnTitle.textContent = `Turno: ${data.activePlayerName || 'Compañero'}`;
-      if (bashTurnSub) bashTurnSub.textContent = '';
+      if (padButtonBash) padButtonBash.style.display = 'none';
+      if (boxBench) {
+        boxBench.style.display = 'flex';
+        if (benchHeatStatus) {
+          benchHeatStatus.textContent = `🎯 Turno de: ${data.activePlayerName || 'Compañero'}`;
+        }
+      }
+      if (minigameTeamBanner) {
+        minigameTeamBanner.textContent = `🛋️ BANQUILLO · Turno: ${data.activePlayerName || 'Compañero'}`;
+        minigameTeamBanner.style.background = '#1e293b';
+        minigameTeamBanner.style.color = '#fef08a';
+      }
       if (btnBashTarget) {
         btnBashTarget.disabled = true;
         btnBashTarget.classList.add('locked');
@@ -1165,6 +1193,7 @@ socket.on('level_completed_celebration', () => {
   const boxBench = document.getElementById('box-bench-spectator');
   if (boxBench) boxBench.style.display = 'none';
   lastHeatData = null;
+  lastButtonBashActiveShooterId = null;
 });
 
 // Heats & Spectator Mode on Phone
@@ -1172,7 +1201,7 @@ socket.on('minigame_heat_update', (data) => {
   lastHeatData = data;
   const boxBench = document.getElementById('box-bench-spectator');
   const benchHeatStatus = document.getElementById('bench-heat-status');
-  const padContainers = ['pad-race', 'pad-smash', 'pad-curve', 'pad-tank', 'pad-headsoccer', 'pad-bomberman', 'pad-haxball'];
+  const padContainers = ['pad-race', 'pad-smash', 'pad-curve', 'pad-tank', 'pad-headsoccer', 'pad-bomberman', 'pad-haxball', 'pad-buttonbash'];
 
   if (!data || !data.activePlayerIds) return;
 

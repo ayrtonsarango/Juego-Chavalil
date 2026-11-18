@@ -21,4 +21,4 @@ desktop.ini
 .idea/
 
 # Test artifacts generated during runs (keep base design docs, ignore run dumps)
-design/test-results/viewports/
+design/test-results/

@@ -151,44 +151,69 @@ class ButtonBashEngine {
   }
 
   init(players = [], teams = { teamA: [], teamB: [] }) {
-    this.players = players;
-    this.teams = teams;
+    this.players = players || [];
+    this.teams = teams || { teamA: [], teamB: [] };
     this.running = true;
     this.lastTime = performance.now();
     this.elapsedGameTime = 0;
-    this.phase = 'aiming_x';
-    this.phaseTimer = 0;
-    this.lockedX = null;
-    this.lockedY = null;
     this.activePopups = [];
     this.darts = [];
     this.crazyDarts = [];
+    this.playerScores = {};
 
-    // Assign active shooter (prefer first human player)
-    const humanPlayers = (players || []).filter(p => !p.isBot);
-    const candidate = humanPlayers.length > 0 ? humanPlayers[0] : (players[0] || { id: 'p1', name: 'Chaval' });
-    this.activeShooterId = candidate.id;
-    this.activeShooterName = candidate.name;
+    // Build the turn-by-turn queue: human players first, then bots (or fallback)
+    const humans = this.players.filter(p => !p.isBot);
+    const bots = this.players.filter(p => p.isBot);
+    this.playerQueue = (humans.length > 0)
+      ? [...humans, ...bots]
+      : (this.players.length > 0 ? [...this.players] : [{ id: 'p1', name: 'Chaval' }]);
+
+    this.currentTurnIndex = 0;
 
     if (window.soundEngine && typeof soundEngine.playSoundByName === 'function') {
       soundEngine.playMysteryReveal();
     }
 
-    // Broadcast prank start & active shooter turn to player phones
     if (window.socket) {
       window.socket.emit('minigame_trigger_event', {
         type: 'buttonbash_event',
         stage: 'intro',
         message: '¡A jugar Button Bash!'
       });
+    }
+
+    this.startPlayerTurn();
+    this.loop();
+  }
+
+  startPlayerTurn() {
+    if (!this.running) return;
+    this.activeShooter = this.playerQueue[this.currentTurnIndex] || this.playerQueue[0];
+    this.activeShooterId = this.activeShooter.id;
+    this.activeShooterName = this.activeShooter.name || 'Chaval';
+
+    this.phase = 'aiming_x';
+    this.phaseTimer = 0;
+    this.lockedX = null;
+    this.lockedY = null;
+    this.tickerX = 0.5;
+    this.tickerY = 0.5;
+    this.tickerDirX = 1;
+    this.tickerDirY = 1;
+
+    if (window.soundEngine && typeof soundEngine.playMarioCoin === 'function') {
+      soundEngine.playMarioCoin();
+    }
+
+    if (window.socket) {
       window.socket.emit('minigame_trigger_event', {
         type: 'buttonbash_turn',
         activePlayerId: this.activeShooterId,
-        activePlayerName: this.activeShooterName
+        activePlayerName: this.activeShooterName,
+        turnIndex: this.currentTurnIndex + 1,
+        totalTurns: this.playerQueue.length
       });
     }
-
-    this.loop();
   }
 
   stop() {
@@ -266,20 +291,26 @@ class ButtonBashEngine {
       label = '¡AL CORCHO! (0 PTS)';
     }
 
+    const shooter = this.activeShooter || { id: playerId, name: 'Chaval' };
+    const shooterColor = shooter.color || '#38bdf8';
+
     this.darts.push({
       x: hitX,
       y: hitY,
       pts,
       label,
-      playerId,
-      color: '#38bdf8'
+      playerId: shooter.id,
+      playerName: shooter.name,
+      color: shooterColor
     });
+
+    this.playerScores[shooter.id] = (this.playerScores[shooter.id] || 0) + pts;
 
     this.hitEffects.push({
       x: hitX,
       y: hitY,
       label,
-      life: 1.6
+      life: 1.8
     });
 
     if (window.soundEngine) {
@@ -287,10 +318,18 @@ class ButtonBashEngine {
       if (typeof soundEngine.playHonk === 'function') setTimeout(() => soundEngine.playHonk(), 250);
     }
 
-    // Trigger the goofy prank cascade after the first throw!
+    // Wait 2.2s so everyone can see the dart hit and score on the board
     setTimeout(() => {
-      this.triggerPrankA();
-    }, 1200);
+      if (!this.running) return;
+      if (this.currentTurnIndex + 1 < this.playerQueue.length) {
+        // Next player's turn!
+        this.currentTurnIndex++;
+        this.startPlayerTurn();
+      } else {
+        // All players have taken their turn! Trigger the goofy prank cascade
+        this.triggerPrankA();
+      }
+    }, 2200);
   }
 
   // PRANK STAGE A: Windows Vista slow calculation error (Tilted & Goofy)
@@ -747,7 +786,7 @@ class ButtonBashEngine {
 
     ctx.fillStyle = '#0284c7';
     ctx.font = '800 17px system-ui, -apple-system, sans-serif';
-    ctx.fillText('Marta & Violeta: "¡Preparaos chavales! 1º Fija X · 2º Fija Y"', bx + bw / 2, by + 142);
+    ctx.fillText('Marta & Violeta: "¡A por la diana, chavales!"', bx + bw / 2, by + 142);
 
     ctx.restore();
   }
@@ -755,21 +794,23 @@ class ButtonBashEngine {
   renderTurnHeader(ctx) {
     if (this.phase === 'blackout' || this.phase === 'fake_ranking') return;
     const name = (this.activeShooterName || 'Chaval').toUpperCase();
+    const totalTurns = this.playerQueue ? this.playerQueue.length : 1;
+    const currentTurn = (this.currentTurnIndex !== undefined ? this.currentTurnIndex : 0) + 1;
     ctx.save();
-    const bx = 340;
+    const bw = 620;
+    const bx = (this.width - bw) / 2;
     const by = 16;
-    const bw = 600;
-    const bh = 52;
+    const bh = 54;
 
     // Card shadow
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
     ctx.shadowBlur = 16;
     ctx.shadowOffsetY = 6;
 
     // Background
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.roundRect(bx, by, bw, bh, 26);
+    ctx.roundRect(bx, by, bw, bh, 27);
     ctx.fill();
 
     // Border
@@ -779,14 +820,23 @@ class ButtonBashEngine {
 
     // Icon & Text
     ctx.shadowColor = 'transparent';
-    ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.font = '900 22px Fredoka, -apple-system, sans-serif';
-    ctx.fillStyle = '#1e293b';
-    ctx.fillText('🎯 TURNO DE LANZAR: ', bx + 210, by + bh / 2);
 
-    ctx.fillStyle = '#e11d48';
-    ctx.fillText(name, bx + 410, by + bh / 2);
+    // Left label: 🎯 TURNO: [NAME]
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#1e293b';
+    ctx.fillText('🎯 TURNO: ', bx + 24, by + bh / 2);
+
+    const nameOffset = ctx.measureText('🎯 TURNO: ').width;
+    ctx.fillStyle = '#0284c7';
+    ctx.fillText(name, bx + 24 + nameOffset, by + bh / 2);
+
+    // Right badge: (1/3)
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#64748b';
+    ctx.font = '900 20px Fredoka, -apple-system, sans-serif';
+    ctx.fillText(`(${currentTurn}/${totalTurns})`, bx + bw - 24, by + bh / 2);
 
     ctx.restore();
   }

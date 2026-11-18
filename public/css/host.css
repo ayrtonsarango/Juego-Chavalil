@@ -1879,36 +1879,39 @@
   gap: 10px;
 }
 
-/* Floating Banquillo Spectator Shouts Overlay */
+/* Floating Banquillo Spectator Shouts Overlay (TV full-screen translucent clouds) */
 .bench-shouts-overlay {
   position: fixed;
-  bottom: 90px;
+  top: 0;
   left: 0;
-  width: 100%;
-  height: 180px;
+  width: 100vw;
+  height: 100vh;
   pointer-events: none;
-  z-index: 85;
+  z-index: 9999;
+  overflow: hidden;
 }
 
 .bench-shout-pill {
   position: absolute;
-  bottom: 0;
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: rgba(255, 255, 255, 0.92);
-  border: 3px solid #1e293b;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 3px solid rgba(30, 41, 59, 0.85);
   border-radius: 9999px;
-  padding: 6px 16px 6px 8px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25), 0 3px 0 #1e293b;
-  animation: floatUpSlow 3.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  padding: 8px 20px 8px 10px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22), 0 3px 0 rgba(30, 41, 59, 0.85);
+  animation: floatCloudDrift 4.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
   pointer-events: none;
+  white-space: nowrap;
   transition: opacity 0.6s ease;
 }
 
 .bench-shout-pill.fade-out {
   opacity: 0;
-  transform: translateY(-40px);
+  transform: translateY(-50px);
 }
 
 .bench-shout-avatar {
@@ -1943,21 +1946,25 @@
   color: #0f172a;
 }
 
-@keyframes floatUpSlow {
+@keyframes floatCloudDrift {
   0% {
-    transform: translateY(20px) scale(0.9);
+    transform: translateY(25px) scale(0.9);
     opacity: 0;
   }
-  15% {
-    transform: translateY(0) scale(1);
+  12% {
+    transform: translateY(0) scale(1.02);
     opacity: 0.92;
+  }
+  20% {
+    transform: translateY(-5px) scale(1);
+    opacity: 0.88;
   }
   75% {
-    transform: translateY(-16px) scale(1);
-    opacity: 0.92;
+    transform: translateY(-35px) scale(1);
+    opacity: 0.88;
   }
   100% {
-    transform: translateY(-34px) scale(0.96);
+    transform: translateY(-60px) scale(0.95);
     opacity: 0;
   }
 }

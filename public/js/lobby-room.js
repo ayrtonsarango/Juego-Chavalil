@@ -224,7 +224,9 @@
       emptyStateEl.style.display = readyPlayers.length === 0 ? 'flex' : 'none';
     }
     if (readyBadgeEl) {
-      readyBadgeEl.textContent = `${readyPlayers.length} LISTOS`;
+      readyBadgeEl.textContent = (players.length === 0)
+        ? '0 LISTOS'
+        : `${readyPlayers.length} / ${players.length} LISTOS`;
     }
   }
 
