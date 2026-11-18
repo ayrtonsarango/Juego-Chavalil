@@ -1175,7 +1175,7 @@ socket.on('character_theme_broadcast', (data) => {
     const charId = data.characterId || '';
     const charName = data.characterName || data.playerName || '';
     soundEngine.playCharacterTheme(charId, charName);
-    triggerFloatingEmote(getCharacterEmote(charId || charName), `¡${charName || charId} pickeado!`);
+    triggerFloatingEmote(getCharacterEmote(charId || charName), `¡${charName || charId} listo!`);
   }
 });
 

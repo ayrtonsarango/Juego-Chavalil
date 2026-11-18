@@ -104,7 +104,6 @@ const inputPlayerName = document.getElementById('input-player-name');
 const btnRandomAvatar = document.getElementById('btn-random-avatar');
 const creatorTabs = document.getElementById('creator-tabs');
 const optionsScroller = document.getElementById('options-scroller');
-const checkAndroidSim = document.getElementById('check-android-sim');
 const btnToggleReady = document.getElementById('btn-toggle-ready');
 const readyStatusBanner = document.getElementById('ready-status-banner');
 const nameValidationMsg = document.getElementById('name-validation-msg');
@@ -133,11 +132,6 @@ const minigameTeamBanner = document.getElementById('minigame-team-banner');
 // Pre-fill name if stored or match preset name, otherwise random chaval name
 const defaultRandomName = `Chaval_${Math.floor(Math.random() * 90 + 10)}`;
 inputPlayerName.value = savedName || (matchedPreset ? matchedPreset.name : defaultRandomName);
-
-// Check Android default
-if (isAndroidDevice) {
-  checkAndroidSim.checked = true;
-}
 
 let activeGlobalTab = 'handItem';
 
@@ -172,7 +166,7 @@ function initPresetChips() {
       ready: false,
       name: randName,
       avatar: currentAvatar,
-      isAndroid: checkAndroidSim.checked || isAndroidDevice
+      isAndroid: isAndroidDevice
     });
   });
   presetChipsScroll.appendChild(randBtn);
@@ -194,20 +188,11 @@ function initPresetChips() {
       renderCharacterSpecificOptions();
       renderGlobalTabOptions(activeGlobalTab);
 
-      // Reproducir sonido temático del personaje en el móvil y en la pantalla grande
-      if (window.soundEngine) {
-        soundEngine.playCharacterTheme(preset.id, preset.name);
-      }
-      socket.emit('player_character_selected', {
-        characterId: preset.id,
-        characterName: preset.name
-      });
-
       socket.emit('player_toggle_ready', {
         ready: false,
         name: preset.name,
         avatar: currentAvatar,
-        isAndroid: checkAndroidSim.checked || isAndroidDevice
+        isAndroid: isAndroidDevice
       });
     });
     presetChipsScroll.appendChild(btn);
@@ -261,7 +246,7 @@ function renderCharacterSpecificOptions() {
         ready: false,
         name: inputPlayerName.value.trim() || 'Chaval',
         avatar: currentAvatar,
-        isAndroid: checkAndroidSim.checked || isAndroidDevice
+        isAndroid: isAndroidDevice
       });
     });
     rowEl.appendChild(btn);
@@ -292,7 +277,7 @@ function renderGlobalTabOptions(tabKey) {
           ready: false,
           name: inputPlayerName.value.trim() || 'Chaval',
           avatar: currentAvatar,
-          isAndroid: checkAndroidSim.checked || isAndroidDevice
+          isAndroid: isAndroidDevice
         });
       });
       optionsScroller.appendChild(pill);
@@ -313,7 +298,7 @@ function renderGlobalTabOptions(tabKey) {
           ready: false,
           name: inputPlayerName.value.trim() || 'Chaval',
           avatar: currentAvatar,
-          isAndroid: checkAndroidSim.checked || isAndroidDevice
+          isAndroid: isAndroidDevice
         });
       });
       optionsScroller.appendChild(pill);
@@ -344,7 +329,6 @@ function setPlayerReadyUI(ready) {
     }
     if (readyStatusBanner) readyStatusBanner.style.display = 'block';
     if (inputPlayerName) inputPlayerName.disabled = true;
-    if (checkAndroidSim) checkAndroidSim.disabled = true;
     if (btnRandomAvatar) btnRandomAvatar.classList.add('is-locked');
     document.querySelectorAll('.preset-chip-btn, .pill-option, .tab-btn').forEach(el => el.classList.add('is-locked'));
   } else {
@@ -354,7 +338,6 @@ function setPlayerReadyUI(ready) {
     }
     if (readyStatusBanner) readyStatusBanner.style.display = 'none';
     if (inputPlayerName) inputPlayerName.disabled = false;
-    if (checkAndroidSim) checkAndroidSim.disabled = false;
     if (btnRandomAvatar) btnRandomAvatar.classList.remove('is-locked');
     document.querySelectorAll('.preset-chip-btn, .pill-option, .tab-btn').forEach(el => el.classList.remove('is-locked'));
   }
@@ -373,23 +356,9 @@ if (inputPlayerName) {
         ready: isPlayerReady,
         name,
         avatar: currentAvatar,
-        isAndroid: checkAndroidSim.checked || isAndroidDevice
+        isAndroid: isAndroidDevice
       });
     }
-  });
-}
-
-// Android simulator checkbox change
-if (checkAndroidSim) {
-  checkAndroidSim.addEventListener('change', () => {
-    if (isPlayerReady) return;
-    const isAndroid = checkAndroidSim.checked || isAndroidDevice;
-    socket.emit('player_toggle_ready', {
-      ready: isPlayerReady,
-      name: (inputPlayerName.value || '').trim() || 'Chaval',
-      avatar: currentAvatar,
-      isAndroid
-    });
   });
 }
 
@@ -408,7 +377,7 @@ if (btnToggleReady) {
     const nextReady = !isPlayerReady;
     setPlayerReadyUI(nextReady);
 
-    const isAndroid = checkAndroidSim.checked || isAndroidDevice;
+    const isAndroid = isAndroidDevice;
     socket.emit('player_toggle_ready', {
       ready: isPlayerReady,
       name,
@@ -426,7 +395,7 @@ if (btnToggleReady) {
         characterName: name
       });
 
-      // Si es Android, reproducir también la bocina goofy de Android detectado en el móvil y en el admin
+      // Si es Android real, reproducir también la bocina goofy de Android detectado en el móvil y en el admin
       if (isAndroid) {
         setTimeout(() => {
           if (window.soundEngine) soundEngine.playAndroidAlert();
@@ -443,7 +412,7 @@ if (btnToggleReady) {
 // Auto-register on socket connection
 function sendCurrentRegistration(ready = isPlayerReady) {
   const name = (inputPlayerName.value || '').trim() || 'Chaval';
-  const isAndroid = checkAndroidSim.checked || isAndroidDevice;
+  const isAndroid = isAndroidDevice;
   socket.emit('player_join', {
     name,
     avatar: currentAvatar,
