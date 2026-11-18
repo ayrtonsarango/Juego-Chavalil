@@ -1844,6 +1844,50 @@ html, body {
   text-transform: uppercase;
 }
 
+.btn-quick-random {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 60%, #e2e8f0 100%);
+  border: 2px solid var(--navy);
+  border-radius: 10px;
+  font-size: 1.15rem;
+  box-shadow: 0 2.5px 0 var(--navy);
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  margin-left: 4px;
+}
+
+.btn-quick-random:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--navy);
+}
+
+.random-reroll-pill {
+  background: linear-gradient(180deg, #fef08a 0%, #eab308 60%, #ca8a04 100%) !important;
+  color: #0f172a !important;
+  font-weight: 900 !important;
+  border: 2.5px solid var(--navy) !important;
+  box-shadow: 0 4px 0 var(--navy) !important;
+  font-size: 1rem !important;
+  padding: 8px 18px !important;
+  border-radius: 9999px !important;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.random-reroll-pill:active {
+  transform: translateY(3px) !important;
+  box-shadow: 0 1px 0 var(--navy) !important;
+}
+
 .champion-carousel-stage {
   display: flex;
   align-items: center;

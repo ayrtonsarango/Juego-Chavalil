@@ -224,7 +224,7 @@
       emptyStateEl.style.display = readyPlayers.length === 0 ? 'flex' : 'none';
     }
     if (readyBadgeEl) {
-      readyBadgeEl.textContent = `${readyPlayers.length} LISTOS EN LA SALA`;
+      readyBadgeEl.textContent = `${readyPlayers.length} LISTOS`;
     }
   }
 

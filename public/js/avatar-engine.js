@@ -401,6 +401,26 @@ const AVATAR_PRESETS = [
       height: 'normal',
       headShape: 'round'
     }
+  },
+  {
+    id: 'random',
+    name: 'Aleatorio',
+    chip: '🎲 Aleatorio',
+    isRandom: true,
+    config: {
+      skin: '#ffe0bd',
+      hair: 'messy',
+      hairColor: '#ea580c',
+      eyes: 'crazy',
+      mouth: 'crazy_tongue',
+      shirt: '#3b82f6',
+      accessory: 'none',
+      handItem: 'none',
+      shoes: 'classic',
+      pet: 'none',
+      height: 'normal',
+      headShape: 'round'
+    }
   }
 ];
 

@@ -244,6 +244,42 @@ function initChampionCarousel() {
     });
   }
 
+  const btnQuickRandom = document.getElementById('btn-quick-random');
+  if (btnQuickRandom) {
+    btnQuickRandom.addEventListener('click', () => {
+      if (isPlayerReady) return;
+      const randIdx = AVATAR_PRESETS.findIndex(p => p.id === 'random');
+      if (randIdx >= 0) {
+        currentChampionIndex = randIdx;
+        selectedPresetId = 'random';
+        currentAvatar = getRandomAvatar();
+        const randPreset = AVATAR_PRESETS[randIdx];
+        if (randPreset) randPreset.config = JSON.parse(JSON.stringify(currentAvatar));
+
+        const currentVal = (inputPlayerName.value || '').trim();
+        if (!currentVal || AVATAR_PRESETS.some(p => p.name.toLowerCase() === currentVal.toLowerCase())) {
+          inputPlayerName.value = `Chaval_${Math.floor(Math.random() * 90 + 10)}`;
+        }
+
+        renderChampionCarousel();
+        renderCharacterSpecificOptions();
+        renderGlobalTabOptions(activeGlobalTab);
+
+        if (window.soundEngine && typeof soundEngine.playMarioCoin === 'function') {
+          soundEngine.playMarioCoin();
+        }
+        safeVibrate(35);
+
+        socket.emit('player_toggle_ready', {
+          ready: false,
+          name: inputPlayerName.value.trim() || 'Chaval',
+          avatar: currentAvatar,
+          isAndroid: isAndroidDevice
+        });
+      }
+    });
+  }
+
   renderChampionCarousel();
 }
 
@@ -254,14 +290,24 @@ function navigateChampion(direction) {
   currentChampionIndex = (currentChampionIndex + direction + total) % total;
   const newChamp = AVATAR_PRESETS[currentChampionIndex];
 
-  selectedPresetId = newChamp.id;
-  currentAvatar = JSON.parse(JSON.stringify(newChamp.config));
+  if (newChamp.id === 'random') {
+    selectedPresetId = 'random';
+    currentAvatar = getRandomAvatar();
+    newChamp.config = JSON.parse(JSON.stringify(currentAvatar));
+    const currentVal = (inputPlayerName.value || '').trim();
+    if (!currentVal || currentVal.startsWith('Chaval_') || (prevChamp && currentVal.toLowerCase() === prevChamp.name.toLowerCase())) {
+      inputPlayerName.value = `Chaval_${Math.floor(Math.random() * 90 + 10)}`;
+    }
+  } else {
+    selectedPresetId = newChamp.id;
+    currentAvatar = JSON.parse(JSON.stringify(newChamp.config));
 
-  // If current name is empty, starts with Chaval_, or matches previous champion name, update to new champion name!
-  const currentVal = (inputPlayerName.value || '').trim();
-  if (!currentVal || currentVal.startsWith('Chaval_') || (prevChamp && currentVal.toLowerCase() === prevChamp.name.toLowerCase())) {
-    inputPlayerName.value = newChamp.name;
-    localStorage.setItem('chaval_name', newChamp.name);
+    // If current name is empty, starts with Chaval_, or matches previous champion name, update to new champion name!
+    const currentVal = (inputPlayerName.value || '').trim();
+    if (!currentVal || currentVal.startsWith('Chaval_') || (prevChamp && currentVal.toLowerCase() === prevChamp.name.toLowerCase())) {
+      inputPlayerName.value = newChamp.name;
+      localStorage.setItem('chaval_name', newChamp.name);
+    }
   }
 
   renderChampionCarousel();
@@ -290,7 +336,7 @@ function renderChampionCarousel() {
   const nextPreset = AVATAR_PRESETS[nextIdx];
 
   if (championNameTitle) {
-    championNameTitle.textContent = current.name.toUpperCase();
+    championNameTitle.textContent = current.id === 'random' ? '🎲 ALEATORIO' : current.name.toUpperCase();
   }
 
   if (slotChampLeft && typeof renderAvatarSVG === 'function') {
@@ -324,12 +370,51 @@ function updateAvatarPreview() {
   `;
 }
 
-// 2. Render Character-Specific Options (Toggles binarios directos, sin placeholders innecesarios)
+// 2. Render Character-Specific Options (Toggles binarios directos, o botón de generar aleatorio si es random)
 function renderCharacterSpecificOptions() {
-  if (!specificOptionsContainer || typeof CHARACTER_SPECIFIC_OPTIONS === 'undefined') return;
+  if (!specificOptionsContainer) return;
   specificOptionsContainer.innerHTML = '';
 
-  const specToggles = CHARACTER_SPECIFIC_OPTIONS[selectedPresetId] || [];
+  // Caso especial: ALEATORIO (el "binario" del aleatorio es generar otro aleatorio)
+  if (selectedPresetId === 'random') {
+    if (characterSpecificBox) characterSpecificBox.style.display = 'block';
+
+    const rowEl = document.createElement('div');
+    rowEl.className = 'specific-toggles-row';
+
+    const btn = document.createElement('button');
+    btn.className = `toggle-pill random-reroll-pill ${isPlayerReady ? 'is-locked' : ''}`;
+    btn.innerHTML = `<span class="toggle-indicator">🎲</span> <span>Generar aleatorio</span>`;
+    btn.title = 'Generar otro avatar aleatorio';
+
+    btn.addEventListener('click', () => {
+      if (isPlayerReady) return;
+      currentAvatar = getRandomAvatar();
+      const randPreset = AVATAR_PRESETS.find(p => p.id === 'random');
+      if (randPreset) randPreset.config = JSON.parse(JSON.stringify(currentAvatar));
+
+      updateAvatarPreview();
+      renderGlobalTabOptions(activeGlobalTab);
+
+      if (window.soundEngine && typeof soundEngine.playMarioCoin === 'function') {
+        soundEngine.playMarioCoin();
+      }
+      safeVibrate(30);
+
+      socket.emit('player_toggle_ready', {
+        ready: false,
+        name: inputPlayerName.value.trim() || 'Chaval',
+        avatar: currentAvatar,
+        isAndroid: isAndroidDevice
+      });
+    });
+
+    rowEl.appendChild(btn);
+    specificOptionsContainer.appendChild(rowEl);
+    return;
+  }
+
+  const specToggles = (typeof CHARACTER_SPECIFIC_OPTIONS !== 'undefined' ? CHARACTER_SPECIFIC_OPTIONS[selectedPresetId] : null) || [];
   if (specToggles.length === 0) {
     if (characterSpecificBox) characterSpecificBox.style.display = 'none';
     return;
