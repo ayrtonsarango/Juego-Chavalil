@@ -3,17 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Mando Chavalil 📱</title>
+  <title>Juego Chavalil</title>
   <link rel="manifest" href="/manifest.json">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Mando Chavalil">
+  <meta name="apple-mobile-web-app-title" content="Juego Chavalil">
   <meta name="theme-color" content="#38bdf8">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
-  <link rel="stylesheet" href="/css/common.css">
-  <link rel="stylesheet" href="/css/player.css">
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/common.css?v=5.0">
+  <link rel="stylesheet" href="/css/player.css?v=5.0">
+  <link rel="stylesheet" href="/css/style.css?v=5.0">
 </head>
 <body>
   <div class="player-container">
@@ -56,11 +56,11 @@
         <!-- Gamertag Editable Input Card with Pencil Icon -->
         <div class="gamertag-card">
           <div class="gamertag-label">
-            <span>Gamertag / Mote:</span>
-            <span class="gamertag-edit-icon" id="gamertag-edit-hint" title="Pulsa para editar tu nombre">✏️</span>
+            <span>Mote:</span>
+            <span class="gamertag-edit-icon" id="gamertag-edit-hint" title="Editar mote">✏️</span>
           </div>
           <div class="gamertag-input-wrap">
-            <input type="text" id="input-player-name" class="input-name gamertag-input" placeholder="Tu mote / Nombre" minlength="2" maxlength="15" autocomplete="off">
+            <input type="text" id="input-player-name" class="input-name gamertag-input" placeholder="" minlength="2" maxlength="15" autocomplete="off">
             <button class="btn-clear-gamertag" id="btn-edit-gamertag" title="Editar mote">✏️</button>
           </div>
         </div>
@@ -121,17 +121,12 @@
           <div class="player-avatar-small" id="lobby-pad-avatar-thumb"></div>
           <div class="lobby-pad-meta">
             <span class="player-nickname" id="lobby-pad-player-name">Chaval</span>
-            <span class="lobby-pad-tag">🟢 ¡ESTÁS EN LA SALA!</span>
+            <span class="lobby-pad-tag">🟢 Listo</span>
           </div>
         </div>
-        <button class="btn-candy-action btn-lobby-unready" id="btn-lobby-unready" title="Volver al vestidor para cambiar avatar">
+        <button class="btn-candy-action btn-lobby-unready" id="btn-lobby-unready" title="Modificar avatar">
           ✏️ Modificar
         </button>
-      </div>
-
-      <!-- TV Screen interaction hint -->
-      <div class="lobby-pad-hint">
-        <span>🎮 ¡Mira a la TV! Muévete y salta con la Cuadrilla</span>
       </div>
 
       <!-- Main Controller Grid (50% direction, 50% jump) -->
@@ -181,7 +176,6 @@
           <span class="player-nickname" id="controller-player-name">Chaval</span>
           <div class="player-meta-badges">
             <span id="controller-role-badge" class="badge">Jugador</span>
-            <span id="controller-device-badge" class="badge">Dispositivo</span>
           </div>
         </div>
       </div>
@@ -205,8 +199,7 @@
         <div class="map-world-banner">
           <span class="world-icon">🏰</span>
           <div class="world-meta">
-            <span class="world-title">MUNDO 1 · REINO CHAVALIL</span>
-            <span class="world-sub">¡Mueve a tu chaval al siguiente minijuego!</span>
+            <span class="world-title">MUNDO 1</span>
           </div>
         </div>
         <div id="player-my-node-badge" class="map-node-badge">
@@ -331,12 +324,6 @@
 
         <!-- 5. SPORTS HEADS / HEAD SOCCER GAMEPAD (50% direction left, 50% action right) -->
         <div id="pad-headsoccer" class="pad-layout pad-headsoccer" style="display: none;">
-          <!-- Top Match / Team Badge -->
-          <div class="headsoccer-status-card" id="headsoccer-status-card">
-            <span class="head-match-info" id="head-match-info">⚽ HEAD SOCCER · EN JUEGO</span>
-            <span class="head-team-badge" id="head-team-badge">🔵 EQUIPO AZUL</span>
-          </div>
-
           <div class="head-controls-grid">
             <div class="head-steer">
               <button class="candy-btn-arcade btn-head-arrow" id="btn-head-left" data-dir="left">
@@ -401,21 +388,16 @@
         <div id="box-bench-spectator" class="bench-spectator-card" style="display: none;">
           <div class="bench-header-glow">
             <span class="bench-icon">🛋️</span>
-            <div class="bench-title">EN EL BANQUILLO</div>
+            <div class="bench-title">BANQUILLO</div>
           </div>
-          <div id="bench-heat-status" class="bench-heat-status">
-            Calentando... Tu turno llegará en la siguiente ronda.
-          </div>
-          <div class="bench-subtitle">
-            ¡Manda un grito a la TV para que lo lea toda la sala! (Máx 10 letras)
-          </div>
+          <div id="bench-heat-status" class="bench-heat-status"></div>
           <div class="bench-shout-form">
             <div class="bench-input-wrap">
-              <input type="text" id="bench-shout-input" class="bench-shout-input" maxlength="10" placeholder="¡DALE!, ¡GOL!, ¡VAMOS!" autocomplete="off">
+              <input type="text" id="bench-shout-input" class="bench-shout-input" maxlength="10" placeholder="Grito (máx 10)" autocomplete="off">
               <span id="bench-char-counter" class="bench-char-counter">0/10</span>
             </div>
             <button class="btn btn-warning btn-bench-send" id="btn-bench-send">
-              📢 Mandar Grito a la TV
+              📢 Mandar Grito
             </button>
             <div id="bench-cooldown-notice" class="bench-cooldown-notice" style="display: none;">
               ⏳ Espera: <strong id="bench-cooldown-timer">15</strong>s
@@ -432,7 +414,6 @@
               <button class="btn btn-bash-buzzer" id="btn-bash-target">
                 <span class="buzzer-icon">🎯</span>
                 <span class="buzzer-label">¡PULSA!</span>
-                <span class="buzzer-hint">1º Fija X · 2º Fija Y</span>
               </button>
             </div>
             <div class="bash-sub-buttons">
@@ -579,7 +560,7 @@
       <!-- Status or J1 Continue Button -->
       <div class="podium-mobile-footer">
         <div class="podium-locked-msg" id="podium-locked-msg">
-          📺 Mirando al televisor... El Admin avanzará al mapa.
+          📺 Podio en TV
         </div>
         <button class="btn btn-success btn-big-action btn-podium-j1-continue" id="btn-podium-j1-continue" style="display: none;">
           🗺️ Continuar al Mapa (J1)
@@ -589,8 +570,8 @@
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
-  <script src="/js/avatar-engine.js?v=4.3"></script>
-  <script src="/js/sound-engine.js?v=4.3"></script>
-  <script src="/js/player.js?v=4.3"></script>
+  <script src="/js/avatar-engine.js?v=5.0"></script>
+  <script src="/js/sound-engine.js?v=5.0"></script>
+  <script src="/js/player.js?v=5.0"></script>
 </body>
 </html>

@@ -6,9 +6,9 @@
   <title>Juego Chavalil 🎮 - Pantalla Principal</title>
   <link rel="manifest" href="/manifest.json">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
-  <link rel="stylesheet" href="/css/common.css">
-  <link rel="stylesheet" href="/css/host.css">
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/common.css?v=5.0">
+  <link rel="stylesheet" href="/css/host.css?v=5.0">
+  <link rel="stylesheet" href="/css/style.css?v=5.0">
 </head>
 <body>
   <div class="host-container">
@@ -69,12 +69,10 @@
           <div class="players-header tv-players-topbar lounge-topbar">
             <div>
               <h2 class="lounge-title">🛋️ Sala</h2>
-              <div id="lobby-ready-hint" class="tv-players-subhint">
-                🕹️ ¡Los que estén listos pueden moverse y saltar libremente por la sala!
-              </div>
+              <div id="lobby-ready-hint" class="tv-players-subhint"></div>
             </div>
             <div class="lounge-header-stats">
-              <div class="tv-ready-pill" id="lounge-ready-badge">0 LISTOS EN LA SALA</div>
+              <div class="tv-ready-pill" id="lounge-ready-badge">0 LISTOS</div>
             </div>
           </div>
 
@@ -83,8 +81,6 @@
             <!-- Empty state when 0 players ready -->
             <div class="lounge-empty-state" id="lounge-empty-state">
               <span class="lounge-empty-icon">🛋️</span>
-              <span class="lounge-empty-title">¡La sala está abierta!</span>
-              <span class="lounge-empty-desc">Pulsa <strong>"¡LISTO PARA JUGAR!"</strong> en tu móvil para entrar a la pista y saltar.</span>
             </div>
           </div>
         </div>
@@ -202,7 +198,7 @@
           <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 12px;">
             <div>
               <h2 class="minigame-title" id="minigame-banner-title">Minijuego</h2>
-              <p class="minigame-subtitle" id="minigame-banner-lore">¡Desafío por escuadras a máxima competición!</p>
+              <p class="minigame-subtitle" id="minigame-banner-lore"></p>
             </div>
             <button id="btn-admin-abort-minigame" class="btn btn-secondary btn-admin-minigame-abort" title="Volver al mapa sin completar el nivel ni avanzar" style="font-size: 0.85rem; padding: 6px 14px; background: rgba(30, 41, 59, 0.8); border: 2px solid #64748b; color: #f8fafc; border-radius: 12px; cursor: pointer; white-space: nowrap; font-weight: 700;">
               ✕ Salir al Mapa (Sin completar)
@@ -388,17 +384,17 @@
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
-  <script src="/js/avatar-engine.js?v=4.2"></script>
-  <script src="/js/sound-engine.js?v=4.2"></script>
-  <script src="/js/minigames/curve-fever.js?v=4.2"></script>
-  <script src="/js/minigames/tank-trouble.js?v=4.2"></script>
-  <script src="/js/minigames/head-soccer.js?v=4.2"></script>
-  <script src="/js/minigames/bomberman.js?v=4.2"></script>
-  <script src="/js/minigames/haxball.js?v=4.2"></script>
-  <script src="/js/minigames/mario-kart.js?v=4.2"></script>
-  <script src="/js/minigames/super-smash.js?v=4.2"></script>
-  <script src="/js/minigames/button-bash.js?v=4.3"></script>
-  <script src="/js/lobby-room.js?v=4.3"></script>
-  <script src="/js/host.js?v=4.3"></script>
+  <script src="/js/avatar-engine.js?v=5.0"></script>
+  <script src="/js/sound-engine.js?v=5.0"></script>
+  <script src="/js/minigames/curve-fever.js?v=5.0"></script>
+  <script src="/js/minigames/tank-trouble.js?v=5.0"></script>
+  <script src="/js/minigames/head-soccer.js?v=5.0"></script>
+  <script src="/js/minigames/bomberman.js?v=5.0"></script>
+  <script src="/js/minigames/haxball.js?v=5.0"></script>
+  <script src="/js/minigames/mario-kart.js?v=5.0"></script>
+  <script src="/js/minigames/super-smash.js?v=5.0"></script>
+  <script src="/js/minigames/button-bash.js?v=5.0"></script>
+  <script src="/js/lobby-room.js?v=5.0"></script>
+  <script src="/js/host.js?v=5.0"></script>
 </body>
 </html>

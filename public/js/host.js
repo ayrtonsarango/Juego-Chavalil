@@ -243,9 +243,7 @@ function renderLobbyPlayers(players) {
     }
   } else {
     if (lobbyReadyHint) {
-      lobbyReadyHint.textContent = players.length === 0
-        ? 'Esperando a que entren los chavales...'
-        : '🕹️ ¡Los que estén listos pueden moverse y saltar libremente por la sala!';
+      lobbyReadyHint.textContent = '';
     }
     const j1Pill = document.getElementById('lobby-j1-pill');
     if (j1Pill) {
@@ -274,7 +272,7 @@ function renderLobbyPlayers(players) {
     if (unreadyPlayers.length === 0) {
       lobbyUnreadyList.innerHTML = players.length === 0
         ? '<div class="unready-empty-msg">📱 Esperando a que escaneen el código QR...</div>'
-        : '<div class="unready-empty-msg">🎉 ¡Todos los chavales están en la sala!</div>';
+        : '<div class="unready-empty-msg">🎉 Todos listos</div>';
     } else {
       unreadyPlayers.forEach(p => {
         const chip = document.createElement('div');

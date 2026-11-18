@@ -614,10 +614,10 @@ function renderMobilePodium(gameState, players, me) {
   // J1 Leader Button to continue to map
   if (me && me.isJ1 && btnJ1Continue) {
     btnJ1Continue.style.display = 'block';
-    if (lockedMsg) lockedMsg.textContent = '👑 Como Líder J1, puedes avanzar al mapa cuando la cuadrilla esté lista:';
+    if (lockedMsg) lockedMsg.textContent = '👑 Avanzar al mapa (J1):';
   } else {
     if (btnJ1Continue) btnJ1Continue.style.display = 'none';
-    if (lockedMsg) lockedMsg.textContent = '📺 Mirando al televisor... El Admin avanzará al mapa.';
+    if (lockedMsg) lockedMsg.textContent = '📺 Podio en TV';
   }
 }
 
@@ -668,13 +668,10 @@ function updateControllerState(gameState, players) {
     controllerRoleBadge.className = 'badge';
   }
 
-  if (me.isAndroid) {
-    controllerDeviceBadge.textContent = '🤖 Android';
-    controllerDeviceBadge.className = 'badge badge-android';
-    boxAndroidMeme.style.display = 'block';
-  } else {
-    controllerDeviceBadge.textContent = '🍏 iOS';
-    controllerDeviceBadge.className = 'badge badge-ios';
+  if (controllerDeviceBadge) {
+    controllerDeviceBadge.style.display = 'none';
+  }
+  if (boxAndroidMeme) {
     boxAndroidMeme.style.display = 'none';
   }
 
@@ -745,11 +742,11 @@ function updateControllerState(gameState, players) {
     const inTeamA = teamA.some(p => p.id === me.id);
 
     if (inTeamA) {
-      minigameTeamBanner.textContent = '🔵 TU EQUIPO: AZUL';
+      minigameTeamBanner.textContent = '🔵 AZUL';
       minigameTeamBanner.style.background = '#1e3a8a';
       minigameTeamBanner.style.color = '#93c5fd';
     } else {
-      minigameTeamBanner.textContent = '🔴 TU EQUIPO: ROJO';
+      minigameTeamBanner.textContent = '🔴 ROJO';
       minigameTeamBanner.style.background = '#7f1d1d';
       minigameTeamBanner.style.color = '#fca5a5';
     }
@@ -759,7 +756,7 @@ function updateControllerState(gameState, players) {
 
     if (lastHeatData && lastHeatData.activePlayerIds && !lastHeatData.activePlayerIds.includes(me.id)) {
       if (boxBench) boxBench.style.display = 'flex';
-      minigameTeamBanner.textContent = `🛋️ EN EL BANQUILLO (Ronda ${lastHeatData.heatIndex}/${lastHeatData.totalHeats})`;
+      minigameTeamBanner.textContent = `🛋️ BANQUILLO (${lastHeatData.heatIndex}/${lastHeatData.totalHeats})`;
       const pads = ['pad-race', 'pad-smash', 'pad-curve', 'pad-tank', 'pad-headsoccer', 'pad-bomberman', 'pad-haxball'];
       pads.forEach(id => {
         const el = document.getElementById(id);
@@ -1013,8 +1010,8 @@ socket.on('minigame_event_broadcast', (data) => {
     const mobilePrankOverlay = document.getElementById('bash-mobile-prank-overlay');
 
     if (isMyTurn) {
-      if (bashTurnTitle) bashTurnTitle.textContent = '🎯 ¡ES TU TURNO DE LANZAR!';
-      if (bashTurnSub) bashTurnSub.textContent = '1º Pulsa para fijar X · 2º Pulsa para fijar Y';
+      if (bashTurnTitle) bashTurnTitle.textContent = '🎯 ¡TU TURNO!';
+      if (bashTurnSub) bashTurnSub.textContent = '';
       if (btnBashTarget) {
         btnBashTarget.disabled = false;
         btnBashTarget.classList.remove('locked');
@@ -1022,8 +1019,8 @@ socket.on('minigame_event_broadcast', (data) => {
       if (mobilePrankOverlay) mobilePrankOverlay.style.display = 'none';
       safeVibrate([80, 40, 80]);
     } else {
-      if (bashTurnTitle) bashTurnTitle.textContent = `⏳ Turno de ${data.activePlayerName || 'Compañero'}`;
-      if (bashTurnSub) bashTurnSub.textContent = '¡Mira el tiro en la pantalla grande!';
+      if (bashTurnTitle) bashTurnTitle.textContent = `Turno: ${data.activePlayerName || 'Compañero'}`;
+      if (bashTurnSub) bashTurnSub.textContent = '';
       if (btnBashTarget) {
         btnBashTarget.disabled = true;
         btnBashTarget.classList.add('locked');
@@ -1069,7 +1066,7 @@ socket.on('minigame_heat_update', (data) => {
     if (boxBench) boxBench.style.display = 'none';
     safeVibrate([100, 50, 100]);
     if (minigameTeamBanner) {
-      minigameTeamBanner.textContent = `⚔️ ¡ESTÁS EN LA ARENA! (Ronda ${data.heatIndex}/${data.totalHeats})`;
+      minigameTeamBanner.textContent = `⚔️ Ronda ${data.heatIndex}/${data.totalHeats}`;
     }
     showActiveGamepad(currentMinigameType);
   } else {
@@ -1086,11 +1083,11 @@ socket.on('minigame_heat_update', (data) => {
     if (boxBench) {
       boxBench.style.display = 'flex';
       if (benchHeatStatus) {
-        benchHeatStatus.textContent = `Ronda ${data.heatIndex}/${data.totalHeats} en juego. ¡Prepárate para la siguiente!`;
+        benchHeatStatus.textContent = `Ronda ${data.heatIndex}/${data.totalHeats}`;
       }
     }
     if (minigameTeamBanner) {
-      minigameTeamBanner.textContent = `🛋️ EN EL BANQUILLO (Ronda ${data.heatIndex}/${data.totalHeats})`;
+      minigameTeamBanner.textContent = `🛋️ BANQUILLO (${data.heatIndex}/${data.totalHeats})`;
     }
     padContainers.forEach(id => {
       const el = document.getElementById(id);
