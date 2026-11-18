@@ -22,21 +22,47 @@
     <!-- SCREEN 1: AVATAR CREATOR & REGISTRATION -->
     <section id="screen-creator" class="player-screen active">
 
-      <!-- Step 1: Base Character Selection -->
-      <div class="preset-chavales-box">
-        <div class="preset-chavales-title">👑 Elige tu Chaval</div>
-        <div class="preset-chips-scroll" id="preset-chips-scroll">
-          <!-- Injected dynamically via player.js from AVATAR_PRESETS -->
+      <!-- Step 1: 3D Champion Carousel Selector -->
+      <div class="champion-select-container">
+        <!-- Champion Name Display Above -->
+        <div class="champion-name-header">
+          <span class="champion-crown">👑</span>
+          <span class="champion-name-title" id="champion-name-title">AYRTON</span>
         </div>
-      </div>
 
-      <!-- Avatar Preview & Name Input Card -->
-      <div class="creator-preview-card">
-        <div class="creator-avatar-preview" id="preview-avatar-box">
-          <!-- Live SVG injected -->
+        <!-- 3D Carousel Stage -->
+        <div class="champion-carousel-stage" id="champion-carousel-stage">
+          <button class="carousel-nav-btn nav-btn-prev" id="btn-champ-prev" aria-label="Campeón anterior">◀</button>
+          
+          <div class="carousel-track" id="carousel-track">
+            <!-- Left adjacent champion (dimmed, scale 0.72, opacity 0.45) -->
+            <div class="carousel-slot slot-left" id="slot-champ-left"></div>
+            
+            <!-- Center selected champion (large 170px, bright, scale 1.0) -->
+            <div class="carousel-slot slot-center" id="slot-champ-center">
+              <div class="creator-avatar-preview" id="preview-avatar-box"></div>
+            </div>
+            
+            <!-- Right adjacent champion (dimmed, scale 0.72, opacity 0.45) -->
+            <div class="carousel-slot slot-right" id="slot-champ-right"></div>
+          </div>
+
+          <button class="carousel-nav-btn nav-btn-next" id="btn-champ-next" aria-label="Siguiente campeón">▶</button>
         </div>
-        <div class="input-name-wrap">
-          <input type="text" id="input-player-name" class="input-name" placeholder="Tu mote / Nombre" minlength="2" maxlength="15" autocomplete="off">
+
+        <!-- Hidden legacy container kept for programmatic safety -->
+        <div id="preset-chips-scroll" style="display: none;"></div>
+
+        <!-- Gamertag Editable Input Card with Pencil Icon -->
+        <div class="gamertag-card">
+          <div class="gamertag-label">
+            <span>Gamertag / Mote:</span>
+            <span class="gamertag-edit-icon" id="gamertag-edit-hint" title="Pulsa para editar tu nombre">✏️</span>
+          </div>
+          <div class="gamertag-input-wrap">
+            <input type="text" id="input-player-name" class="input-name gamertag-input" placeholder="Tu mote / Nombre" minlength="2" maxlength="15" autocomplete="off">
+            <button class="btn-clear-gamertag" id="btn-edit-gamertag" title="Editar mote">✏️</button>
+          </div>
         </div>
       </div>
 
@@ -303,16 +329,34 @@
           </div>
         </div>
 
-        <!-- 5. SPORTS HEADS / HEAD SOCCER GAMEPAD -->
+        <!-- 5. SPORTS HEADS / HEAD SOCCER GAMEPAD (50% direction left, 50% action right) -->
         <div id="pad-headsoccer" class="pad-layout pad-headsoccer" style="display: none;">
+          <!-- Top Match / Team Badge -->
+          <div class="headsoccer-status-card" id="headsoccer-status-card">
+            <span class="head-match-info" id="head-match-info">⚽ HEAD SOCCER · EN JUEGO</span>
+            <span class="head-team-badge" id="head-team-badge">🔵 EQUIPO AZUL</span>
+          </div>
+
           <div class="head-controls-grid">
             <div class="head-steer">
-              <button class="btn btn-secondary btn-head-arrow" id="btn-head-left">◀</button>
-              <button class="btn btn-secondary btn-head-arrow" id="btn-head-right">▶</button>
+              <button class="candy-btn-arcade btn-head-arrow" id="btn-head-left" data-dir="left">
+                <span class="btn-head-arrow-icon">◀</span>
+                <span class="btn-head-arrow-label">IZQ</span>
+              </button>
+              <button class="candy-btn-arcade btn-head-arrow" id="btn-head-right" data-dir="right">
+                <span class="btn-head-arrow-label">DER</span>
+                <span class="btn-head-arrow-icon">▶</span>
+              </button>
             </div>
             <div class="head-actions">
-              <button class="btn btn-warning btn-head-action" id="btn-head-jump">▲ SALTAR</button>
-              <button class="btn btn-success btn-head-action btn-head-kick" id="btn-head-kick">⚽ CHUTAR</button>
+              <button class="candy-btn-arcade btn-head-action btn-head-jump" id="btn-head-jump">
+                <span class="btn-head-action-icon">🦘</span>
+                <span class="btn-head-action-label">SALTAR</span>
+              </button>
+              <button class="candy-btn-arcade btn-head-action btn-head-kick" id="btn-head-kick">
+                <span class="btn-head-action-icon">⚽</span>
+                <span class="btn-head-action-label">CHUTAR</span>
+              </button>
             </div>
           </div>
         </div>
@@ -353,7 +397,7 @@
           </div>
         </div>
 
-        <!-- 8. BANQUILLO / MODO ESPECTADOR INTERACTIVO -->
+        <!-- 8. BANQUILLO / MODO ESPECTADOR INTERACTIVO (Gritos de máx 10 letras a TV con 15s cooldown) -->
         <div id="box-bench-spectator" class="bench-spectator-card" style="display: none;">
           <div class="bench-header-glow">
             <span class="bench-icon">🛋️</span>
@@ -363,25 +407,19 @@
             Calentando... Tu turno llegará en la siguiente ronda.
           </div>
           <div class="bench-subtitle">
-            ¡Anima a tu equipo con reacciones en directo!
+            ¡Manda un grito a la TV para que lo lea toda la sala! (Máx 10 letras)
           </div>
-          <div class="bench-cheer-grid">
-            <button class="btn btn-bench-cheer cheer-vamooos" data-cheer="👏" data-cheer-text="¡VAMOOOS!" data-cheer-sound="mario_coin">
-              <span class="cheer-emoji">👏</span>
-              <span class="cheer-label">¡VAMOOOS!</span>
+          <div class="bench-shout-form">
+            <div class="bench-input-wrap">
+              <input type="text" id="bench-shout-input" class="bench-shout-input" maxlength="10" placeholder="¡DALE!, ¡GOL!, ¡VAMOS!" autocomplete="off">
+              <span id="bench-char-counter" class="bench-char-counter">0/10</span>
+            </div>
+            <button class="btn btn-warning btn-bench-send" id="btn-bench-send">
+              📢 Mandar Grito a la TV
             </button>
-            <button class="btn btn-bench-cheer cheer-dale" data-cheer="🔥" data-cheer-text="¡DALE CAÑA!" data-cheer-sound="mario_coin">
-              <span class="cheer-emoji">🔥</span>
-              <span class="cheer-label">¡DALE CAÑA!</span>
-            </button>
-            <button class="btn btn-bench-cheer cheer-vigila" data-cheer="💀" data-cheer-text="¡NO TE DUERMAS!" data-cheer-sound="bocina">
-              <span class="cheer-emoji">💀</span>
-              <span class="cheer-label">¡VIGILA!</span>
-            </button>
-            <button class="btn btn-bench-cheer cheer-equipo" data-cheer="🏆" data-cheer-text="¡POR EL EQUIPO!" data-cheer-sound="mario_coin">
-              <span class="cheer-emoji">🏆</span>
-              <span class="cheer-label">¡A POR ELLOS!</span>
-            </button>
+            <div id="bench-cooldown-notice" class="bench-cooldown-notice" style="display: none;">
+              ⏳ Espera: <strong id="bench-cooldown-timer">15</strong>s
+            </div>
           </div>
         </div>
 
@@ -512,22 +550,41 @@
 
       </div>
 
-      <!-- Soundboard Meme de la Cuadrilla -->
-      <div class="emote-board" id="soundboard-box">
-        <div class="emote-title">
-          <span>🔊 Soundboard Chavalil</span>
-          <span id="soundboard-cooldown-badge" class="badge" style="display: none;">⏳ Espera 4s</span>
-        </div>
-        <div class="emote-buttons" id="soundboard-buttons">
-          <button class="btn-emote" data-sound="bocina" data-emote="📢"><span>📢</span><span>BOCINA</span></button>
-          <button class="btn-emote" data-sound="auuu" data-emote="🐺"><span>🐺</span><span>AUUUU</span></button>
-          <button class="btn-emote" data-sound="bing_chilling" data-emote="🍦"><span>🍦</span><span>BING</span></button>
-          <button class="btn-emote" data-sound="faaah" data-emote="🗣️"><span>🗣️</span><span>FAAAH</span></button>
-          <button class="btn-emote" data-sound="oh_my_god" data-emote="😱"><span>😱</span><span>OMG</span></button>
-          <button class="btn-emote" data-sound="allah_akbar" data-emote="💣"><span>💣</span><span>ALLAH</span></button>
+    </section>
+
+    <!-- SCREEN 3: MOBILE PODIUM SCREEN (Winner Spotlight Card & Full Cuadrilla Ranking) -->
+    <section id="screen-podium-mobile" class="player-screen">
+      <div class="podium-mobile-header">
+        <span class="podium-mobile-trophy">🏆</span>
+        <h2 class="podium-mobile-title">PODIO CHAVALIL</h2>
+        <span class="badge badge-warning" id="podium-mobile-level-tag">NIVEL COMPLETADO</span>
+      </div>
+
+      <!-- Spotlight Winner Card -->
+      <div class="podium-mobile-winner-card">
+        <div class="winner-crown-badge">👑 CAMPEÓN DE LA PRUEBA</div>
+        <div class="podium-mobile-winner-avatar" id="podium-mobile-winner-avatar"></div>
+        <div class="podium-mobile-winner-name" id="podium-mobile-winner-name">Chaval</div>
+        <div class="podium-mobile-winner-score" id="podium-mobile-winner-score">+100 PTS</div>
+      </div>
+
+      <!-- Cuadrilla Leaderboard Ranking -->
+      <div class="podium-mobile-ranking-box">
+        <div class="podium-ranking-title">📊 Clasificación de la Cuadrilla</div>
+        <div class="podium-mobile-ranking-list" id="podium-mobile-ranking-list">
+          <!-- Injected dynamically via player.js -->
         </div>
       </div>
 
+      <!-- Status or J1 Continue Button -->
+      <div class="podium-mobile-footer">
+        <div class="podium-locked-msg" id="podium-locked-msg">
+          📺 Mirando al televisor... El Admin avanzará al mapa.
+        </div>
+        <button class="btn btn-success btn-big-action btn-podium-j1-continue" id="btn-podium-j1-continue" style="display: none;">
+          🗺️ Continuar al Mapa (J1)
+        </button>
+      </div>
     </section>
   </div>
 

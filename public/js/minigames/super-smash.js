@@ -160,6 +160,7 @@ class SuperSmashEngine {
 
     const heatPlayers = this.heats[heatIndex] || this.allPlayers;
     const teamAIds = (this.teams.teamA || []).map(p => p.id);
+    const teamBIds = (this.teams.teamB || []).map(p => p.id);
 
     // Staggered Spawns on Battlefield
     const spawnSlots = [
@@ -170,7 +171,16 @@ class SuperSmashEngine {
     ];
 
     this.activeFighters = heatPlayers.map((p, idx) => {
-      const inTeamA = teamAIds.includes(p.id) || (idx % 2 === 0);
+      let inTeamA;
+      if (heatPlayers.length === 2) {
+        inTeamA = (idx === 0);
+      } else if (teamAIds.length > 0 || teamBIds.length > 0) {
+        if (teamAIds.includes(p.id)) inTeamA = true;
+        else if (teamBIds.includes(p.id)) inTeamA = false;
+        else inTeamA = (idx % 2 === 0);
+      } else {
+        inTeamA = (idx % 2 === 0);
+      }
       const spawn = spawnSlots[idx % spawnSlots.length];
 
       return {

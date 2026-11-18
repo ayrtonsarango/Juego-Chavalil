@@ -206,6 +206,7 @@ class MarioKartEngine {
     this.winningTeam = null;
 
     const teamA = (teams.teamA || []).map(p => p.id);
+    const teamB = (teams.teamB || []).map(p => p.id);
 
     // Authentic character mapping to original SNES sprite sheets
     const charSpriteMap = {
@@ -241,7 +242,16 @@ class MarioKartEngine {
     ];
 
     this.players = playerList.map((p, idx) => {
-      const inTeamA = teamA.includes(p.id) || (idx % 2 === 0);
+      let inTeamA;
+      if (playerList.length === 2) {
+        inTeamA = (idx === 0);
+      } else if (teamA.length > 0 || teamB.length > 0) {
+        if (teamA.includes(p.id)) inTeamA = true;
+        else if (teamB.includes(p.id)) inTeamA = false;
+        else inTeamA = (idx % 2 === 0);
+      } else {
+        inTeamA = (idx % 2 === 0);
+      }
       const grid = gridPositions[idx % gridPositions.length];
       const charKey = (p.id || '').toLowerCase();
       const spriteKey = charSpriteMap[charKey] || spriteFallbackList[idx % spriteFallbackList.length];

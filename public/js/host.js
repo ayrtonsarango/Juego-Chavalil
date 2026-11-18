@@ -951,11 +951,8 @@ function renderMinigameView(level, teams) {
   } else if (gType === 'race' && typeof MarioKartEngine !== 'undefined') {
     activeMinigameEngine = new MarioKartEngine('minigame-canvas', { onComplete: onDone });
     activeMinigameEngine.init(currentPlayers, teams);
-  } else if (gType === 'brawler' && typeof SuperSmashEngine !== 'undefined') {
+  } else if ((gType === 'brawler' || gType === 'opensmash') && typeof SuperSmashEngine !== 'undefined') {
     activeMinigameEngine = new SuperSmashEngine('minigame-canvas', { onComplete: onDone });
-    activeMinigameEngine.init(currentPlayers, teams);
-  } else if (gType === 'opensmash' && typeof SuperSmashEngine !== 'undefined') {
-    activeMinigameEngine = new SuperSmashEngine('minigame-canvas', { onComplete: onDone, stageTheme: 'final_destination' });
     activeMinigameEngine.init(currentPlayers, teams);
   } else if ((gType === 'buttonbash' || gType === 'bash') && typeof ButtonBashEngine !== 'undefined') {
     activeMinigameEngine = new ButtonBashEngine('minigame-canvas', { onComplete: onDone });
@@ -1207,6 +1204,46 @@ socket.on('minigame_event_broadcast', (data) => {
       triggerFloatingEmote('🚨', '¡ALARMA DE PELIGRO!');
     }
   }
+});
+
+// Minijuego abortado de forma segura por el Administrador (vuelve al mapa sin completar)
+socket.on('minigame_aborted', (data) => {
+  if (activeMinigameEngine) {
+    activeMinigameEngine.stop();
+    activeMinigameEngine = null;
+  }
+  document.body.classList.remove('standalone-game-active');
+  if (window.soundEngine) soundEngine.playHonk();
+  triggerFloatingEmote('🛑', data?.reason || 'Minijuego cancelado');
+});
+
+// Mensajes y gritos flotantes del Banquillo (espectadores en tiempo real)
+socket.on('bench_message_broadcast', (data) => {
+  if (!data || !data.text) return;
+  const overlay = document.getElementById('bench-shouts-overlay');
+  if (!overlay) return;
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bench-shout-pill';
+  const avatarSvg = data.avatar && typeof renderAvatarSVG === 'function' ? renderAvatarSVG(data.avatar, 36) : '';
+  bubble.innerHTML = `
+    <div class="bench-shout-avatar">${avatarSvg}</div>
+    <div class="bench-shout-content">
+      <span class="bench-shout-name">${escapeHtml(data.playerName || 'Banquillo')}:</span>
+      <span class="bench-shout-text">"${escapeHtml(data.text)}"</span>
+    </div>
+  `;
+
+  // Random staggered horizontal placement
+  const randomX = 12 + Math.random() * 60;
+  bubble.style.left = `${randomX}%`;
+
+  overlay.appendChild(bubble);
+
+  setTimeout(() => {
+    bubble.classList.add('fade-out');
+    setTimeout(() => bubble.remove(), 600);
+  }, 3500);
 });
 
 // MEME: Android detected inside joke!
@@ -1682,6 +1719,22 @@ window.addEventListener('keydown', (e) => {
     socket.emit('podium_continue_to_map');
   }
 });
+
+// Admin Safe Minigame Abort (Returns to map without completing level)
+const btnAdminAbortMinigame = document.getElementById('btn-admin-abort-minigame');
+if (btnAdminAbortMinigame) {
+  btnAdminAbortMinigame.addEventListener('click', () => {
+    socket.emit('admin_abort_minigame');
+  });
+}
+
+// Admin Skip / Unlock Level
+const btnAdminSkipLevel = document.getElementById('btn-admin-skip-level');
+if (btnAdminSkipLevel) {
+  btnAdminSkipLevel.addEventListener('click', () => {
+    socket.emit('admin_skip_level');
+  });
+}
 
 // Start initialization
 initNetworkInfo();

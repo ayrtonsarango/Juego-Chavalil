@@ -164,16 +164,27 @@ class ButtonBashEngine {
     this.darts = [];
     this.crazyDarts = [];
 
+    // Assign active shooter (prefer first human player)
+    const humanPlayers = (players || []).filter(p => !p.isBot);
+    const candidate = humanPlayers.length > 0 ? humanPlayers[0] : (players[0] || { id: 'p1', name: 'Chaval' });
+    this.activeShooterId = candidate.id;
+    this.activeShooterName = candidate.name;
+
     if (window.soundEngine && typeof soundEngine.playSoundByName === 'function') {
       soundEngine.playMysteryReveal();
     }
 
-    // Broadcast prank start to player phones
+    // Broadcast prank start & active shooter turn to player phones
     if (window.socket) {
       window.socket.emit('minigame_trigger_event', {
         type: 'buttonbash_event',
         stage: 'intro',
         message: '¡A jugar Button Bash!'
+      });
+      window.socket.emit('minigame_trigger_event', {
+        type: 'buttonbash_turn',
+        activePlayerId: this.activeShooterId,
+        activePlayerName: this.activeShooterName
       });
     }
 
@@ -198,6 +209,11 @@ class ButtonBashEngine {
     } else {
       playerId = arg1;
       data = arg2 || {};
+    }
+
+    // Only active shooter can lock and throw the dart!
+    if (this.activeShooterId && playerId && playerId !== this.activeShooterId) {
+      return;
     }
 
     // First tap locks X ticker, second tap locks Y ticker and launches dart
@@ -441,10 +457,86 @@ class ButtonBashEngine {
       if (window.soundEngine) soundEngine.playBocina();
     }, 2400);
 
-    // Trigger Group D (7s Blackout) after 5 seconds
+    // 4. Alvarito en Tracasa (slapped top center, 5.0s)
+    setTimeout(() => {
+      if (!this.running) return;
+      this.activePopups.push({
+        id: 'tracasa_alarm',
+        type: 'alert',
+        title: '⚠️ INCIDENCIA CRÍTICA EN TRACASA',
+        body: 'Alvarito ha tirado el café sobre los servidores GIS.\nRogamos reiniciar el router de la cuadrilla inmediatamente.',
+        badge: 'ERROR 500 SERVER',
+        btnText: 'Reiniciar plomos',
+        x: 290,
+        y: 80,
+        w: 620,
+        h: 210,
+        tilt: 0.04
+      });
+      if (window.soundEngine) soundEngine.playDangerAlarm();
+    }, 5000);
+
+    // 5. Chino Eneko Pipas Facundo (8.5s)
+    setTimeout(() => {
+      if (!this.running) return;
+      this.activePopups.push({
+        id: 'eneko_pipas',
+        type: 'invite',
+        title: '🌻 BAZAR ENEKO: OFERTA PIPAS FACUNDO',
+        body: 'Pipas con sal y Monster Mango Loco a 1.20€.\nSolo pago en efectivo o bizum al número de la cuadrilla.',
+        badge: 'OFERTA FLASH',
+        btnText: 'Comprar 2 paquetes',
+        x: 480,
+        y: 250,
+        w: 580,
+        h: 220,
+        tilt: -0.05
+      });
+      if (window.soundEngine) soundEngine.playHonk();
+    }, 8500);
+
+    // 6. Multa de la Mancomunidad (12.0s)
+    setTimeout(() => {
+      if (!this.running) return;
+      this.activePopups.push({
+        id: 'multa_manco',
+        type: 'ad',
+        title: '🚨 MULTA POR KALIMOTXO EN VÍA PÚBLICA',
+        body: 'La Policía Municipal de Pamplona te ha pillado con la garrafa de 5L.\nPulsa aquí para alegar que estabas yendo a misa.',
+        badge: 'SANCIÓN 600€',
+        btnText: 'Alegar recurso',
+        x: 180,
+        y: 360,
+        w: 600,
+        h: 230,
+        tilt: 0.03
+      });
+      if (window.soundEngine) soundEngine.playBocina();
+    }, 12000);
+
+    // 7. Aviso de plomos inminentes (15.5s)
+    setTimeout(() => {
+      if (!this.running) return;
+      this.activePopups.push({
+        id: 'plomos_warn',
+        type: 'alert',
+        title: '⚡ ALVARITO HA TOCADO EL CUADRO ELÉCTRICO',
+        body: '¡CUIDADO! La luz de todo el bar está a punto de saltar.\n¡Marta y Violeta huyen de la barra!',
+        badge: 'VOLTAJE CRÍTICO',
+        btnText: '¡CORRED!',
+        x: 350,
+        y: 200,
+        w: 640,
+        h: 230,
+        tilt: -0.02
+      });
+      if (window.soundEngine) soundEngine.playAndroidAlert();
+    }, 15500);
+
+    // Trigger Group D (7s Blackout) after 18 seconds (gives plenty of time to read jokes & popups!)
     setTimeout(() => {
       this.triggerBlackout();
-    }, 5200);
+    }, 18000);
   }
 
   triggerBlackout() {
@@ -596,6 +688,9 @@ class ButtonBashEngine {
     // 7. Hit score popup labels
     this.renderHitEffects(ctx);
 
+    // 7B. Active Shooter Turn Banner on TV
+    this.renderTurnHeader(ctx);
+
     // 8. Opening Standalone Arcade Splash Banner (first 3.0 seconds)
     if (this.elapsedGameTime < 3.0 && (this.phase === 'aiming_x' || this.phase === 'intro')) {
       this.renderOpeningArcadeSplash(ctx);
@@ -653,6 +748,45 @@ class ButtonBashEngine {
     ctx.fillStyle = '#0284c7';
     ctx.font = '800 17px system-ui, -apple-system, sans-serif';
     ctx.fillText('Marta & Violeta: "¡Preparaos chavales! 1º Fija X · 2º Fija Y"', bx + bw / 2, by + 142);
+
+    ctx.restore();
+  }
+
+  renderTurnHeader(ctx) {
+    if (this.phase === 'blackout' || this.phase === 'fake_ranking') return;
+    const name = (this.activeShooterName || 'Chaval').toUpperCase();
+    ctx.save();
+    const bx = 340;
+    const by = 16;
+    const bw = 600;
+    const bh = 52;
+
+    // Card shadow
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    ctx.shadowBlur = 16;
+    ctx.shadowOffsetY = 6;
+
+    // Background
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.roundRect(bx, by, bw, bh, 26);
+    ctx.fill();
+
+    // Border
+    ctx.strokeStyle = '#1e293b';
+    ctx.lineWidth = 3.5;
+    ctx.stroke();
+
+    // Icon & Text
+    ctx.shadowColor = 'transparent';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = '900 22px Fredoka, -apple-system, sans-serif';
+    ctx.fillStyle = '#1e293b';
+    ctx.fillText('🎯 TURNO DE LANZAR: ', bx + 210, by + bh / 2);
+
+    ctx.fillStyle = '#e11d48';
+    ctx.fillText(name, bx + 410, by + bh / 2);
 
     ctx.restore();
   }

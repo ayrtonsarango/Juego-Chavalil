@@ -84,6 +84,17 @@ function showActiveGamepad(gType) {
     if (padTank) padTank.style.display = 'flex';
   } else if (gType === 'headsoccer') {
     if (padHead) padHead.style.display = 'flex';
+    const headTeamBadge = document.getElementById('head-team-badge');
+    const myTeam = (currentGameState?.teams?.teamB || []).some(p => p.id === socket.id) ? 'teamB' : 'teamA';
+    if (headTeamBadge) {
+      if (myTeam === 'teamB') {
+        headTeamBadge.textContent = '🔴 EQUIPO ROJO';
+        headTeamBadge.style.background = '#ef4444';
+      } else {
+        headTeamBadge.textContent = '🔵 EQUIPO AZUL';
+        headTeamBadge.style.background = '#3b82f6';
+      }
+    }
   } else if (gType === 'bomberman') {
     if (padBomb) padBomb.style.display = 'flex';
   } else if (gType === 'haxball') {
@@ -151,62 +162,153 @@ const characterSpecificBox = document.getElementById('character-specific-box');
 const characterSpecificTitle = document.getElementById('character-specific-title');
 const specificOptionsContainer = document.getElementById('specific-options-container');
 
-function initPresetChips() {
-  if (!presetChipsScroll || typeof AVATAR_PRESETS === 'undefined') return;
-  presetChipsScroll.innerHTML = '';
+// 3D Champion Carousel State & Elements
+let currentChampionIndex = 0;
+const championNameTitle = document.getElementById('champion-name-title');
+const slotChampLeft = document.getElementById('slot-champ-left');
+const slotChampCenter = document.getElementById('slot-champ-center');
+const slotChampRight = document.getElementById('slot-champ-right');
+const btnChampPrev = document.getElementById('btn-champ-prev');
+const btnChampNext = document.getElementById('btn-champ-next');
+const btnEditGamertag = document.getElementById('btn-edit-gamertag');
+const gamertagEditHint = document.getElementById('gamertag-edit-hint');
 
-  // 1. Dedicated Random Chip at the start
-  const randBtn = document.createElement('button');
-  randBtn.className = `preset-chip-btn chip-random ${selectedPresetId === 'random' ? 'active' : ''}`;
-  randBtn.textContent = '🎲 Aleatorio';
-  randBtn.addEventListener('click', () => {
-    if (isPlayerReady) return;
-    document.querySelectorAll('.preset-chip-btn').forEach(b => b.classList.remove('active'));
-    randBtn.classList.add('active');
-    selectedPresetId = 'random';
-    currentAvatar = getRandomAvatar();
-    const randName = `Chaval_${Math.floor(Math.random() * 90 + 10)}`;
-    inputPlayerName.value = randName;
-    localStorage.setItem('chaval_name', randName);
-    updateAvatarPreview();
-    renderCharacterSpecificOptions();
-    renderGlobalTabOptions(activeGlobalTab);
+function initChampionCarousel() {
+  if (typeof AVATAR_PRESETS === 'undefined' || AVATAR_PRESETS.length === 0) return;
 
-    socket.emit('player_toggle_ready', {
-      ready: false,
-      name: randName,
-      avatar: currentAvatar,
-      isAndroid: isAndroidDevice
-    });
-  });
-  presetChipsScroll.appendChild(randBtn);
+  const matchIdx = AVATAR_PRESETS.findIndex(p => p.id === selectedPresetId);
+  currentChampionIndex = matchIdx >= 0 ? matchIdx : 0;
 
-  // 2. Character presets
-  AVATAR_PRESETS.forEach((preset) => {
-    const btn = document.createElement('button');
-    btn.className = `preset-chip-btn ${selectedPresetId === preset.id ? 'active' : ''}`;
-    btn.textContent = preset.chip || preset.name;
-    btn.addEventListener('click', () => {
+  if (btnChampPrev) {
+    btnChampPrev.addEventListener('click', () => {
       if (isPlayerReady) return;
-      document.querySelectorAll('.preset-chip-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      selectedPresetId = preset.id;
-      currentAvatar = JSON.parse(JSON.stringify(preset.config));
-      inputPlayerName.value = preset.name;
-      localStorage.setItem('chaval_name', preset.name);
-      updateAvatarPreview();
-      renderCharacterSpecificOptions();
-      renderGlobalTabOptions(activeGlobalTab);
-
-      socket.emit('player_toggle_ready', {
-        ready: false,
-        name: preset.name,
-        avatar: currentAvatar,
-        isAndroid: isAndroidDevice
-      });
+      navigateChampion(-1);
     });
-    presetChipsScroll.appendChild(btn);
+  }
+  if (btnChampNext) {
+    btnChampNext.addEventListener('click', () => {
+      if (isPlayerReady) return;
+      navigateChampion(1);
+    });
+  }
+
+  if (slotChampLeft) {
+    slotChampLeft.addEventListener('click', () => {
+      if (isPlayerReady) return;
+      navigateChampion(-1);
+    });
+  }
+  if (slotChampRight) {
+    slotChampRight.addEventListener('click', () => {
+      if (isPlayerReady) return;
+      navigateChampion(1);
+    });
+  }
+
+  // Touch swipe support on carousel stage
+  const carouselStage = document.getElementById('champion-carousel-stage');
+  if (carouselStage) {
+    let touchStartX = 0;
+    let touchEndX = 0;
+    carouselStage.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+    carouselStage.addEventListener('touchend', (e) => {
+      touchEndX = e.changedTouches[0].screenX;
+      const diff = touchEndX - touchStartX;
+      if (Math.abs(diff) > 40) {
+        if (diff > 0) {
+          navigateChampion(-1);
+        } else {
+          navigateChampion(1);
+        }
+      }
+    }, { passive: true });
+  }
+
+  // Pencil edit focus
+  if (btnEditGamertag) {
+    btnEditGamertag.addEventListener('click', () => {
+      if (inputPlayerName) {
+        inputPlayerName.focus();
+        inputPlayerName.select();
+      }
+    });
+  }
+  if (gamertagEditHint) {
+    gamertagEditHint.addEventListener('click', () => {
+      if (inputPlayerName) {
+        inputPlayerName.focus();
+        inputPlayerName.select();
+      }
+    });
+  }
+
+  renderChampionCarousel();
+}
+
+function navigateChampion(direction) {
+  if (isPlayerReady) return;
+  const prevChamp = AVATAR_PRESETS[currentChampionIndex];
+  const total = AVATAR_PRESETS.length;
+  currentChampionIndex = (currentChampionIndex + direction + total) % total;
+  const newChamp = AVATAR_PRESETS[currentChampionIndex];
+
+  selectedPresetId = newChamp.id;
+  currentAvatar = JSON.parse(JSON.stringify(newChamp.config));
+
+  // If current name is empty, starts with Chaval_, or matches previous champion name, update to new champion name!
+  const currentVal = (inputPlayerName.value || '').trim();
+  if (!currentVal || currentVal.startsWith('Chaval_') || (prevChamp && currentVal.toLowerCase() === prevChamp.name.toLowerCase())) {
+    inputPlayerName.value = newChamp.name;
+    localStorage.setItem('chaval_name', newChamp.name);
+  }
+
+  renderChampionCarousel();
+  renderCharacterSpecificOptions();
+  renderGlobalTabOptions(activeGlobalTab);
+
+  if (window.soundEngine && typeof soundEngine.playStep === 'function') {
+    soundEngine.playStep();
+  }
+
+  socket.emit('player_toggle_ready', {
+    ready: false,
+    name: inputPlayerName.value || newChamp.name,
+    avatar: currentAvatar,
+    isAndroid: isAndroidDevice
   });
+}
+
+function renderChampionCarousel() {
+  if (typeof AVATAR_PRESETS === 'undefined' || AVATAR_PRESETS.length === 0) return;
+  const total = AVATAR_PRESETS.length;
+  const current = AVATAR_PRESETS[currentChampionIndex];
+  const prevIdx = (currentChampionIndex - 1 + total) % total;
+  const nextIdx = (currentChampionIndex + 1) % total;
+  const prevPreset = AVATAR_PRESETS[prevIdx];
+  const nextPreset = AVATAR_PRESETS[nextIdx];
+
+  if (championNameTitle) {
+    championNameTitle.textContent = current.name.toUpperCase();
+  }
+
+  if (slotChampLeft && typeof renderAvatarSVG === 'function') {
+    slotChampLeft.innerHTML = renderAvatarSVG(prevPreset.config, 85);
+    slotChampLeft.setAttribute('title', prevPreset.name);
+  }
+
+  updateAvatarPreview();
+
+  if (slotChampRight && typeof renderAvatarSVG === 'function') {
+    slotChampRight.innerHTML = renderAvatarSVG(nextPreset.config, 85);
+    slotChampRight.setAttribute('title', nextPreset.name);
+  }
+}
+
+// Legacy helper for backwards compatibility
+function initPresetChips() {
+  initChampionCarousel();
 }
 
 // 1. Render Avatar Preview
@@ -456,6 +558,69 @@ socket.on('player_kicked', (data) => {
   window.location.reload();
 });
 
+// Render Dedicated Mobile Podium Screen (Large Winner Card & Cuadrilla Ranking)
+function renderMobilePodium(gameState, players, me) {
+  const winnerAvatarEl = document.getElementById('podium-mobile-winner-avatar');
+  const winnerNameEl = document.getElementById('podium-mobile-winner-name');
+  const winnerScoreEl = document.getElementById('podium-mobile-winner-score');
+  const rankingListEl = document.getElementById('podium-mobile-ranking-list');
+  const levelTagEl = document.getElementById('podium-mobile-level-tag');
+  const btnJ1Continue = document.getElementById('btn-podium-j1-continue');
+  const lockedMsg = document.getElementById('podium-locked-msg');
+
+  const podiumData = gameState.lastPodium || {};
+  const completedLevel = podiumData.completedLevel || gameState.minigameActive;
+  if (levelTagEl && completedLevel) {
+    levelTagEl.textContent = completedLevel.title || 'NIVEL COMPLETADO';
+  }
+
+  // Winner spotlight
+  const winner = podiumData.winner || (players.slice().sort((a, b) => b.score - a.score)[0]);
+  if (winner) {
+    if (winnerAvatarEl && typeof renderAvatarSVG === 'function') {
+      winnerAvatarEl.innerHTML = renderAvatarSVG(winner.avatar, 95);
+    }
+    if (winnerNameEl) winnerNameEl.textContent = winner.name;
+    if (winnerScoreEl) winnerScoreEl.textContent = `${winner.score || 100} PTS`;
+  }
+
+  // Cuadrilla leaderboard ranking rows
+  if (rankingListEl) {
+    rankingListEl.innerHTML = '';
+    const sorted = (podiumData.ranking || players.slice()).sort((a, b) => (b.score || 0) - (a.score || 0));
+    const medals = ['🥇', '🥈', '🥉'];
+    sorted.forEach((p, idx) => {
+      const row = document.createElement('div');
+      row.className = 'podium-mobile-row';
+      const medal = medals[idx] || `#${idx + 1}`;
+      const isMe = p.id === (me ? me.id : socket.id);
+      if (isMe) {
+        row.style.background = '#fef08a';
+        row.style.borderColor = '#0284c7';
+      }
+      const avatarSvg = (p.avatar && typeof renderAvatarSVG === 'function') ? renderAvatarSVG(p.avatar, 28) : '';
+      row.innerHTML = `
+        <div class="podium-mobile-row-left">
+          <span class="podium-mobile-medal">${medal}</span>
+          <div class="podium-mobile-avatar-mini">${avatarSvg}</div>
+          <span class="podium-mobile-row-name">${escapeHtml(p.name || 'Chaval')} ${isMe ? '(Tú)' : ''}</span>
+        </div>
+        <span class="podium-mobile-row-score">${p.score || 0} pts</span>
+      `;
+      rankingListEl.appendChild(row);
+    });
+  }
+
+  // J1 Leader Button to continue to map
+  if (me && me.isJ1 && btnJ1Continue) {
+    btnJ1Continue.style.display = 'block';
+    if (lockedMsg) lockedMsg.textContent = '👑 Como Líder J1, puedes avanzar al mapa cuando la cuadrilla esté lista:';
+  } else {
+    if (btnJ1Continue) btnJ1Continue.style.display = 'none';
+    if (lockedMsg) lockedMsg.textContent = '📺 Mirando al televisor... El Admin avanzará al mapa.';
+  }
+}
+
 // Update Mobile Controller View according to state
 function updateControllerState(gameState, players) {
   const me = players.find(p => p.id === socket.id);
@@ -463,15 +628,26 @@ function updateControllerState(gameState, players) {
 
   currentServerStatus = gameState.status || 'lobby';
 
+  const screenPodiumMobile = document.getElementById('screen-podium-mobile');
+
   // View routing based on gameState.status
-  if (gameState.status === 'map' || gameState.status === 'minigame') {
+  if (gameState.status === 'podium') {
     if (screenCreator) screenCreator.classList.remove('active');
     if (screenLobbyPad) screenLobbyPad.classList.remove('active');
+    if (screenController) screenController.classList.remove('active');
+    if (screenPodiumMobile) screenPodiumMobile.classList.add('active');
+    if (playerTopBadge) playerTopBadge.style.display = 'inline-flex';
+    renderMobilePodium(gameState, players, me);
+  } else if (gameState.status === 'map' || gameState.status === 'minigame') {
+    if (screenCreator) screenCreator.classList.remove('active');
+    if (screenLobbyPad) screenLobbyPad.classList.remove('active');
+    if (screenPodiumMobile) screenPodiumMobile.classList.remove('active');
     if (screenController) screenController.classList.add('active');
     if (playerTopBadge) playerTopBadge.style.display = 'inline-flex';
   } else {
     // In lobby: route between screen-creator and screen-lobby-pad based on isPlayerReady
     if (screenController) screenController.classList.remove('active');
+    if (screenPodiumMobile) screenPodiumMobile.classList.remove('active');
     if (playerTopBadge) playerTopBadge.style.display = 'none';
     if (me.ready !== isPlayerReady) {
       setPlayerReadyUI(Boolean(me.ready));
@@ -828,6 +1004,33 @@ socket.on('character_theme_broadcast', (data) => {
 });
 
 socket.on('minigame_event_broadcast', (data) => {
+  if (!data) return;
+  if (data.type === 'buttonbash_turn') {
+    const isMyTurn = data.activePlayerId === socket.id;
+    const bashTurnTitle = document.getElementById('bash-turn-title');
+    const bashTurnSub = document.getElementById('bash-turn-sub');
+    const btnBashTarget = document.getElementById('btn-bash-target');
+    const mobilePrankOverlay = document.getElementById('bash-mobile-prank-overlay');
+
+    if (isMyTurn) {
+      if (bashTurnTitle) bashTurnTitle.textContent = '🎯 ¡ES TU TURNO DE LANZAR!';
+      if (bashTurnSub) bashTurnSub.textContent = '1º Pulsa para fijar X · 2º Pulsa para fijar Y';
+      if (btnBashTarget) {
+        btnBashTarget.disabled = false;
+        btnBashTarget.classList.remove('locked');
+      }
+      if (mobilePrankOverlay) mobilePrankOverlay.style.display = 'none';
+      safeVibrate([80, 40, 80]);
+    } else {
+      if (bashTurnTitle) bashTurnTitle.textContent = `⏳ Turno de ${data.activePlayerName || 'Compañero'}`;
+      if (bashTurnSub) bashTurnSub.textContent = '¡Mira el tiro en la pantalla grande!';
+      if (btnBashTarget) {
+        btnBashTarget.disabled = true;
+        btnBashTarget.classList.add('locked');
+      }
+    }
+    return;
+  }
   if (data.type === 'buttonbash_event') {
     handleButtonBashMobilePrank(data);
     return;
@@ -896,27 +1099,73 @@ socket.on('minigame_heat_update', (data) => {
   }
 });
 
-// Bench Spectator Cheer Reactions
-document.querySelectorAll('.btn-bench-cheer').forEach(btn => {
-  btn.addEventListener('click', () => {
-    btn.classList.add('is-pressed');
-    setTimeout(() => btn.classList.remove('is-pressed'), 140);
+// Banquillo Spectator Shouts (max 10 chars, 15s cooldown)
+const benchShoutInput = document.getElementById('bench-shout-input');
+const benchCharCounter = document.getElementById('bench-char-counter');
+const btnBenchSend = document.getElementById('btn-bench-send');
+const benchCooldownNotice = document.getElementById('bench-cooldown-notice');
+const benchCooldownTimer = document.getElementById('bench-cooldown-timer');
+let benchCooldownRemaining = 0;
+let benchTimerInterval = null;
 
-    const cheer = btn.dataset.cheer || '👏';
-    const text = btn.dataset.cheerText || '¡VAMOOOS!';
-    const sound = btn.dataset.cheerSound || 'mario_coin';
-
-    if (window.soundEngine) {
-      soundEngine.playMarioCoin();
-    }
-    socket.emit('player_emote', {
-      emote: cheer,
-      sound,
-      playerName: `${inputPlayerName.value || 'Chaval'} (${text})`
-    });
-    safeVibrate(35);
+if (benchShoutInput) {
+  benchShoutInput.addEventListener('input', () => {
+    const len = benchShoutInput.value.length;
+    if (benchCharCounter) benchCharCounter.textContent = `${len}/10`;
   });
+  benchShoutInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      if (btnBenchSend) btnBenchSend.click();
+    }
+  });
+}
+
+if (btnBenchSend) {
+  btnBenchSend.addEventListener('click', () => {
+    if (benchCooldownRemaining > 0) return;
+    const txt = (benchShoutInput ? benchShoutInput.value : '').trim().substring(0, 10);
+    if (!txt) return;
+
+    socket.emit('player_bench_shout', { text: txt });
+    if (benchShoutInput) benchShoutInput.value = '';
+    if (benchCharCounter) benchCharCounter.textContent = '0/10';
+
+    benchCooldownRemaining = 15;
+    btnBenchSend.disabled = true;
+    if (benchCooldownNotice) benchCooldownNotice.style.display = 'block';
+    if (benchCooldownTimer) benchCooldownTimer.textContent = '15';
+
+    if (benchTimerInterval) clearInterval(benchTimerInterval);
+    benchTimerInterval = setInterval(() => {
+      benchCooldownRemaining--;
+      if (benchCooldownTimer) benchCooldownTimer.textContent = String(benchCooldownRemaining);
+      if (benchCooldownRemaining <= 0) {
+        clearInterval(benchTimerInterval);
+        benchTimerInterval = null;
+        btnBenchSend.disabled = false;
+        if (benchCooldownNotice) benchCooldownNotice.style.display = 'none';
+      }
+    }, 1000);
+    safeVibrate(40);
+  });
+}
+
+socket.on('bench_shout_error', (data) => {
+  if (data && typeof data.remainingSec === 'number') {
+    benchCooldownRemaining = data.remainingSec;
+    if (btnBenchSend) btnBenchSend.disabled = true;
+    if (benchCooldownNotice) benchCooldownNotice.style.display = 'block';
+    if (benchCooldownTimer) benchCooldownTimer.textContent = String(benchCooldownRemaining);
+  }
 });
+
+// Podium J1 Continue button
+const btnPodiumJ1Continue = document.getElementById('btn-podium-j1-continue');
+if (btnPodiumJ1Continue) {
+  btnPodiumJ1Continue.addEventListener('click', () => {
+    socket.emit('podium_continue_to_map');
+  });
+}
 
 // Interactive Minigame Touch Gamepad Helpers (Mario Kart & Super Smash Bros)
 function bindHoldButton(el, onDown, onUp) {

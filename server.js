@@ -308,21 +308,33 @@ function broadcastState(targetSocket = null) {
   }
 }
 
+// Cooldown map for bench spectator shouts (15s per player)
+const benchCooldowns = new Map();
+
 // Balance teams for minigame (e.g. 4v4, avoiding 4v4v2 or unbalanced groups)
 function balanceTeams(playerList) {
   const shuffled = [...playerList].sort(() => Math.random() - 0.5);
   const total = shuffled.length;
 
-  if (total <= 1) {
-    return { teamA: shuffled, teamB: [], solo: [] };
+  if (total === 0) {
+    return { teamA: [], teamB: [], solo: [] };
+  }
+  if (total === 1) {
+    return { teamA: [shuffled[0]], teamB: [], solo: [] };
   }
 
-  const half = Math.floor(total / 2);
-  const teamA = shuffled.slice(0, half);
-  const teamB = shuffled.slice(half, half * 2);
-  const solo = total % 2 !== 0 ? [shuffled[total - 1]] : [];
+  // Alternate players: Team A gets 0, 2, 4..., Team B gets 1, 3, 5...
+  const teamA = [];
+  const teamB = [];
+  shuffled.forEach((p, idx) => {
+    if (idx % 2 === 0) {
+      teamA.push(p);
+    } else {
+      teamB.push(p);
+    }
+  });
 
-  return { teamA, teamB, solo };
+  return { teamA, teamB, solo: [] };
 }
 
 io.on('connection', (socket) => {
@@ -708,12 +720,25 @@ io.on('connection', (socket) => {
     const isPrank = Boolean(data?.isPrank || currentLevel?.isPrank);
     const winningTeam = data?.winningTeam || 'teamA';
     if (!isPrank) {
-      if (data?.isFFA && Array.isArray(data?.scores)) {
+      if (Array.isArray(data?.players) && data.players.length > 0) {
+        data.players.forEach(s => {
+          const p = players.get(s.id);
+          if (!p) return;
+          if (typeof s.score === 'number') {
+            p.score += Math.round(s.score);
+          } else if (typeof s.rank === 'number') {
+            // Rank-based score (e.g. Mario Kart: 1st=100, 2nd=75, 3rd=50, 4th=35, 5th=20, 6th+=15)
+            const rankTable = [100, 75, 50, 35, 20];
+            const pts = (s.rank >= 1 && s.rank <= rankTable.length) ? rankTable[s.rank - 1] : 15;
+            p.score += pts;
+          }
+        });
+      } else if (data?.isFFA && Array.isArray(data?.scores)) {
         data.scores.forEach(s => {
           const p = players.get(s.id);
           if (p) p.score += (s.score || 0);
         });
-      } else if (gameState.teams[winningTeam]) {
+      } else if (gameState.teams && gameState.teams[winningTeam]) {
         gameState.teams[winningTeam].forEach(member => {
           const p = players.get(member.id);
           if (p) p.score += 100;
@@ -760,6 +785,71 @@ io.on('connection', (socket) => {
       io.emit('map_peloton_status', peloton);
       broadcastState();
     }
+  });
+
+  // Admin safe abort minigame (returns to map without marking complete or auto-advancing)
+  socket.on('admin_abort_minigame', () => {
+    if (gameState.status === 'minigame') {
+      gameState.status = 'map';
+      gameState.minigameActive = null;
+      io.emit('minigame_aborted', { reason: 'Minijuego abortado por el Administrador. Volviendo al mapa.' });
+      const peloton = getPelotonStatus();
+      io.emit('map_peloton_status', peloton);
+      broadcastState();
+    }
+  });
+
+  // Admin skip / unlock level (marks level complete and advances node)
+  socket.on('admin_skip_level', () => {
+    const currentLevel = gameState.levels[gameState.currentLevelIndex];
+    if (currentLevel) {
+      currentLevel.completed = true;
+      currentLevel.stars = 3;
+    }
+    if (gameState.currentLevelIndex < gameState.levels.length - 1) {
+      gameState.currentLevelIndex++;
+    }
+    players.forEach(p => {
+      p.mapNodeIndex = gameState.currentLevelIndex;
+    });
+    gameState.status = 'map';
+    gameState.minigameActive = null;
+    const peloton = getPelotonStatus();
+    io.emit('map_peloton_status', peloton);
+    broadcastState();
+  });
+
+  // Banquillo Spectator Shouts (max 10 chars, 15s cooldown, non-intrusive floating banners on TV)
+  socket.on('player_bench_shout', (data) => {
+    const player = players.get(socket.id);
+    if (!player) return;
+
+    const now = Date.now();
+    const lastShout = benchCooldowns.get(socket.id) || 0;
+    const remainingMs = 15000 - (now - lastShout);
+
+    if (remainingMs > 0) {
+      const waitSec = Math.ceil(remainingMs / 1000);
+      socket.emit('bench_shout_error', {
+        message: `⏳ Espera ${waitSec}s antes de mandar otro grito al televisor.`,
+        remainingSec: waitSec
+      });
+      return;
+    }
+
+    const rawText = (data && typeof data.text === 'string') ? data.text.trim() : '';
+    const cleanText = rawText.substring(0, 10);
+    if (!cleanText) return;
+
+    benchCooldowns.set(socket.id, now);
+
+    io.emit('bench_message_broadcast', {
+      playerId: player.id,
+      playerName: player.name,
+      avatar: player.avatar,
+      text: cleanText,
+      timestamp: now
+    });
   });
 
   // Reset to Lobby
@@ -812,6 +902,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
+    benchCooldowns.delete(socket.id);
     const player = players.get(socket.id);
     if (player) {
       players.delete(socket.id);

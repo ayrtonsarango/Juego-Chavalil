@@ -120,16 +120,26 @@ class HeadSoccerEngine {
     this.currentHeatIndex = 0;
 
     const teamAIds = (teams.teamA || []).map(p => p.id);
-    const playersA = playerList.filter(p => teamAIds.includes(p.id));
-    const playersB = playerList.filter(p => !teamAIds.includes(p.id));
+    const teamBIds = (teams.teamB || []).map(p => p.id);
+    let playersA = playerList.filter(p => teamAIds.includes(p.id));
+    let playersB = playerList.filter(p => teamBIds.includes(p.id));
+
+    // Fallback if teams were not populated
+    if (playersA.length === 0 && playersB.length === 0) {
+      playersA = playerList.filter((_, idx) => idx % 2 === 0);
+      playersB = playerList.filter((_, idx) => idx % 2 !== 0);
+    }
 
     // Formar Rondas (Heats): 1v1 o 2v2 por ronda
     this.heats = [];
-    const maxHeats = Math.max(playersA.length, playersB.length);
     if (playerList.length <= 2) {
-      this.heats.push(playerList);
+      // Strict 1v1 heat: ensure 1 player on team A and 1 player on team B
+      const p1 = playersA[0] || playerList[0];
+      const p2 = playersB[0] || playerList[1] || playerList[0];
+      this.heats.push([p1, p2]);
     } else {
       // Duelos 1v1 por rondas acumulando marcador global
+      const maxHeats = Math.max(playersA.length, playersB.length);
       for (let h = 0; h < maxHeats; h++) {
         const pair = [];
         if (playersA[h]) pair.push(playersA[h]);
@@ -161,10 +171,20 @@ class HeadSoccerEngine {
 
     const heatPlayers = this.heats[heatIndex] || this.allPlayers;
     const teamAIds = (this.teams.teamA || []).map(p => p.id);
+    const teamBIds = (this.teams.teamB || []).map(p => p.id);
 
     this.activePlayers = heatPlayers.map((p, idx) => {
-      const inTeamA = teamAIds.includes(p.id) || (idx % 2 === 0);
-      const isTeamA = inTeamA;
+      let isTeamA;
+      if (heatPlayers.length === 2) {
+        // En 1v1 el primer jugador es AZUL (izquierda) y el segundo es ROJO (derecha)
+        isTeamA = (idx === 0);
+      } else if (teamAIds.length > 0 || teamBIds.length > 0) {
+        if (teamAIds.includes(p.id)) isTeamA = true;
+        else if (teamBIds.includes(p.id)) isTeamA = false;
+        else isTeamA = (idx % 2 === 0);
+      } else {
+        isTeamA = (idx % 2 === 0);
+      }
 
       return {
         id: p.id,
@@ -238,8 +258,14 @@ class HeadSoccerEngine {
     const p = this.activePlayers.find(pl => pl.id === playerId);
     if (!p) return;
 
-    if (typeof input.left === 'boolean') p.moveLeft = input.left;
-    if (typeof input.right === 'boolean') p.moveRight = input.right;
+    if (typeof input.left === 'boolean') {
+      p.moveLeft = input.left;
+      if (input.left) p.facingRight = false;
+    }
+    if (typeof input.right === 'boolean') {
+      p.moveRight = input.right;
+      if (input.right) p.facingRight = true;
+    }
 
     if (input.up || input.jump) {
       if (p.isGrounded && !p.frozen) {
@@ -382,8 +408,14 @@ class HeadSoccerEngine {
       // Movimiento horizontal
       if (!p.frozen) {
         let dirX = 0;
-        if (p.moveLeft) dirX -= 1;
-        if (p.moveRight) dirX += 1;
+        if (p.moveLeft) {
+          dirX -= 1;
+          p.facingRight = false;
+        }
+        if (p.moveRight) {
+          dirX += 1;
+          p.facingRight = true;
+        }
 
         p.vx = dirX * p.speed * p.speedMult;
       } else {
@@ -1004,9 +1036,13 @@ class HeadSoccerEngine {
         ctx.fill();
       }
 
-      // Cabeza Gigante (Avatar SVG)
+      // Cabeza Gigante (Avatar SVG) con orientación según dirección a la que mira
       const avatarImg = this.avatarImages[p.id];
       const r = p.headRadius;
+      ctx.save();
+      if (!p.facingRight) {
+        ctx.scale(-1, 1);
+      }
       if (avatarImg && avatarImg.complete) {
         ctx.drawImage(avatarImg, -r, -r, r * 2, r * 2);
       } else {
@@ -1015,8 +1051,9 @@ class HeadSoccerEngine {
         ctx.arc(0, 0, r, 0, Math.PI * 2);
         ctx.fill();
       }
+      ctx.restore();
 
-      // Bota oscilante de remate
+      // Bota oscilante de remate (orientada según la dirección del jugador)
       ctx.save();
       const bootDist = p.headRadius * 0.75;
       const bootBaseAngle = p.facingRight ? 0.35 : Math.PI - 0.35;
@@ -1030,9 +1067,24 @@ class HeadSoccerEngine {
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.roundRect(p.facingRight ? -4 : -24, -8, 28, 16, [4, 8, 4, 4]);
+      // Puntera redondeada apuntando hacia adelante según facingRight
+      if (p.facingRight) {
+        ctx.roundRect(-4, -8, 28, 16, [4, 10, 4, 4]);
+      } else {
+        ctx.roundRect(-24, -8, 28, 16, [10, 4, 4, 4]);
+      }
       ctx.fill();
       ctx.stroke();
+
+      // Tacos de la bota
+      ctx.fillStyle = '#ffffff';
+      if (p.facingRight) {
+        ctx.fillRect(4, 8, 4, 3);
+        ctx.fillRect(14, 8, 4, 3);
+      } else {
+        ctx.fillRect(-18, 8, 4, 3);
+        ctx.fillRect(-8, 8, 4, 3);
+      }
 
       ctx.restore();
 

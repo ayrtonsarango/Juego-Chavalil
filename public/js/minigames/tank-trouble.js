@@ -133,9 +133,19 @@ class TankTroubleEngine {
     this.winningTeam = null;
 
     const teamAIds = (teams.teamA || []).map(p => p.id);
+    const teamBIds = (teams.teamB || []).map(p => p.id);
 
     this.players = playerList.map((p, idx) => {
-      const inTeamA = teamAIds.includes(p.id) || (idx % 2 === 0);
+      let inTeamA;
+      if (playerList.length === 2) {
+        inTeamA = (idx === 0);
+      } else if (teamAIds.length > 0 || teamBIds.length > 0) {
+        if (teamAIds.includes(p.id)) inTeamA = true;
+        else if (teamBIds.includes(p.id)) inTeamA = false;
+        else inTeamA = (idx % 2 === 0);
+      } else {
+        inTeamA = (idx % 2 === 0);
+      }
       return {
         id: p.id,
         name: p.name || `Chaval_${idx + 1}`,

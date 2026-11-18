@@ -199,8 +199,15 @@
         </div>
 
         <div class="minigame-header-banner">
-          <h2 class="minigame-title" id="minigame-banner-title">Minijuego</h2>
-          <p class="minigame-subtitle" id="minigame-banner-lore">¡Desafío por escuadras a máxima competición!</p>
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 12px;">
+            <div>
+              <h2 class="minigame-title" id="minigame-banner-title">Minijuego</h2>
+              <p class="minigame-subtitle" id="minigame-banner-lore">¡Desafío por escuadras a máxima competición!</p>
+            </div>
+            <button id="btn-admin-abort-minigame" class="btn btn-secondary btn-admin-minigame-abort" title="Volver al mapa sin completar el nivel ni avanzar" style="font-size: 0.85rem; padding: 6px 14px; background: rgba(30, 41, 59, 0.8); border: 2px solid #64748b; color: #f8fafc; border-radius: 12px; cursor: pointer; white-space: nowrap; font-weight: 700;">
+              ✕ Salir al Mapa (Sin completar)
+            </button>
+          </div>
         </div>
 
         <!-- Interactive Minigame Canvas (Mario Kart & Super Smash Bros) -->
@@ -324,6 +331,9 @@
     <!-- Floating reactions container -->
     <div id="floating-reactions-layer"></div>
 
+    <!-- Floating banquillo spectator shouts overlay -->
+    <div id="bench-shouts-overlay" class="bench-shouts-overlay"></div>
+
     <!-- Admin / Host Test Bar -->
     <footer class="admin-bar">
       <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
@@ -333,6 +343,9 @@
         </button>
         <button class="btn btn-secondary" id="btn-admin-add-4-bots" style="padding: 5px 12px; font-size: 0.8rem;">
           🤖 +4 Bots
+        </button>
+        <button class="btn btn-warning" id="btn-admin-skip-level" style="padding: 5px 12px; font-size: 0.8rem; font-weight: 800; background: #f59e0b; color: #1e293b;" title="Marcar nivel actual como completado y avanzar al siguiente">
+          ⏩ Saltar Nivel
         </button>
         <button class="btn btn-secondary" id="btn-admin-test-android" style="padding: 5px 12px; font-size: 0.8rem; color: #4ade80;">
           📱 Meme Android
