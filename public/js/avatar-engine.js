@@ -29,6 +29,7 @@ const AVATAR_OPTIONS = {
     { id: 'asier_curly_short', label: 'Rizado Corto' },
     { id: 'sparse_hair', label: 'Pelo Corto Clásico' },
     { id: 'spiky_up', label: 'En Punta' },
+    { id: 'djon_quiff', label: 'Tupé Texturizado' },
     { id: 'girl_long_straight', label: 'Liso Largo' },
     { id: 'rocker_long', label: 'Melenón Metalero' },
     { id: 'slick', label: 'Engominado' },
@@ -218,12 +219,12 @@ const AVATAR_PRESETS = [
     chip: '🎧 DJon',
     config: {
       skin: '#fffbf7',
-      hair: 'slick',
-      hairColor: '#1e293b',
+      hair: 'djon_quiff',
+      hairColor: '#78350f',
       eyes: 'meme_shades',
       mouth: 'smile',
       shirt: '#0f172a',
-      accessory: 'headset',
+      accessory: 'headset_with_shades',
       handItem: 'sldcsar',
       shoes: 'white_sneakers',
       pet: 'cat',
@@ -482,11 +483,14 @@ const CHARACTER_SPECIFIC_OPTIONS = {
   ],
   djon: [
     {
-      id: 'cascos_dj',
-      label: 'Cascos DJ',
+      id: 'cascos_y_gafas',
+      label: 'Cascos y Gafas de Sol',
       prop: 'accessory',
-      on: 'headset',
-      off: 'none'
+      on: 'headset_with_shades',
+      off: 'none',
+      sideEffect: (avatar, active) => {
+        avatar.eyes = active ? 'meme_shades' : 'normal';
+      }
     }
   ],
   santi: [
@@ -574,7 +578,9 @@ function renderAvatarSVG(config = {}, size = 120) {
 
   // Eyes SVG components
   let eyesSvg = '';
-  switch (c.eyes) {
+  const hasHeadsetShades = c.accessory === 'headset_with_shades';
+  const effectiveEyes = hasHeadsetShades ? 'meme_shades' : c.eyes;
+  switch (effectiveEyes) {
     case 'chinillo':
       eyesSvg = `
         <!-- Ojos chinillos / achinados pícaros (Ayrton) -->
@@ -920,6 +926,21 @@ function renderAvatarSVG(config = {}, size = 120) {
         <path d="M 34 42 Q 44 38 56 40 Q 68 38 78 42" stroke="#1e293b" stroke-width="2" fill="none"/>
       `;
       break;
+    case 'djon_quiff':
+      hairSvg = `
+        <!-- Pelo peinado hacia arriba con textura marrón (DJon) - similar a Yago pero no tan alto -->
+        <!-- Sombra base -->
+        <path d="M 22 47 C 20 36, 25 26, 34 20 C 44 15, 68 15, 78 20 C 87 26, 92 36, 90 47 Q 74 33 56 33 Q 38 33 22 47 Z" fill="#2d1305" opacity="0.45"/>
+        <!-- Silueta de pelo peinado hacia arriba con tupé moderado -->
+        <path d="M 22 47 C 20 38, 24 30, 30 25 L 34 27 L 40 20 L 46 25 L 53 17 L 60 23 L 67 18 L 73 24 L 78 20 L 82 26 C 87 31, 91 39, 90 47 C 84 42, 78 40, 72 42 C 65 39, 57 39, 49 42 C 43 39, 33 40, 26 45 Z" fill="${c.hairColor}" stroke="#1e293b" stroke-width="2.2" stroke-linejoin="round"/>
+        <!-- Textura de mechones peinados hacia arriba -->
+        <path d="M 40 28 L 46 22 L 49 28" stroke="#9a3412" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <path d="M 54 26 L 59 19 L 64 25" stroke="#9a3412" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M 68 28 L 72 22 L 76 27" stroke="#9a3412" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <!-- Mechón frontal peinado -->
+        <path d="M 32 44 Q 44 39 56 41 Q 68 39 80 44" stroke="#1e293b" stroke-width="2" fill="none"/>
+      `;
+      break;
     case 'girl_long_straight':
       hairSvg = `
         <!-- Melena negra lisa y larga con flequillo recto (Hua) -->
@@ -1033,6 +1054,7 @@ function renderAvatarSVG(config = {}, size = 120) {
         <circle cx="56" cy="14" r="5" fill="#38bdf8"/>
       `;
       break;
+    case 'headset_with_shades':
     case 'headset':
       accSvg = `
         <!-- Cascos de DJ / Gamer -->
