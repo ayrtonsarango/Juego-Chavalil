@@ -257,9 +257,11 @@ function renderLobbyPlayers(players) {
 
     card.innerHTML = `
       <div class="player-tag-pin">${p.isJ1 ? '👑 ' : ''}${colorLabel}</div>
-      <div class="player-card-avatar-wrap tv-avatar-frame">
-        <div class="player-card-avatar">${avatarSvg}</div>
-        ${petSvg ? `<div class="player-card-pet" title="${petInfo ? escapeHtml(petInfo.label) : 'Mascota'}">${petSvg}</div>` : ''}
+      <div class="player-card-avatar-wrap" style="position: relative; width: 86px; height: 86px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+        <div class="tv-avatar-frame">
+          <div class="player-card-avatar" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">${avatarSvg}</div>
+        </div>
+        ${petSvg ? `<div class="player-card-pet-badge" title="${petInfo ? escapeHtml(petInfo.label) : 'Mascota'}" style="position: absolute; right: -8px; bottom: -6px; z-index: 5; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.35)); animation: bounce 2s infinite ease-in-out;">${petSvg}</div>` : ''}
       </div>
       <div class="tv-card-info" style="flex: 1; text-align: left;">
         <div class="player-card-name tv-card-name" style="font-family: var(--font-title); font-size: 28px; font-weight: 900; color: #1e293b; margin-bottom: 6px;">${escapeHtml(p.name)}</div>

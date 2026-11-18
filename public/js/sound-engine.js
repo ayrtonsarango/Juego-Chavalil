@@ -107,7 +107,7 @@ class SoundEngine {
     if (combined.includes('djon') || combined.includes('dj')) return this.playBingChilling();
     if (combined.includes('hua')) return this.playChineseRingtone();
     if (combined.includes('eneko')) return this.playChineseRingtone();
-    if (combined.includes('yago')) return this.playLolMatchFound();
+    if (combined.includes('yago')) return this.playWarwick();
     if (combined.includes('santi')) return this.playDangerAlarm();
     if (combined.includes('lucia')) return this.playHarryPotter();
 

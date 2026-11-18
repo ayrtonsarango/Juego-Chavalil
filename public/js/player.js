@@ -201,13 +201,13 @@ function initPresetChips() {
 
 // 1. Render Avatar Preview
 function updateAvatarPreview() {
-  const avatarSvg = renderAvatarSVG(currentAvatar, 120);
-  const petSvg = currentAvatar.pet && currentAvatar.pet !== 'none' ? renderPetSVG(currentAvatar.pet, 56) : '';
+  const avatarSvg = renderAvatarSVG(currentAvatar, 165);
+  const petSvg = currentAvatar.pet && currentAvatar.pet !== 'none' ? renderPetSVG(currentAvatar.pet, 58) : '';
 
   previewAvatarBox.innerHTML = `
-    <div style="display: flex; align-items: flex-end; justify-content: center; gap: 6px;">
-      <div>${avatarSvg}</div>
-      ${petSvg ? `<div class="preview-pet-wrap" style="animation: bounce 1.8s infinite ease-in-out; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));">${petSvg}</div>` : ''}
+    <div class="avatar-preview-stage" style="position: relative; display: inline-flex; align-items: center; justify-content: center;">
+      <div class="avatar-hero-wrap" style="display: flex; align-items: center; justify-content: center;">${avatarSvg}</div>
+      ${petSvg ? `<div class="preview-pet-wrap" style="position: absolute; right: -26px; bottom: 4px; z-index: 4; animation: bounce 1.8s infinite ease-in-out; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.35));">${petSvg}</div>` : ''}
     </div>
   `;
 }
