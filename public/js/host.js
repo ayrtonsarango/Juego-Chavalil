@@ -759,13 +759,13 @@ function updateStandaloneArcadeHud(level, teams) {
       showAdmin: true
     },
     'race': {
-      neon: '🏎️ MARIO KART',
-      neonBorder: '#22c55e',
-      tag: '★ SNES MODE 7 ARCADE ★',
-      title: '🏁 GP CHAVALIL',
-      sub: 'Acelera, derrapa y machaca con caparazones',
+      neon: '🏎️ COCHES CHAVALIL',
+      neonBorder: '#38bdf8',
+      tag: '★ MICRO RACERS ★',
+      title: '🏁 CIRCUITO CHAVALIL',
+      sub: 'Acelera, derrapa y adelanta en el circuito',
       showCenter: false,
-      showAdmin: false
+      showAdmin: true
     },
     'brawler': {
       neon: '💥 SUPER SMASH',
@@ -946,8 +946,8 @@ function renderMinigameView(level, teams) {
   } else if (gType === 'haxball' && typeof HaxballEngine !== 'undefined') {
     activeMinigameEngine = new HaxballEngine('minigame-canvas', { onComplete: onDone });
     activeMinigameEngine.init(currentPlayers, teams);
-  } else if (gType === 'race' && typeof MarioKartEngine !== 'undefined') {
-    activeMinigameEngine = new MarioKartEngine('minigame-canvas', { onComplete: onDone });
+  } else if (gType === 'race' && typeof MicroRacersEngine !== 'undefined') {
+    activeMinigameEngine = new MicroRacersEngine('minigame-canvas', { onComplete: onDone });
     activeMinigameEngine.init(currentPlayers, teams);
   } else if ((gType === 'brawler' || gType === 'opensmash') && typeof SuperSmashEngine !== 'undefined') {
     activeMinigameEngine = new SuperSmashEngine('minigame-canvas', { onComplete: onDone });
@@ -1574,8 +1574,8 @@ window.addEventListener('keydown', (e) => {
         activeMinigameEngine.handlePlayerInput(firstPlayerId, { kick: true });
       }
     }
-    // 6. Mario Kart Controls on PC
-    else if (typeof MarioKartEngine !== 'undefined' && activeMinigameEngine instanceof MarioKartEngine) {
+    // 6. Coches Chavalil (Micro Racers) Controls on PC
+    else if (typeof MicroRacersEngine !== 'undefined' && activeMinigameEngine instanceof MicroRacersEngine) {
       if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
         activeMinigameEngine.handlePlayerInput(firstPlayerId, { steer: -1 });
       } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
@@ -1583,9 +1583,7 @@ window.addEventListener('keydown', (e) => {
       } else if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
         activeMinigameEngine.handlePlayerInput(firstPlayerId, { gas: true });
       } else if (e.key === ' ' || e.key === 'Shift') {
-        activeMinigameEngine.handlePlayerInput(firstPlayerId, { drift: true });
-      } else if (e.key === 'e' || e.key === 'E' || e.key === 'Enter') {
-        activeMinigameEngine.handlePlayerInput(firstPlayerId, { item: true });
+        activeMinigameEngine.handlePlayerInput(firstPlayerId, { turbo: true });
       }
     }
     // 7. Super Smash Bros Controls on PC
@@ -1665,14 +1663,14 @@ window.addEventListener('keyup', (e) => {
         activeMinigameEngine.handlePlayerInput(firstPlayerId, { down: false });
       }
     }
-    // 6. Mario Kart
-    else if (typeof MarioKartEngine !== 'undefined' && activeMinigameEngine instanceof MarioKartEngine) {
+    // 6. Coches Chavalil (Micro Racers)
+    else if (typeof MicroRacersEngine !== 'undefined' && activeMinigameEngine instanceof MicroRacersEngine) {
       if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A' || e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
         activeMinigameEngine.handlePlayerInput(firstPlayerId, { steer: 0 });
       } else if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
         activeMinigameEngine.handlePlayerInput(firstPlayerId, { gas: false });
       } else if (e.key === ' ' || e.key === 'Shift') {
-        activeMinigameEngine.handlePlayerInput(firstPlayerId, { drift: false });
+        activeMinigameEngine.handlePlayerInput(firstPlayerId, { turbo: false });
       }
     }
     // 7. Super Smash

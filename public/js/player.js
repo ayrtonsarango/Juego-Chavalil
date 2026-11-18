@@ -3,6 +3,15 @@
  * Personalizador de Avatar South Park, mandos de J1, soundboard de reacciones y controles.
  */
 
+// Universal Mobile Viewport Height Handler (prevents Safari toolbar jumps and cutoffs)
+function updateAppHeight() {
+  const doc = document.documentElement;
+  doc.style.setProperty('--app-height', `${window.innerHeight}px`);
+}
+window.addEventListener('resize', updateAppHeight);
+window.addEventListener('orientationchange', () => setTimeout(updateAppHeight, 100));
+updateAppHeight();
+
 const socket = io();
 window.socket = socket;
 
@@ -238,6 +247,15 @@ function initChampionCarousel() {
   if (gamertagEditHint) {
     gamertagEditHint.addEventListener('click', () => {
       if (inputPlayerName) {
+        inputPlayerName.focus();
+        inputPlayerName.select();
+      }
+    });
+  }
+  const gamertagCard = document.querySelector('.gamertag-card');
+  if (gamertagCard) {
+    gamertagCard.addEventListener('click', (e) => {
+      if (inputPlayerName && e.target !== inputPlayerName) {
         inputPlayerName.focus();
         inputPlayerName.select();
       }
@@ -1005,7 +1023,7 @@ if (btnJ1EnterLevel) {
 // Soundboard Meme de la Cuadrilla con Cooldown de 4 segundos
 let soundboardCooldownActive = false;
 let soundboardCooldownTimer = null;
-const soundboardCooldownBadge = document.getElementById('soundboard-cooldown-badge');
+let soundboardInterval = null;
 
 function triggerSoundboardCooldown(durationMs = 4000) {
   soundboardCooldownActive = true;
@@ -1022,20 +1040,22 @@ function triggerSoundboardCooldown(durationMs = 4000) {
     b.textContent = `⏳ ${remainingSec}s`;
   });
 
-  const interval = setInterval(() => {
+  clearInterval(soundboardInterval);
+  soundboardInterval = setInterval(() => {
     remainingSec--;
     if (remainingSec > 0) {
       badges.forEach(b => {
         b.textContent = `⏳ ${remainingSec}s`;
       });
     } else {
-      clearInterval(interval);
+      clearInterval(soundboardInterval);
     }
   }, 1000);
 
   clearTimeout(soundboardCooldownTimer);
   soundboardCooldownTimer = setTimeout(() => {
     soundboardCooldownActive = false;
+    clearInterval(soundboardInterval);
     buttons.forEach(b => {
       b.disabled = false;
       b.classList.remove('is-cooldown');
@@ -1046,34 +1066,45 @@ function triggerSoundboardCooldown(durationMs = 4000) {
   }, durationMs);
 }
 
-document.querySelectorAll('.btn-emote').forEach(btn => {
-  btn.addEventListener('click', () => {
-    if (soundboardCooldownActive) return;
+// Global delegated soundboard click handler
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('.btn-emote');
+  if (!btn) return;
 
-    btn.classList.add('is-pressed');
-    setTimeout(() => btn.classList.remove('is-pressed'), 140);
+  if (soundboardCooldownActive) {
+    e.preventDefault();
+    e.stopPropagation();
+    return;
+  }
 
-    const emote = btn.dataset.emote || '📢';
-    const soundName = btn.dataset.sound || 'bocina';
+  btn.classList.add('is-pressed');
+  setTimeout(() => btn.classList.remove('is-pressed'), 140);
 
-    // Reproducir en local
-    if (window.soundEngine) {
+  const emote = btn.dataset.emote || '📢';
+  const soundName = btn.dataset.sound || 'bocina';
+
+  // Reproducir en local
+  if (window.soundEngine) {
+    if (typeof soundEngine.playMemeEmote === 'function') {
+      soundEngine.playMemeEmote(soundName);
+    } else if (typeof soundEngine.playSoundByName === 'function') {
       soundEngine.playSoundByName(soundName);
     }
+  }
 
-    // Emitir a la sala para que suene en la pantalla grande
-    socket.emit('player_emote', {
-      emote,
-      sound: soundName,
-      playerName: inputPlayerName.value || 'Chaval'
-    });
-
-    // Activar cooldown de 4s
-    triggerSoundboardCooldown(4000);
-
-    // Haptic feedback
-    safeVibrate(40);
+  // Emitir a la sala para que suene en la pantalla grande
+  const name = (inputPlayerName ? inputPlayerName.value : '') || 'Chaval';
+  socket.emit('player_emote', {
+    emote,
+    sound: soundName,
+    playerName: name.trim() || 'Chaval'
   });
+
+  // Activar cooldown de 4s
+  triggerSoundboardCooldown(4000);
+
+  // Haptic feedback
+  safeVibrate(40);
 });
 
 // Socket listeners para eventos del minijuego y temas de personajes
@@ -1719,29 +1750,6 @@ if (btnLobbyUnready) {
       avatar: currentAvatar,
       isAndroid: isAndroidDevice
     });
-  });
-}
-
-// Soundboard in Lobby Pad (delegation)
-const lobbyPadSoundboard = document.querySelector('.lobby-pad-soundboard');
-if (lobbyPadSoundboard) {
-  lobbyPadSoundboard.addEventListener('click', (e) => {
-    const btn = e.target.closest('.btn-emote');
-    if (!btn) return;
-    const soundKey = btn.dataset.sound;
-    const emoteChar = btn.dataset.emote;
-    if (window.soundEngine && soundKey) {
-      soundEngine.playMemeEmote(soundKey);
-    }
-    const name = (inputPlayerName.value || '').trim() || 'Chaval';
-    socket.emit('player_emote', {
-      emote: emoteChar,
-      sound: soundKey,
-      playerName: name
-    });
-    if (navigator.vibrate) {
-      try { navigator.vibrate(25); } catch (_) {}
-    }
   });
 }
 

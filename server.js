@@ -158,9 +158,9 @@ const INITIAL_LEVELS = [
   },
   {
     id: 6,
-    title: '🏎️ Mario Kart: Gran Premio Chavalil',
+    title: '🏎️ Coches Chavalil (Micro Racers)',
     gameType: 'race',
-    lore: 'Carrera por equipos a máxima velocidad con derrapes, turbos y cajas de objetos.',
+    lore: 'Carrera arcade en circuito cerrado con derrapes, turbos y choques a toda velocidad.',
     completed: false,
     stars: 0,
   },

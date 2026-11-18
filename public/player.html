@@ -61,7 +61,7 @@
             <span class="gamertag-edit-icon" id="gamertag-edit-hint" title="Editar mote">✏️</span>
           </div>
           <div class="gamertag-input-wrap">
-            <input type="text" id="input-player-name" class="input-name gamertag-input" placeholder="" minlength="2" maxlength="15" autocomplete="off">
+            <input type="text" id="input-player-name" class="input-name gamertag-input" placeholder="Escribe tu mote..." minlength="2" maxlength="15" autocomplete="off">
             <button class="btn-clear-gamertag" id="btn-edit-gamertag" title="Editar mote">✏️</button>
           </div>
         </div>
@@ -87,21 +87,21 @@
 
       <div class="ready-action-box">
         <div id="ready-status-banner" class="ready-status-banner" style="display: none;">
-          🟢 ¡ESTÁS LISTO! Selección bloqueada
+          🟢 ¡Listo!
         </div>
         <div id="name-validation-msg" class="name-validation-msg" style="display: none;">
           ⚠️ El nombre debe tener entre 2 y 15 letras.
         </div>
         <button class="btn btn-success btn-big-action btn-ready-main" id="btn-toggle-ready">
-          ✅ ¡LISTO PARA JUGAR!
+          ✅ ¡Listo!
         </button>
       </div>
 
       <!-- Soundboard Meme de la Cuadrilla en Lobby -->
       <div class="emote-board">
         <div class="emote-title">
-          <span>🔊 Soundboard Chavalil</span>
-          <span class="badge soundboard-cooldown-badge" style="display: none;">⏳ Espera 4s</span>
+          <span>🔊 Soundboard</span>
+          <span class="badge soundboard-cooldown-badge" style="display: none;">⏳ 4s</span>
         </div>
         <div class="emote-buttons">
           <button class="btn-emote" data-sound="bocina" data-emote="📢"><span>📢</span><span>BOCINA</span></button>
@@ -154,7 +154,8 @@
       <!-- Meme Soundboard in Lobby Pad -->
       <div class="emote-board lobby-pad-soundboard">
         <div class="emote-title">
-          <span>🔊 Memes en Directo (Burbujas en TV)</span>
+          <span>🔊 Soundboard</span>
+          <span class="badge soundboard-cooldown-badge" style="display: none;">⏳ 4s</span>
         </div>
         <div class="emote-buttons">
           <button class="btn-emote" data-sound="bocina" data-emote="📢"><span>📢</span><span>BOCINA</span></button>
@@ -237,27 +238,29 @@
           EQUIPO
         </div>
 
-        <!-- 1. MARIO KART GAMEPAD (50% Steer Left + Stacked Action Cluster Right) -->
+        <!-- 1. COCHES CHAVALIL (MICRO RACERS) GAMEPAD (50% Steer Left + 50% Action Right) -->
         <div id="pad-race" class="pad-layout pad-race" style="display: none;">
-          <div class="race-steer-grid">
-            <button class="btn btn-steer" id="btn-kart-left" aria-label="Girar izquierda">
-              ◀
-            </button>
-            <button class="btn btn-steer" id="btn-kart-right" aria-label="Girar derecha">
-              ▶
-            </button>
-          </div>
-
-          <div class="race-action-stack">
-            <button class="btn btn-kart-gas" id="btn-kart-gas">
-              ⚡ ACELERAR
-            </button>
-            <button class="btn btn-kart-drift" id="btn-kart-drift">
-              ✨ DERRAPE
-            </button>
-            <button class="btn btn-kart-item" id="btn-kart-item">
-              ❓ OBJETO
-            </button>
+          <div class="head-controls-grid">
+            <div class="head-steer">
+              <button class="candy-btn-arcade btn-head-arrow" id="btn-kart-left" data-dir="left">
+                <span class="btn-head-arrow-icon">◀</span>
+                <span class="btn-head-arrow-label">IZQ</span>
+              </button>
+              <button class="candy-btn-arcade btn-head-arrow" id="btn-kart-right" data-dir="right">
+                <span class="btn-head-arrow-label">DER</span>
+                <span class="btn-head-arrow-icon">▶</span>
+              </button>
+            </div>
+            <div class="head-actions">
+              <button class="candy-btn-arcade btn-head-action btn-head-jump btn-race-gas" id="btn-kart-gas">
+                <span class="btn-head-action-icon">⚡</span>
+                <span class="btn-head-action-label">GAS</span>
+              </button>
+              <button class="candy-btn-arcade btn-head-action btn-head-kick btn-race-turbo" id="btn-kart-drift">
+                <span class="btn-head-action-icon">💨</span>
+                <span class="btn-head-action-label">TURBO</span>
+              </button>
+            </div>
           </div>
         </div>
 
