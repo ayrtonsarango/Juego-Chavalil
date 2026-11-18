@@ -32,32 +32,60 @@
     <!-- Main View Switcher -->
     <main class="views-container">
       
-      <!-- 1. LOBBY VIEW -->
+      <!-- 1. LOBBY VIEW (INTERACTIVE 2D LOUNGE + QR SIDEBAR) -->
       <section id="view-lobby" class="view-section active tv-main-layout">
-        <!-- QR Code Card -->
-        <div class="lobby-qr-card tv-qr-container glass-panel">
-          <div class="card-pin-dot"></div>
-          <div class="qr-frame tv-qr-box">
-            <img id="lobby-qr-img" src="" alt="Código QR para unirse">
-          </div>
-          <h2 class="qr-instructions tv-qr-title">¡APUNTA Y ENTRA!</h2>
-          <p class="qr-subtext tv-qr-desc" id="lobby-url-subtext">Escanea con la cámara de tu smartphone</p>
-          <div style="margin-top: 14px;">
-            <span class="badge badge-j1 tv-j1-pill" id="lobby-j1-pill">👑 El primero en entrar será el J1</span>
-          </div>
-        </div>
-
-        <!-- Players Grid -->
-        <div class="lobby-players-area tv-players-container glass-panel">
-          <div class="players-header tv-players-topbar">
-            <h2>La Cuadrilla</h2>
-            <div id="lobby-ready-hint" class="tv-players-subhint" style="color: #0284c7; font-weight: 800; font-size: 1.15rem;">
-              Esperando a que entren los chavales...
+        <!-- Left Sidebar: QR & Dressing Room -->
+        <aside class="tv-lobby-sidebar">
+          <!-- QR Code Card -->
+          <div class="lobby-qr-card tv-qr-container glass-panel">
+            <div class="card-pin-dot"></div>
+            <div class="qr-frame tv-qr-box">
+              <img id="lobby-qr-img" src="" alt="Código QR para unirse">
+            </div>
+            <h2 class="qr-instructions tv-qr-title">¡APUNTA Y ENTRA!</h2>
+            <p class="qr-subtext tv-qr-desc" id="lobby-url-subtext">Escanea con la cámara de tu smartphone</p>
+            <div style="margin-top: 10px;">
+              <span class="badge badge-j1 tv-j1-pill" id="lobby-j1-pill">👑 Esperando J1...</span>
             </div>
           </div>
 
-          <div class="players-grid tv-cards-grid" id="lobby-players-grid">
-            <!-- Injected dynamically -->
+          <!-- Dressing Room (Chavales eligiendo avatar / aún no listos) -->
+          <div class="lobby-unready-card glass-panel" id="lobby-unready-box">
+            <div class="unready-header">
+              <div class="unready-title">
+                <span>🛋️ En el Vestidor</span>
+                <span class="badge unready-badge" id="unready-count-badge">0</span>
+              </div>
+              <span class="unready-sub">Eligiendo chaval o accesorios...</span>
+            </div>
+            <div class="unready-players-list" id="lobby-unready-list">
+              <!-- Compact chips injected dynamically -->
+            </div>
+          </div>
+        </aside>
+
+        <!-- Right Stage: LA SALA DE LA CUADRILLA (2D Interactive Room) -->
+        <div class="tv-lounge-area tv-players-container glass-panel">
+          <div class="players-header tv-players-topbar lounge-topbar">
+            <div>
+              <h2 class="lounge-title">🛋️ La Sala de la Cuadrilla</h2>
+              <div id="lobby-ready-hint" class="tv-players-subhint">
+                🕹️ ¡Los que estén listos pueden moverse y saltar libremente por la sala!
+              </div>
+            </div>
+            <div class="lounge-header-stats">
+              <div class="tv-ready-pill" id="lounge-ready-badge">0 LISTOS EN LA SALA</div>
+            </div>
+          </div>
+
+          <!-- 2D Interactive Room Stage -->
+          <div class="lobby-room-stage" id="lobby-room-stage">
+            <!-- Empty state when 0 players ready -->
+            <div class="lounge-empty-state" id="lounge-empty-state">
+              <span class="lounge-empty-icon">🛋️</span>
+              <span class="lounge-empty-title">¡La sala está abierta!</span>
+              <span class="lounge-empty-desc">Pulsa <strong>"¡LISTO PARA JUGAR!"</strong> en tu móvil para entrar a la pista y saltar.</span>
+            </div>
           </div>
         </div>
       </section>
@@ -357,6 +385,7 @@
   <script src="/js/minigames/mario-kart.js?v=4.2"></script>
   <script src="/js/minigames/super-smash.js?v=4.2"></script>
   <script src="/js/minigames/button-bash.js?v=4.3"></script>
+  <script src="/js/lobby-room.js?v=4.3"></script>
   <script src="/js/host.js?v=4.3"></script>
 </body>
 </html>

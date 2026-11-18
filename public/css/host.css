@@ -129,83 +129,665 @@
 /* ================= LOBBY VIEW ================= */
 #view-lobby.tv-main-layout {
   display: none;
-  grid-template-columns: 460px 1fr;
-  gap: 32px;
+  grid-template-columns: 350px 1fr;
+  gap: 24px;
   align-items: stretch;
+  height: 100%;
 }
 
 #view-lobby.active {
   display: grid;
 }
 
+/* Left Sidebar: QR & Dressing Room */
+.tv-lobby-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .tv-qr-container {
   background: #ffffff !important;
-  border: 4.5px solid #1e293b !important;
-  border-radius: 36px !important;
-  padding: 28px !important;
-  box-shadow: 0 10px 0 rgba(30, 41, 59, 0.12) !important;
+  border: 4px solid #1e293b !important;
+  border-radius: 30px !important;
+  padding: 20px !important;
+  box-shadow: 0 8px 0 rgba(30, 41, 59, 0.12) !important;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
   position: relative;
+  flex-shrink: 0;
 }
 
 .card-pin-dot {
   position: absolute;
-  top: -14px;
+  top: -12px;
   left: 50%;
   transform: translateX(-50%);
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: #ef4444;
-  border: 4px solid #1e293b;
+  border: 3.5px solid #1e293b;
   box-shadow: 0 3px 0 #1e293b;
 }
 
 .tv-qr-box {
   background: #ffffff;
-  border: 3.5px solid #1e293b;
-  border-radius: 26px;
-  padding: 14px;
-  margin-bottom: 16px;
-  box-shadow: 0 5px 0 rgba(30, 41, 59, 0.1);
+  border: 3px solid #1e293b;
+  border-radius: 20px;
+  padding: 10px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 0 rgba(30, 41, 59, 0.08);
 }
 
 .tv-qr-box img {
-  width: 240px;
-  height: 240px;
+  width: 175px;
+  height: 175px;
   display: block;
-  border-radius: 12px;
+  border-radius: 10px;
 }
 
 .tv-qr-title {
   font-family: var(--font-title);
-  font-size: 30px;
+  font-size: 24px;
   font-weight: 900;
   color: #1e293b;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .tv-qr-desc {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 800;
   color: #64748b;
-  margin-bottom: 14px;
+  margin-bottom: 8px;
 }
 
 .tv-j1-pill {
   background: #fde047;
   border: 2.5px solid #1e293b;
   border-radius: 14px;
-  padding: 6px 18px;
+  padding: 5px 14px;
   font-family: var(--font-title);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 900;
   color: #1e293b;
   box-shadow: 0 3px 0 #1e293b;
+}
+
+/* Dressing Room (En el vestidor) */
+.lobby-unready-card {
+  background: #ffffff !important;
+  border: 4px solid #1e293b !important;
+  border-radius: 28px !important;
+  padding: 16px 18px !important;
+  box-shadow: 0 8px 0 rgba(30, 41, 59, 0.1) !important;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.unready-header {
+  margin-bottom: 10px;
+  border-bottom: 2px dashed #cbd5e1;
+  padding-bottom: 8px;
+}
+
+.unready-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-title);
+  font-size: 19px;
+  font-weight: 900;
+  color: #1e293b;
+}
+
+.unready-badge {
+  background: #e2e8f0;
+  color: #1e293b;
+  border: 2px solid #1e293b;
+  border-radius: 9999px;
+  padding: 2px 10px;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.unready-sub {
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.unready-players-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-right: 4px;
+}
+
+.unready-player-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f8fafc;
+  border: 2.5px solid #1e293b;
+  border-radius: 16px;
+  padding: 6px 10px;
+  box-shadow: 0 3px 0 rgba(30, 41, 59, 0.08);
+  transition: transform 0.15s ease;
+}
+
+.unready-avatar-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.unready-player-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.unready-player-name {
+  font-family: var(--font-title);
+  font-size: 16px;
+  font-weight: 900;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.unready-status-tag {
+  font-size: 12px;
+  font-weight: 800;
+  color: #d97706;
+}
+
+.unready-empty-msg {
+  padding: 16px 8px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 800;
+  color: #94a3b8;
+}
+
+/* ================= 2D LOUNGE: LA SALA DE LA CUADRILLA ================= */
+.tv-lounge-area {
+  background: #ffffff !important;
+  border: 4.5px solid #1e293b !important;
+  border-radius: 36px !important;
+  padding: 20px 24px !important;
+  box-shadow: 0 10px 0 rgba(30, 41, 59, 0.12) !important;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.lounge-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 3px dashed #cbd5e1;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.lounge-title {
+  font-family: var(--font-title);
+  font-size: 28px;
+  font-weight: 900;
+  color: #1e293b;
+}
+
+.tv-players-subhint {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0284c7;
+}
+
+/* 2D Interactive Room Stage */
+.lobby-room-stage {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  border-radius: 26px;
+  border: 4px solid #1e293b;
+  background: linear-gradient(180deg, #fefefe 0%, #f8fafc 55%, #f1f5f9 100%);
+  box-shadow: inset 0 6px 16px rgba(0,0,0,0.06);
+  min-height: 480px;
+}
+
+/* Floor */
+.room-prop-floor {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 75px;
+  background: repeating-linear-gradient(90deg, #d97706 0, #d97706 48px, #b45309 48px, #b45309 51px);
+  border-top: 5px solid #1e293b;
+  box-shadow: inset 0 8px 0 rgba(255, 255, 255, 0.3);
+  z-index: 1;
+}
+
+/* Ceiling Bunting Flags */
+.room-prop-bunting {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 44px;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.bunting-flags {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  padding-top: 2px;
+}
+
+.flag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 38px;
+  border: 3px solid #1e293b;
+  border-radius: 4px 4px 16px 16px;
+  box-shadow: 0 4px 0 #1e293b;
+  font-size: 15px;
+  font-weight: 900;
+  animation: flagSway 3s infinite ease-in-out alternate;
+}
+
+.flag.f-cyan { background: #38bdf8; color: #1e293b; }
+.flag.f-yellow { background: #facc15; color: #1e293b; animation-delay: 0.3s; }
+.flag.f-pink { background: #f43f5e; color: #ffffff; animation-delay: 0.6s; }
+.flag.f-green { background: #22c55e; color: #ffffff; animation-delay: 0.9s; }
+.flag.f-orange { background: #fb923c; color: #1e293b; animation-delay: 1.2s; }
+.flag.f-purple { background: #c084fc; color: #ffffff; animation-delay: 1.5s; }
+
+@keyframes flagSway {
+  0% { transform: rotate(-3deg); }
+  100% { transform: rotate(3deg); }
+}
+
+/* Arcade Cabinet */
+.room-prop-arcade {
+  position: absolute;
+  width: 150px;
+  height: 220px;
+  background: #0f172a;
+  border: 4.5px solid #1e293b;
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 8px 0 rgba(0,0,0,0.25);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 2;
+  overflow: hidden;
+}
+
+.arcade-top-marquee {
+  width: 100%;
+  background: #f43f5e;
+  border-bottom: 4px solid #1e293b;
+  color: #ffffff;
+  font-family: var(--font-title);
+  font-size: 12px;
+  font-weight: 900;
+  text-align: center;
+  padding: 6px 2px;
+  letter-spacing: 1px;
+  box-shadow: inset 0 2px 4px rgba(255,255,255,0.4);
+}
+
+.arcade-screen-box {
+  background: #020617;
+  border: 3.5px solid #1e293b;
+  border-radius: 12px;
+  width: 120px;
+  height: 80px;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 12px rgba(56, 189, 248, 0.4);
+}
+
+.arcade-screen-crt {
+  color: #38bdf8;
+  font-family: monospace;
+  font-size: 14px;
+  font-weight: 900;
+  text-shadow: 0 0 6px #38bdf8;
+  animation: pulseCRT 2s infinite ease-in-out;
+}
+
+@keyframes pulseCRT {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 0.6; }
+}
+
+.arcade-control-panel {
+  width: 130px;
+  height: 38px;
+  background: #334155;
+  border: 3px solid #1e293b;
+  border-radius: 8px;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 10px;
+}
+
+.arcade-stick {
+  width: 14px;
+  height: 14px;
+  background: #ef4444;
+  border-radius: 50%;
+  border: 2px solid #1e293b;
+  box-shadow: 0 3px 0 #991b1b;
+}
+
+.arcade-buttons {
+  display: flex;
+  gap: 5px;
+}
+
+.btn-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid #1e293b;
+}
+.dot-red { background: #ef4444; }
+.dot-blue { background: #38bdf8; }
+.dot-yellow { background: #facc15; }
+
+.arcade-coin-door {
+  margin-top: auto;
+  margin-bottom: 6px;
+  background: #1e293b;
+  color: #94a3b8;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 2px 10px;
+  border-radius: 6px;
+  border: 2px solid #475569;
+}
+
+/* Party Sofa */
+.room-prop-sofa {
+  position: absolute;
+  width: 240px;
+  height: 110px;
+  background: #f43f5e;
+  border: 4.5px solid #1e293b;
+  border-radius: 32px 32px 14px 14px;
+  box-shadow: 0 8px 0 #be123c;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+}
+
+.sofa-backrest {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  border-bottom: 3.5px solid #1e293b;
+  padding: 4px 14px;
+}
+
+.sofa-cushion {
+  font-size: 24px;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
+}
+
+.sofa-seat {
+  height: 42px;
+  background: #fb7185;
+  border-radius: 0 0 12px 12px;
+  box-shadow: inset 0 -6px 0 rgba(0,0,0,0.15);
+}
+
+.sofa-armrest {
+  position: absolute;
+  bottom: 0;
+  width: 34px;
+  height: 60px;
+  background: #e11d48;
+  border: 3.5px solid #1e293b;
+  border-radius: 18px;
+}
+
+.arm-left { left: -14px; }
+.arm-right { right: -14px; }
+
+/* Floating Candy Shelf */
+.room-prop-shelf {
+  position: absolute;
+  height: 28px;
+  background: #38bdf8;
+  border: 4px solid #1e293b;
+  border-radius: 14px;
+  box-shadow: 0 6px 0 #0284c7;
+  z-index: 2;
+}
+
+.shelf-plank {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.shelf-props {
+  position: absolute;
+  bottom: 22px;
+  display: flex;
+  gap: 24px;
+  font-size: 26px;
+  filter: drop-shadow(0 3px 3px rgba(0,0,0,0.2));
+}
+
+/* Empty State */
+.lounge-empty-state {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  z-index: 5;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(2px);
+}
+
+.lounge-empty-icon {
+  font-size: 4rem;
+  animation: bounce 2s infinite ease-in-out;
+}
+
+.lounge-empty-title {
+  font-family: var(--font-title);
+  font-size: 26px;
+  font-weight: 900;
+  color: #1e293b;
+}
+
+.lounge-empty-desc {
+  font-size: 16px;
+  font-weight: 800;
+  color: #64748b;
+  max-width: 480px;
+}
+
+/* ================= 2D ROOM PLAYER ENTITY ================= */
+.room-player-entity {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 105px;
+  height: 105px;
+  margin-left: -52px;
+  margin-top: -100px;
+  z-index: 10;
+  pointer-events: none;
+  will-change: transform;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  transition: opacity 0.25s ease, filter 0.25s ease;
+}
+
+.room-player-entity.is-poofing {
+  opacity: 0;
+  transform: scale(1.35) !important;
+  filter: blur(4px);
+}
+
+.room-avatar-graphic {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: center bottom;
+  filter: drop-shadow(0 5px 6px rgba(0,0,0,0.22));
+}
+
+.room-nameplate {
+  position: absolute;
+  top: -36px;
+  white-space: nowrap;
+  background: #ffffff;
+  border: 2.5px solid #1e293b;
+  border-radius: 12px;
+  padding: 2px 10px;
+  font-family: var(--font-title);
+  font-size: 13px;
+  font-weight: 900;
+  color: #1e293b;
+  box-shadow: 0 3px 0 #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  pointer-events: none;
+  z-index: 15;
+}
+
+.room-color-tag {
+  font-size: 10px;
+  font-weight: 900;
+  color: #64748b;
+  letter-spacing: 0.5px;
+}
+
+.room-player-entity.p1 .room-color-tag { color: #0284c7; }
+.room-player-entity.p2 .room-color-tag { color: #e11d48; }
+.room-player-entity.p3 .room-color-tag { color: #16a34a; }
+.room-player-entity.p4 .room-color-tag { color: #ea580c; }
+.room-player-entity.p5 .room-color-tag { color: #0891b2; }
+.room-player-entity.p6 .room-color-tag { color: #9333ea; }
+.room-player-entity.p7 .room-color-tag { color: #65a30d; }
+.room-player-entity.p8 .room-color-tag { color: #db2777; }
+
+/* Emote Bubble */
+.room-emote-bubble {
+  position: absolute;
+  top: -80px;
+  background: #ffffff;
+  border: 3px solid #1e293b;
+  border-radius: 18px;
+  padding: 5px 12px;
+  font-family: var(--font-title);
+  font-size: 14px;
+  font-weight: 900;
+  color: #1e293b;
+  box-shadow: 0 4px 0 #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.room-emote-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 9px 8px 0;
+  border-style: solid;
+  border-color: #1e293b transparent;
+  display: block;
+  width: 0;
+}
+
+.room-emote-bubble.pop-in {
+  animation: bubblePop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.room-emote-bubble.pop-out {
+  animation: bubbleFade 0.2s ease forwards;
+}
+
+@keyframes bubblePop {
+  0% { transform: scale(0.4) translateY(15px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@keyframes bubbleFade {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.6) translateY(-10px); opacity: 0; }
+}
+
+.bubble-emoji { font-size: 1.3rem; }
+.bubble-sound { text-transform: uppercase; font-size: 12px; color: #0284c7; }
+
+/* Pet Graphic */
+.room-pet-graphic {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 9;
+  pointer-events: none;
+  will-change: transform;
+  filter: drop-shadow(0 3px 4px rgba(0,0,0,0.25));
 }
 
 .tv-players-container {

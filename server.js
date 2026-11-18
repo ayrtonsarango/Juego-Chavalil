@@ -448,6 +448,14 @@ io.on('connection', (socket) => {
     });
   });
 
+  // Lobby room movement and interaction (Lounge playground)
+  socket.on('lobby_input', (inputData) => {
+    io.emit('host_lobby_input', {
+      playerId: socket.id,
+      data: inputData
+    });
+  });
+
   // Admin / Host Actions (Injects canonical friends from cuadrilla)
   socket.on('admin_add_bot', (count = 1) => {
     // Select from canonical friend presets (Eneko, Lucía, Manu, DJ, Violeta, Marta, Asier, Santi)
@@ -486,14 +494,6 @@ io.on('connection', (socket) => {
       };
 
       players.set(botId, botPlayer);
-
-      if (isBotAndroid) {
-        io.emit('android_detected_alert', {
-          playerName: botPlayer.name,
-          playerId: botPlayer.id,
-          timestamp: Date.now()
-        });
-      }
     }
 
     refreshJ1();

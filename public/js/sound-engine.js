@@ -281,6 +281,30 @@ class SoundEngine {
     osc.stop(now + 0.22);
   }
 
+  playJump() {
+    this.init();
+    if (!this.ctx) return;
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(200, now);
+      osc.frequency.exponentialRampToValueAtTime(500, now + 0.11);
+
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.14);
+    } catch (e) {
+      // AudioContext muted/unsupported
+    }
+  }
+
   playLevelStartFanfare() {
     this.init();
     if (!this.ctx) return;

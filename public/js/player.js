@@ -98,6 +98,7 @@ function showActiveGamepad(gType) {
   }
 }
 const screenCreator = document.getElementById('screen-creator');
+const screenLobbyPad = document.getElementById('screen-lobby-pad');
 const screenController = document.getElementById('screen-controller');
 const previewAvatarBox = document.getElementById('preview-avatar-box');
 const inputPlayerName = document.getElementById('input-player-name');
@@ -108,6 +109,15 @@ const btnToggleReady = document.getElementById('btn-toggle-ready');
 const readyStatusBanner = document.getElementById('ready-status-banner');
 const nameValidationMsg = document.getElementById('name-validation-msg');
 let isPlayerReady = false;
+
+// Screen 1B: Lobby Lounge Controller Elements
+const lobbyPadAvatarThumb = document.getElementById('lobby-pad-avatar-thumb');
+const lobbyPadPlayerName = document.getElementById('lobby-pad-player-name');
+const btnLobbyUnready = document.getElementById('btn-lobby-unready');
+const btnLobbyLeft = document.getElementById('btn-lobby-left');
+const btnLobbyRight = document.getElementById('btn-lobby-right');
+const btnLobbyJump = document.getElementById('btn-lobby-jump');
+let lobbyInput = { left: false, right: false, jump: false };
 
 // Controller screen elements
 const playerTopBadge = document.getElementById('player-top-badge');
@@ -320,6 +330,21 @@ if (creatorTabs) {
 }
 
 // Function to update UI locking state based on isPlayerReady
+let currentServerStatus = 'lobby';
+
+function updateLobbyScreenRouting() {
+  if (currentServerStatus !== 'lobby') return;
+  if (isPlayerReady) {
+    if (screenCreator) screenCreator.classList.remove('active');
+    if (screenLobbyPad) screenLobbyPad.classList.add('active');
+    if (lobbyPadPlayerName) lobbyPadPlayerName.textContent = (inputPlayerName.value || '').trim() || 'Chaval';
+    if (lobbyPadAvatarThumb) lobbyPadAvatarThumb.innerHTML = renderAvatarSVG(currentAvatar, 44);
+  } else {
+    if (screenLobbyPad) screenLobbyPad.classList.remove('active');
+    if (screenCreator) screenCreator.classList.add('active');
+  }
+}
+
 function setPlayerReadyUI(ready) {
   isPlayerReady = ready;
   if (isPlayerReady) {
@@ -341,6 +366,7 @@ function setPlayerReadyUI(ready) {
     if (btnRandomAvatar) btnRandomAvatar.classList.remove('is-locked');
     document.querySelectorAll('.preset-chip-btn, .pill-option, .tab-btn').forEach(el => el.classList.remove('is-locked'));
   }
+  updateLobbyScreenRouting();
 }
 
 // Nickname Live Validation & Sync
@@ -435,17 +461,22 @@ function updateControllerState(gameState, players) {
   const me = players.find(p => p.id === socket.id);
   if (!me) return;
 
+  currentServerStatus = gameState.status || 'lobby';
+
   // View routing based on gameState.status
   if (gameState.status === 'map' || gameState.status === 'minigame') {
-    screenCreator.classList.remove('active');
-    screenController.classList.add('active');
+    if (screenCreator) screenCreator.classList.remove('active');
+    if (screenLobbyPad) screenLobbyPad.classList.remove('active');
+    if (screenController) screenController.classList.add('active');
     if (playerTopBadge) playerTopBadge.style.display = 'inline-flex';
   } else {
-    // In lobby: keep creator active so players can modify avatar/toggle ready
-    screenController.classList.remove('active');
-    screenCreator.classList.add('active');
+    // In lobby: route between screen-creator and screen-lobby-pad based on isPlayerReady
+    if (screenController) screenController.classList.remove('active');
+    if (playerTopBadge) playerTopBadge.style.display = 'none';
     if (me.ready !== isPlayerReady) {
       setPlayerReadyUI(Boolean(me.ready));
+    } else {
+      updateLobbyScreenRouting();
     }
   }
 
@@ -1303,6 +1334,127 @@ window.addEventListener('keyup', (e) => {
   if (e.key === 'ArrowUp' || e.key === ' ') socket.emit('player_input', { gas: false, up: false });
   if (e.key === 'ArrowDown') socket.emit('player_input', { down: false });
   if (e.key === 'x' || e.key === 'k') socket.emit('player_input', { drift: false });
+});
+
+// ============================================================================
+// LOBBY LOUNGE PAD BUTTON BINDINGS & KEYBOARD CONTROLS
+// ============================================================================
+function emitLobbyInput() {
+  socket.emit('lobby_input', lobbyInput);
+}
+
+function bindLobbyControl(btn, key) {
+  if (!btn) return;
+  const press = (e) => {
+    if (e.cancelable) e.preventDefault();
+    btn.classList.add('is-pressed');
+    if (!lobbyInput[key]) {
+      lobbyInput[key] = true;
+      emitLobbyInput();
+      if (navigator.vibrate) {
+        try { navigator.vibrate(key === 'jump' ? 25 : 15); } catch (_) {}
+      }
+    }
+  };
+  const release = (e) => {
+    if (e && e.cancelable) e.preventDefault();
+    btn.classList.remove('is-pressed');
+    if (lobbyInput[key]) {
+      lobbyInput[key] = false;
+      emitLobbyInput();
+    }
+  };
+
+  btn.addEventListener('touchstart', press, { passive: false });
+  btn.addEventListener('touchend', release, { passive: false });
+  btn.addEventListener('touchcancel', release, { passive: false });
+  btn.addEventListener('mousedown', press);
+  btn.addEventListener('mouseup', release);
+  btn.addEventListener('mouseleave', release);
+}
+
+bindLobbyControl(btnLobbyLeft, 'left');
+bindLobbyControl(btnLobbyRight, 'right');
+bindLobbyControl(btnLobbyJump, 'jump');
+
+// Un-ready button in Lobby Pad
+if (btnLobbyUnready) {
+  btnLobbyUnready.addEventListener('click', () => {
+    setPlayerReadyUI(false);
+    const name = (inputPlayerName.value || '').trim() || 'Chaval';
+    socket.emit('player_toggle_ready', {
+      ready: false,
+      name,
+      avatar: currentAvatar,
+      isAndroid: isAndroidDevice
+    });
+  });
+}
+
+// Soundboard in Lobby Pad (delegation)
+const lobbyPadSoundboard = document.querySelector('.lobby-pad-soundboard');
+if (lobbyPadSoundboard) {
+  lobbyPadSoundboard.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-emote');
+    if (!btn) return;
+    const soundKey = btn.dataset.sound;
+    const emoteChar = btn.dataset.emote;
+    if (window.soundEngine && soundKey) {
+      soundEngine.playMemeEmote(soundKey);
+    }
+    const name = (inputPlayerName.value || '').trim() || 'Chaval';
+    socket.emit('player_emote', {
+      emote: emoteChar,
+      sound: soundKey,
+      playerName: name
+    });
+    if (navigator.vibrate) {
+      try { navigator.vibrate(25); } catch (_) {}
+    }
+  });
+}
+
+// Keyboard controls fallback for desktop browser testing in Lobby
+window.addEventListener('keydown', (e) => {
+  if (currentServerStatus !== 'lobby' || !isPlayerReady) return;
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+    if (!lobbyInput.left) {
+      lobbyInput.left = true;
+      if (btnLobbyLeft) btnLobbyLeft.classList.add('is-pressed');
+      emitLobbyInput();
+    }
+  } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+    if (!lobbyInput.right) {
+      lobbyInput.right = true;
+      if (btnLobbyRight) btnLobbyRight.classList.add('is-pressed');
+      emitLobbyInput();
+    }
+  } else if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+    if (!lobbyInput.jump) {
+      lobbyInput.jump = true;
+      if (btnLobbyJump) btnLobbyJump.classList.add('is-pressed');
+      emitLobbyInput();
+    }
+  }
+});
+
+window.addEventListener('keyup', (e) => {
+  if (currentServerStatus !== 'lobby' || !isPlayerReady) return;
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+    lobbyInput.left = false;
+    if (btnLobbyLeft) btnLobbyLeft.classList.remove('is-pressed');
+    emitLobbyInput();
+  } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+    lobbyInput.right = false;
+    if (btnLobbyRight) btnLobbyRight.classList.remove('is-pressed');
+    emitLobbyInput();
+  } else if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+    lobbyInput.jump = false;
+    if (btnLobbyJump) btnLobbyJump.classList.remove('is-pressed');
+    emitLobbyInput();
+  }
 });
 
 // Initial boot

@@ -391,6 +391,166 @@ html, body {
 }
 
 /* ==========================================================================
+   SCREEN 1B: LOBBY LOUNGE CONTROLLER (Interactive Waiting Room)
+   ========================================================================== */
+#screen-lobby-pad {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  gap: 12px;
+  justify-content: space-between;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#screen-lobby-pad.active {
+  display: flex;
+}
+
+.lobby-pad-header {
+  background: #ffffff;
+  border: var(--border-w) solid var(--navy);
+  border-radius: 22px;
+  padding: 10px 14px;
+  box-shadow: 0 4px 0 rgba(30, 41, 59, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.lobby-pad-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lobby-pad-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.lobby-pad-tag {
+  font-family: var(--font-title);
+  font-size: 0.78rem;
+  font-weight: 900;
+  color: #16a34a;
+  letter-spacing: 0.5px;
+}
+
+.btn-lobby-unready {
+  background: #fde047;
+  border: 2.5px solid var(--navy);
+  border-radius: 14px;
+  padding: 6px 14px;
+  font-family: var(--font-title);
+  font-weight: 900;
+  font-size: 0.88rem;
+  color: var(--navy);
+  box-shadow: 0 3px 0 var(--navy);
+  cursor: pointer;
+  transition: transform 0.05s ease, box-shadow 0.05s ease;
+}
+
+.btn-lobby-unready:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--navy);
+}
+
+.lobby-pad-hint {
+  background: #e0f2fe;
+  border: 2.5px dashed #0284c7;
+  border-radius: 16px;
+  padding: 8px 12px;
+  text-align: center;
+  font-family: var(--font-title);
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #0369a1;
+  flex-shrink: 0;
+}
+
+.lobby-pad-controls {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 12px;
+  min-height: 170px;
+  max-height: 260px;
+  align-items: stretch;
+}
+
+.lobby-pad-dir-cluster {
+  display: flex;
+  gap: 10px;
+  height: 100%;
+}
+
+.lobby-pad-action-cluster {
+  display: flex;
+  height: 100%;
+}
+
+.candy-btn-arcade {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 3.5px solid var(--navy);
+  border-radius: 24px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  position: relative;
+  font-family: var(--font-title);
+  font-weight: 900;
+  transition: transform 0.06s ease, box-shadow 0.06s ease;
+}
+
+.candy-btn-dir {
+  background: linear-gradient(180deg, #7dd3fc 0%, #38bdf8 100%);
+  box-shadow: 0 6px 0 #0284c7, 0 8px 0 var(--navy);
+  color: var(--navy);
+}
+
+.candy-btn-dir:active, .candy-btn-dir.is-pressed {
+  transform: translateY(5px);
+  box-shadow: 0 1px 0 #0284c7, 0 3px 0 var(--navy);
+}
+
+.candy-btn-jump {
+  width: 100%;
+  background: linear-gradient(180deg, #86efac 0%, #22c55e 100%);
+  box-shadow: 0 8px 0 #15803d, 0 10px 0 var(--navy);
+  color: var(--navy);
+}
+
+.candy-btn-jump:active, .candy-btn-jump.is-pressed {
+  transform: translateY(6px);
+  box-shadow: 0 2px 0 #15803d, 0 4px 0 var(--navy);
+}
+
+.candy-btn-arrow, .candy-btn-icon {
+  font-size: 2.2rem;
+  line-height: 1;
+}
+
+.candy-btn-label {
+  font-size: 1.05rem;
+  letter-spacing: 0.5px;
+}
+
+.lobby-pad-soundboard {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* ==========================================================================
    SCREEN 2: IN-GAME CONTROLLER
    ========================================================================== */
 

@@ -202,6 +202,18 @@ function switchView(viewName) {
       activeMinigameEngine = null;
     }
   }
+
+  // Lobby 2D Lounge Room lifecycle
+  if (viewName === 'lobby') {
+    if (window.LobbyRoom && typeof LobbyRoom.start === 'function') {
+      LobbyRoom.start();
+    }
+  } else {
+    if (window.LobbyRoom && typeof LobbyRoom.stop === 'function') {
+      LobbyRoom.stop();
+    }
+  }
+
   document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
   const activeSec = document.getElementById(`view-${viewName}`);
   if (activeSec) {
@@ -209,100 +221,99 @@ function switchView(viewName) {
   }
 }
 
-// 3. Render Lobby Players Grid
+// 3. Render Lobby Players & 2D Lounge
 function renderLobbyPlayers(players) {
-  lobbyPlayersGrid.innerHTML = '';
-  const readyCount = players.filter(p => p.ready).length;
-  headerPlayerCount.textContent = `${readyCount} / ${players.length || 8} LISTOS`;
+  const readyPlayers = players.filter(p => p.ready);
+  const unreadyPlayers = players.filter(p => !p.ready);
+  const readyCount = readyPlayers.length;
 
-  if (players.length === 0) {
-    lobbyPlayersGrid.innerHTML = `
-      <div class="empty-lobby-state" style="grid-column: 1 / -1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding: 40px; text-align:center;">
-        <span style="font-size: 3rem; margin-bottom: 8px;">📱</span>
-        <span style="font-size: 1.3rem; font-weight: 800; color: #64748b;">Esperando a que los chavales escaneen el código QR...</span>
-      </div>
-    `;
-    lobbyReadyHint.textContent = 'Esperando a que entre el primer jugador (J1)...';
-    if (btnAdminStartGame) {
-      btnAdminStartGame.innerHTML = '¡ARRANCAR! ▶ (0/0 Listos)';
-    }
-    return;
+  if (headerPlayerCount) {
+    headerPlayerCount.textContent = `${readyCount} / ${players.length || 8} LISTOS`;
   }
 
+  // Update J1 pill & hint
   const j1Player = players.find(p => p.isJ1);
   if (j1Player) {
-    lobbyReadyHint.innerHTML = `👑 <strong>${escapeHtml(j1Player.name)}</strong> tiene el mando · Listos: <strong style="color: ${readyCount === players.length ? '#16a34a' : '#d97706'};">${readyCount}/${players.length}</strong>`;
+    if (lobbyReadyHint) {
+      lobbyReadyHint.innerHTML = `👑 <strong>${escapeHtml(j1Player.name)}</strong> tiene el mando · Listos en la sala: <strong style="color: ${readyCount === players.length && players.length > 0 ? '#16a34a' : '#0284c7'};">${readyCount}/${players.length}</strong>`;
+    }
     const j1Pill = document.getElementById('lobby-j1-pill');
     if (j1Pill) {
       j1Pill.textContent = `👑 ${escapeHtml(j1Player.name)} tiene el mando (J1)`;
     }
+  } else {
+    if (lobbyReadyHint) {
+      lobbyReadyHint.textContent = players.length === 0
+        ? 'Esperando a que entren los chavales...'
+        : '🕹️ ¡Los que estén listos pueden moverse y saltar libremente por la sala!';
+    }
+    const j1Pill = document.getElementById('lobby-j1-pill');
+    if (j1Pill) {
+      j1Pill.textContent = '👑 Esperando J1...';
+    }
   }
+
   if (btnAdminStartGame) {
     btnAdminStartGame.innerHTML = `¡ARRANCAR! ▶ (${readyCount}/${players.length} Listos)`;
   }
 
-  const playerColorClasses = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8'];
-  const playerColorLabels = ['P1 · AZUL', 'P2 · ROJO', 'P3 · VERDE', 'P4 · NARANJA', 'P5 · CIAN', 'P6 · MORADO', 'P7 · LIMA', 'P8 · ROSA'];
+  // 1. Sync 2D Lounge Physics Room
+  if (window.LobbyRoom && typeof LobbyRoom.syncPlayers === 'function') {
+    LobbyRoom.syncPlayers(players);
+  }
 
-  players.forEach((p, idx) => {
-    const card = document.createElement('div');
-    const colorClass = playerColorClasses[idx % playerColorClasses.length];
-    const colorLabel = playerColorLabels[idx % playerColorLabels.length];
-    card.className = `player-card glass-panel tv-player-card ${colorClass} ${p.isJ1 ? 'is-j1' : ''}`;
+  // 2. Render Dressing Room (En el vestidor) Sidebar List
+  const lobbyUnreadyList = document.getElementById('lobby-unready-list');
+  const unreadyCountBadge = document.getElementById('unready-count-badge');
+  if (unreadyCountBadge) {
+    unreadyCountBadge.textContent = unreadyPlayers.length;
+  }
 
-    const avatarSvg = renderAvatarSVG(p.avatar, 90);
-    const hasPet = p.avatar && p.avatar.pet && p.avatar.pet !== 'none';
-    const petSvg = hasPet ? renderPetSVG(p.avatar.pet, 42) : '';
-    const petInfo = hasPet && typeof AVATAR_OPTIONS !== 'undefined' ? AVATAR_OPTIONS.pets.find(pet => pet.id === p.avatar.pet) : null;
-
-    card.innerHTML = `
-      <div class="player-tag-pin">${p.isJ1 ? '👑 ' : ''}${colorLabel}</div>
-      <div class="player-card-avatar-wrap" style="position: relative; width: 86px; height: 86px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
-        <div class="tv-avatar-frame">
-          <div class="player-card-avatar" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">${avatarSvg}</div>
-        </div>
-        ${petSvg ? `<div class="player-card-pet-badge" title="${petInfo ? escapeHtml(petInfo.label) : 'Mascota'}" style="position: absolute; right: -8px; bottom: -6px; z-index: 5; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.35)); animation: bounce 2s infinite ease-in-out;">${petSvg}</div>` : ''}
-      </div>
-      <div class="tv-card-info" style="flex: 1; text-align: left;">
-        <div class="player-card-name tv-card-name" style="font-family: var(--font-title); font-size: 28px; font-weight: 900; color: #1e293b; margin-bottom: 6px;">${escapeHtml(p.name)}</div>
-        <div class="tv-card-status-pill" style="display: inline-block; background: #ffffff; border: 2.5px solid #1e293b; border-radius: 12px; padding: 4px 14px; font-family: var(--font-title); font-size: 14px; font-weight: 900; color: #1e293b; box-shadow: 0 2px 0 #1e293b;">
-          ${p.ready ? '¡LISTO PARA JUGAR!' : '⏳ Modificando...'}
-        </div>
-        <div class="player-card-badges" style="display: flex; gap: 4px; margin-top: 6px;">
-          ${p.isAndroid ? '<span class="badge" style="background:#4ade80; color:#1e293b; font-size:11px; padding:2px 8px;">Android</span>' : '<span class="badge" style="background:#bae6fd; color:#1e293b; font-size:11px; padding:2px 8px;">iOS</span>'}
-          ${p.isBot ? '<span class="badge" style="background:#cbd5e1; color:#1e293b; font-size:11px; padding:2px 8px;">Bot</span>' : ''}
-          ${petInfo ? `<span class="badge badge-pet" style="font-size:11px; padding:2px 8px;">${petInfo.icon} ${escapeHtml(petInfo.label)}</span>` : ''}
-        </div>
-      </div>
-      <div class="player-card-actions" style="display: flex; flex-direction: column; gap: 6px; margin-left: 10px;">
-        <button class="btn-card-action btn-crown-j1" data-player-id="${p.id}" title="Hacer J1" style="padding: 5px 10px; font-size: 0.75rem; border-radius: 8px; border: 2px solid #1e293b; background: ${p.isJ1 ? '#fde047' : '#ffffff'}; color: #1e293b; cursor: pointer; font-weight: 900; transition: all 0.15s ease;">
-          👑 ${p.isJ1 ? 'J1' : 'Hacer J1'}
-        </button>
-        <button class="btn-card-action btn-kick-player" data-player-id="${p.id}" data-player-name="${escapeHtml(p.name)}" title="Expulsar" style="padding: 5px 10px; font-size: 0.75rem; border-radius: 8px; border: 2px solid #1e293b; background: #ffffff; color: #ef4444; cursor: pointer; font-weight: 900; transition: all 0.15s ease;">
-          ✕ Expulsar
-        </button>
-      </div>
-    `;
-
-    const crownBtn = card.querySelector('.btn-crown-j1');
-    if (crownBtn) {
-      crownBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        soundEngine.playMarioCoin();
-        socket.emit('admin_set_j1', p.id);
+  if (lobbyUnreadyList) {
+    lobbyUnreadyList.innerHTML = '';
+    if (unreadyPlayers.length === 0) {
+      lobbyUnreadyList.innerHTML = players.length === 0
+        ? '<div class="unready-empty-msg">📱 Esperando a que escaneen el código QR...</div>'
+        : '<div class="unready-empty-msg">🎉 ¡Todos los chavales están en la sala!</div>';
+    } else {
+      unreadyPlayers.forEach(p => {
+        const chip = document.createElement('div');
+        chip.className = `unready-player-chip ${p.isJ1 ? 'is-j1' : ''}`;
+        const avatarSvg = window.renderAvatarSVG ? renderAvatarSVG(p.avatar, 38) : '';
+        chip.innerHTML = `
+          <div class="unready-avatar-wrap">${avatarSvg}</div>
+          <div class="unready-player-info">
+            <span class="unready-player-name">${p.isJ1 ? '👑 ' : ''}${escapeHtml(p.name)}</span>
+            <span class="unready-status-tag">⏳ Modificando avatar...</span>
+          </div>
+          <div style="display:flex; gap:4px;">
+            <button class="btn-card-action btn-crown-j1" data-player-id="${p.id}" title="Hacer J1" style="padding: 4px 8px; font-size: 0.72rem; border-radius: 8px; border: 2px solid #1e293b; background: ${p.isJ1 ? '#fde047' : '#ffffff'}; color: #1e293b; cursor: pointer; font-weight: 900;">
+              👑
+            </button>
+            <button class="btn-card-action btn-kick-player" data-player-id="${p.id}" data-player-name="${escapeHtml(p.name)}" title="Expulsar" style="padding: 4px 8px; font-size: 0.72rem; border-radius: 8px; border: 2px solid #1e293b; background: #ffffff; color: #ef4444; cursor: pointer; font-weight: 900;">
+              ✕
+            </button>
+          </div>
+        `;
+        const crownBtn = chip.querySelector('.btn-crown-j1');
+        if (crownBtn) {
+          crownBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            soundEngine.playMarioCoin();
+            socket.emit('admin_set_j1', p.id);
+          });
+        }
+        const kickBtn = chip.querySelector('.btn-kick-player');
+        if (kickBtn) {
+          kickBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            socket.emit('admin_kick_player', p.id);
+          });
+        }
+        lobbyUnreadyList.appendChild(chip);
       });
     }
-
-    const kickBtn = card.querySelector('.btn-kick-player');
-    if (kickBtn) {
-      kickBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        socket.emit('admin_kick_player', p.id);
-      });
-    }
-
-    lobbyPlayersGrid.appendChild(card);
-  });
+  }
 }
 
 // 4. Render New Super Mario Bros 2.5D Overworld Map
@@ -1169,6 +1180,10 @@ socket.on('player_emoted', (data) => {
   }
 
   triggerFloatingEmote(emote, name);
+
+  if (window.LobbyRoom && typeof LobbyRoom.triggerEmote === 'function') {
+    LobbyRoom.triggerEmote(data?.playerId, emote, sound);
+  }
 });
 
 // Broadcast cuando un chaval elige su personaje / easter egg theme
@@ -1439,6 +1454,13 @@ socket.on('host_player_input', (payload) => {
   }
 });
 
+// Socket input relay for 2D Interactive Lobby Lounge Room
+socket.on('host_lobby_input', (payload) => {
+  if (window.LobbyRoom && payload) {
+    LobbyRoom.handleInput(payload.playerId, payload.data);
+  }
+});
+
 // Host Keyboard Navigation & Minigame Controls (PC testing & local play)
 window.addEventListener('keydown', (e) => {
   if (currentGameState && currentGameState.status === 'map') {
@@ -1663,3 +1685,6 @@ window.addEventListener('keydown', (e) => {
 
 // Start initialization
 initNetworkInfo();
+if (window.LobbyRoom && typeof LobbyRoom.init === 'function') {
+  LobbyRoom.init('#lobby-room-stage');
+}

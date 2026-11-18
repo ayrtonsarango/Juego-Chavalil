@@ -87,6 +87,64 @@
       </div>
     </section>
 
+    <!-- SCREEN 1B: LOBBY LOUNGE CONTROLLER (Active when ready in lobby) -->
+    <section id="screen-lobby-pad" class="player-screen">
+      <!-- Player Profile & Back to Avatar button -->
+      <div class="lobby-pad-header">
+        <div class="lobby-pad-profile">
+          <div class="player-avatar-small" id="lobby-pad-avatar-thumb"></div>
+          <div class="lobby-pad-meta">
+            <span class="player-nickname" id="lobby-pad-player-name">Chaval</span>
+            <span class="lobby-pad-tag">🟢 ¡ESTÁS EN LA SALA!</span>
+          </div>
+        </div>
+        <button class="btn-candy-action btn-lobby-unready" id="btn-lobby-unready" title="Volver al vestidor para cambiar avatar">
+          ✏️ Modificar
+        </button>
+      </div>
+
+      <!-- TV Screen interaction hint -->
+      <div class="lobby-pad-hint">
+        <span>🎮 ¡Mira a la TV! Muévete y salta con la Cuadrilla</span>
+      </div>
+
+      <!-- Main Controller Grid (50% direction, 50% jump) -->
+      <div class="lobby-pad-controls">
+        <div class="lobby-pad-dir-cluster">
+          <button class="candy-btn-arcade candy-btn-dir" id="btn-lobby-left" data-dir="left">
+            <span class="candy-btn-arrow">◀</span>
+            <span class="candy-btn-label">IZQ</span>
+          </button>
+          <button class="candy-btn-arcade candy-btn-dir" id="btn-lobby-right" data-dir="right">
+            <span class="candy-btn-label">DER</span>
+            <span class="candy-btn-arrow">▶</span>
+          </button>
+        </div>
+
+        <div class="lobby-pad-action-cluster">
+          <button class="candy-btn-arcade candy-btn-jump" id="btn-lobby-jump">
+            <span class="candy-btn-icon">🦘</span>
+            <span class="candy-btn-label">SALTAR</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Meme Soundboard in Lobby Pad -->
+      <div class="emote-board lobby-pad-soundboard">
+        <div class="emote-title">
+          <span>🔊 Memes en Directo (Burbujas en TV)</span>
+        </div>
+        <div class="emote-buttons">
+          <button class="btn-emote" data-sound="bocina" data-emote="📢"><span>📢</span><span>BOCINA</span></button>
+          <button class="btn-emote" data-sound="auuu" data-emote="🐺"><span>🐺</span><span>AUUUU</span></button>
+          <button class="btn-emote" data-sound="bing_chilling" data-emote="🍦"><span>🍦</span><span>BING</span></button>
+          <button class="btn-emote" data-sound="faaah" data-emote="🗣️"><span>🗣️</span><span>FAAAH</span></button>
+          <button class="btn-emote" data-sound="oh_my_god" data-emote="😱"><span>😱</span><span>OMG</span></button>
+          <button class="btn-emote" data-sound="allah_akbar" data-emote="💣"><span>💣</span><span>ALLAH</span></button>
+        </div>
+      </div>
+    </section>
+
     <!-- SCREEN 2: IN-GAME CONTROLLER -->
     <section id="screen-controller" class="player-screen">
       
