@@ -269,7 +269,10 @@ class BombermanEngine {
         if (this.roundNumber < this.maxRounds) {
           this.roundNumber++;
           this.gameState = 'countdown';
-          this.countdownTimer = 2.0;
+          this.countdownTimer = 3.5;
+          if (window.soundEngine) {
+            window.soundEngine.playLolMatchFound(0.95);
+          }
           this.spawnPlayersForRound();
         } else {
           this.gameState = 'victory';

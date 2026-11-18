@@ -2,8 +2,9 @@
  * CURVE FEVER / CURVYTRON (CURVAS CHAVALIL)
  * Motor 2D en HTML5 Canvas estilo Achtung die Kurve / Curve Fever.
  * Jugabilidad con solo 2 botones en móvil ([IZQUIERDA] y [DERECHA]).
- * Trazado de estelas continuas con huecos periódicos, colisiones pixel-perfect,
- * potenciadores en pista, avatares SVG de la cuadrilla y soporte para bots.
+ * MODO: TODOS CONTRA TODOS (Free-For-All) con agrupación en packs parejos (Heats)
+ * y Gran Final de clasificados si hay más de 4 jugadores.
+ * Sonido de "LoL Match Found" entre rondas y heats.
  */
 
 class CurveFeverEngine {
@@ -37,25 +38,50 @@ class CurveFeverEngine {
     this.trailCanvas.height = this.height;
     this.trailCtx = this.trailCanvas.getContext('2d', { willReadFrequently: true });
 
-    this.players = [];
+    this.allPlayers = [];
+    this.packs = [];
+    this.phases = [];
+    this.currentPhaseIndex = 0;
+    this.currentRoundInPhase = 1;
+    this.activePlayers = [];
+
     this.powerups = [];
     this.particles = [];
     this.floatingTexts = [];
     this.avatarImages = {};
-    this.gameState = 'countdown'; // 'countdown' | 'playing' | 'round_over' | 'victory'
-    this.countdownTimer = 3.0;
-    this.roundOverTimer = 0;
-    this.roundNumber = 1;
-    this.maxRounds = 3;
-    this.teamScores = { teamA: 0, teamB: 0 };
-    this.winningTeam = null;
 
-    // Colores vivos para jugadores individuales
+    this.gameState = 'countdown'; // 'countdown' | 'playing' | 'round_over' | 'victory'
+    this.countdownTimer = 3.5;
+    this.roundOverTimer = 0;
+    this.grandWinner = null;
+
+    // Paleta Candy-Arcade de colores individuales vibrantes
     this.palette = [
       '#38bdf8', '#f43f5e', '#22c55e', '#eab308',
-      '#a855f7', '#fb923c', '#06b6d4', '#ec4899'
+      '#a855f7', '#fb923c', '#06b6d4', '#ec4899',
+      '#f472b6', '#4ade80'
     ];
     this.screenShake = 0;
+  }
+
+  /**
+   * Particiona N jugadores en K grupos parejos (ej. 6 -> [3, 3], 7 -> [4, 3], 8 -> [4, 4]).
+   */
+  static partitionIntoBalancedPacks(players, maxPerPack = 4) {
+    const n = players.length;
+    if (n <= maxPerPack) return [players.slice()];
+    const numPacks = Math.ceil(n / maxPerPack);
+    const baseSize = Math.floor(n / numPacks);
+    const remainder = n % numPacks;
+
+    const packs = [];
+    let offset = 0;
+    for (let i = 0; i < numPacks; i++) {
+      const size = baseSize + (i < remainder ? 1 : 0);
+      packs.push(players.slice(offset, offset + size));
+      offset += size;
+    }
+    return packs;
   }
 
   async prepareAvatars(playerList) {
@@ -78,75 +104,139 @@ class CurveFeverEngine {
     await Promise.all(promises);
   }
 
-  init(playerList, teams = {}) {
+  init(playerList) {
     this.running = true;
-    this.gameState = 'countdown';
-    this.countdownTimer = 3.0;
-    this.roundOverTimer = 0;
-    this.roundNumber = 1;
     this.powerups = [];
     this.particles = [];
-    this.teamScores = { teamA: 0, teamB: 0 };
-    this.winningTeam = null;
+    this.floatingTexts = [];
+    this.grandWinner = null;
 
-    // Limpiar canvas de estelas
-    this.clearTrailCanvas();
-
-    const teamAIds = (teams.teamA || []).map(p => p.id);
-
-    // Configurar jugadores
-    this.players = playerList.map((p, idx) => {
-      const inTeamA = teamAIds.includes(p.id) || (idx % 2 === 0);
-      const color = inTeamA ? '#3b82f6' : '#ef4444';
+    // 1. Instanciar todos los jugadores en modo Free-For-All
+    this.allPlayers = playerList.map((p, idx) => {
       const personalColor = this.palette[idx % this.palette.length];
-
       return {
         id: p.id,
         name: p.name || `Chaval_${idx + 1}`,
         avatar: p.avatar,
         isBot: Boolean(p.isBot),
-        team: inTeamA ? 'teamA' : 'teamB',
-        teamColor: color,
         lineColor: personalColor,
-        score: 0,
-        // Estado físico
+        totalScore: 0,
+        roundWins: 0,
+        // Estado físico y controles
         x: 0,
         y: 0,
         angle: 0,
-        speed: 130, // px por segundo
+        speed: 130,
         baseSpeed: 130,
-        turnSpeed: 3.4, // radianes por segundo
-        radius: 3.5, // grosor de la línea
+        turnSpeed: 3.4,
+        radius: 3.5,
         alive: true,
-        // Mecánica de huecos (gaps)
         drawing: true,
         drawTimer: 0,
         gapTimer: 0,
         drawDuration: 2.2 + Math.random() * 1.5,
         gapDuration: 0.35,
-        // Inputs
         turnLeft: false,
         turnRight: false,
-        // Efectos activos
         speedMultiplier: 1.0,
         reverseControls: false,
         effectTimer: 0,
-        invulnerableTimer: 1.0 // breve inmunidad al spawn
+        invulnerableTimer: 1.0
       };
     });
 
-    this.spawnPlayersForRound();
-    this.prepareAvatars(playerList);
+    // 2. Particionar en packs parejos (máximo 4 por pista)
+    this.packs = CurveFeverEngine.partitionIntoBalancedPacks(this.allPlayers, 4);
 
-    // Audio match found / countdown
-    if (window.soundEngine) {
-      window.soundEngine.playPreparationMatchFound();
+    // 3. Diseñar fases del torneo
+    this.phases = [];
+    if (this.packs.length === 1) {
+      // 1 solo grupo: 3 rondas directas todos contra todos
+      this.phases.push({
+        title: 'TODOS CONTRA TODOS',
+        isFinal: true,
+        packIndex: 0,
+        maxRounds: 3
+      });
+    } else {
+      // Múltiples grupos: heats clasificatorios de 2 rondas cada uno
+      this.packs.forEach((pack, pIdx) => {
+        this.phases.push({
+          title: `GRUPO ${pIdx + 1} / ${this.packs.length}`,
+          isFinal: false,
+          packIndex: pIdx,
+          maxRounds: 2
+        });
+      });
+      // Gran Final de 2 rondas entre los clasificados
+      this.phases.push({
+        title: '⚔️ GRAN FINAL',
+        isFinal: true,
+        packIndex: -1,
+        maxRounds: 2
+      });
     }
+
+    this.prepareAvatars(this.allPlayers);
+
+    // Iniciar Fase 0
+    this.startPhase(0);
 
     this.lastTime = performance.now();
     this.loop = this.loop.bind(this);
     if (this.animationId) cancelAnimationFrame(this.animationId);
     this.animationId = requestAnimationFrame(this.loop);
+  }
+
+  startPhase(phaseIndex) {
+    this.currentPhaseIndex = phaseIndex;
+    this.currentRoundInPhase = 1;
+    const phase = this.phases[phaseIndex];
+
+    if (!phase.isFinal) {
+      // Activar los jugadores del pack correspondiente
+      this.activePlayers = this.packs[phase.packIndex];
+    } else if (this.packs.length === 1) {
+      this.activePlayers = this.allPlayers;
+    } else {
+      // Seleccionar clasificados para la Gran Final:
+      // Los 2 mejores de cada pack (o top 4 por puntos totales)
+      const finalists = [];
+      this.packs.forEach(pack => {
+        const sorted = pack.slice().sort((a, b) => b.totalScore - a.totalScore);
+        finalists.push(...sorted.slice(0, 2));
+      });
+      // En caso de desempate o grupo impar, garantizar entre 3 y 4 finalistas
+      this.activePlayers = Array.from(new Set(finalists)).slice(0, 4);
+      if (this.activePlayers.length < 3) {
+        // Fallback a los top 4 por puntos globales
+        this.activePlayers = this.allPlayers.slice().sort((a, b) => b.totalScore - a.totalScore).slice(0, 4);
+      }
+    }
+
+    // Notificar a los mandos móviles (los que juegan están en la arena, el resto en banquillo)
+    this.notifyHeatUpdate();
+
+    // Audio LoL Match Found al iniciar cada heat/grupo
+    if (window.soundEngine) {
+      window.soundEngine.playLolMatchFound(0.95);
+    }
+
+    this.gameState = 'countdown';
+    this.countdownTimer = 3.5;
+    this.spawnPlayersForRound();
+  }
+
+  notifyHeatUpdate() {
+    if (typeof socket !== 'undefined' && socket) {
+      const activeIds = this.activePlayers.map(p => p.id);
+      socket.emit('minigame_heat_update', {
+        heatIndex: this.currentPhaseIndex + 1,
+        totalHeats: this.phases.length,
+        activePlayerIds: activeIds,
+        minigameName: 'Curvas Chavalil'
+      });
+    }
   }
 
   clearTrailCanvas() {
@@ -184,34 +274,36 @@ class CurveFeverEngine {
     this.particles = [];
     this.floatingTexts = [];
     this.screenShake = 0;
-    const count = this.players.length;
+    const count = this.activePlayers.length;
 
-    this.players.forEach((p, idx) => {
-      // Spawn repartido en círculo alrededor del centro
-      const angle = (idx / count) * Math.PI * 2 + (Math.random() * 0.4 - 0.2);
-      const dist = 180 + Math.random() * 80;
+    this.activePlayers.forEach((p, idx) => {
+      // Spawn repartido radialmente alrededor del centro de la arena
+      const angle = (idx / Math.max(1, count)) * Math.PI * 2 + (Math.random() * 0.4 - 0.2);
+      const dist = 180 + Math.random() * 70;
       const centerX = this.width / 2;
       const centerY = this.height / 2;
 
       p.x = centerX + Math.cos(angle) * dist;
       p.y = centerY + Math.sin(angle) * dist;
-      // Apuntar hacia el centro con ligera desviación
-      p.angle = angle + Math.PI + (Math.random() * 0.6 - 0.3);
+      // Apuntar hacia el centro de la arena
+      p.angle = angle + Math.PI + (Math.random() * 0.5 - 0.25);
       p.alive = true;
       p.drawing = true;
       p.drawTimer = 0;
       p.gapTimer = 0;
       p.drawDuration = 2.0 + Math.random() * 1.2;
-      p.gapDuration = 0.32;
+      p.gapDuration = 0.35;
       p.speedMultiplier = 1.0;
       p.reverseControls = false;
       p.effectTimer = 0;
       p.invulnerableTimer = 1.0;
+      p.turnLeft = false;
+      p.turnRight = false;
     });
   }
 
   handlePlayerInput(playerId, input) {
-    const p = this.players.find(pl => pl.id === playerId);
+    const p = this.allPlayers.find(pl => pl.id === playerId);
     if (!p) return;
 
     if (typeof input.left === 'boolean') {
@@ -246,15 +338,26 @@ class CurveFeverEngine {
     if (this.gameState === 'round_over') {
       this.roundOverTimer -= dt;
       if (this.roundOverTimer <= 0) {
-        if (this.roundNumber < this.maxRounds) {
-          this.roundNumber++;
+        const phase = this.phases[this.currentPhaseIndex];
+        if (this.currentRoundInPhase < phase.maxRounds) {
+          // Siguiente ronda dentro de la misma fase
+          this.currentRoundInPhase++;
           this.gameState = 'countdown';
-          this.countdownTimer = 2.0;
+          this.countdownTimer = 3.5;
+          // Audio LoL Match Found entre rondas
+          if (window.soundEngine) {
+            window.soundEngine.playLolMatchFound(0.95);
+          }
           this.spawnPlayersForRound();
         } else {
-          // Fin de partida
-          this.gameState = 'victory';
-          this.resolveMatchWinner();
+          // Fase completada: avanzar a la siguiente fase (siguiente grupo o Gran Final)
+          if (this.currentPhaseIndex < this.phases.length - 1) {
+            this.startPhase(this.currentPhaseIndex + 1);
+          } else {
+            // Torneo de Curvas finalizado
+            this.gameState = 'victory';
+            this.resolveTournamentWinner();
+          }
         }
       }
       return;
@@ -264,7 +367,7 @@ class CurveFeverEngine {
       return;
     }
 
-    // Update Floating Texts
+    // Actualizar Textos Flotantes
     for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
       const ft = this.floatingTexts[i];
       ft.life -= dt;
@@ -280,11 +383,11 @@ class CurveFeverEngine {
     // Actualizar bots e inputs
     this.updateBots(dt);
 
-    // Mover jugadores y comprobar colisiones
+    // Mover jugadores activos y comprobar colisiones
     let aliveCount = 0;
     let lastAlivePlayer = null;
 
-    this.players.forEach(p => {
+    this.activePlayers.forEach(p => {
       if (!p.alive) return;
       aliveCount++;
       lastAlivePlayer = p;
@@ -314,7 +417,7 @@ class CurveFeverEngine {
       p.x += Math.cos(p.angle) * currentSpeed * dt;
       p.y += Math.sin(p.angle) * currentSpeed * dt;
 
-      // Trailing jet spark
+      // Partícula de estela
       if (p.drawing && Math.random() < 0.25) {
         this.particles.push({
           x: p.x - Math.cos(p.angle) * 4,
@@ -353,29 +456,27 @@ class CurveFeverEngine {
         p.y <= this.bounds.y + p.radius ||
         p.y >= this.bounds.y + this.bounds.h - p.radius
       ) {
-        this.killPlayer(p, 'pared');
+        this.killPlayer(p, 'pared', aliveCount);
         return;
       }
 
       // Colisión con estelas en trailCanvas (sólo si no es inmune)
       if (p.invulnerableTimer <= 0) {
-        // Muestra de píxeles justo delante de la cabeza
         const checkDist = p.radius + 1.8;
         const checkX = Math.round(p.x + Math.cos(p.angle) * checkDist);
         const checkY = Math.round(p.y + Math.sin(p.angle) * checkDist);
 
         if (checkX >= 0 && checkX < this.width && checkY >= 0 && checkY < this.height) {
           const pixel = this.trailCtx.getImageData(checkX, checkY, 1, 1).data;
-          // Si el píxel no es fondo oscuro (#0f172a es [15, 23, 42]), hay estela o marco
           const isBackground = (pixel[0] < 22 && pixel[1] < 30 && pixel[2] < 50);
           if (!isBackground) {
-            this.killPlayer(p, 'estela');
+            this.killPlayer(p, 'estela', aliveCount);
             return;
           }
         }
       }
 
-      // Dibujar trazo en trailCanvas si está en modo dibujo
+      // Dibujar trazo en trailCanvas
       if (p.drawing) {
         this.trailCtx.strokeStyle = p.lineColor;
         this.trailCtx.lineWidth = p.radius * 2;
@@ -384,19 +485,6 @@ class CurveFeverEngine {
         this.trailCtx.moveTo(prevX, prevY);
         this.trailCtx.lineTo(p.x, p.y);
         this.trailCtx.stroke();
-
-        // Partículas lumínicas sutiles en la estela
-        if (Math.random() < 0.25) {
-          this.particles.push({
-            x: prevX,
-            y: prevY,
-            vx: (Math.random() - 0.5) * 25,
-            vy: (Math.random() - 0.5) * 25,
-            color: p.lineColor,
-            size: 2,
-            life: 0.35
-          });
-        }
       }
 
       // Recoger power-ups
@@ -406,18 +494,17 @@ class CurveFeverEngine {
     // Actualizar partículas
     this.updateParticles(dt);
 
-    // Condición de final de ronda: queda 1 jugador (o 0 si murieron a la vez)
-    const requiredAlive = this.players.length > 1 ? 1 : 0;
+    // Condición de final de ronda: queda 1 jugador superviviente (o 0 si murieron a la vez)
+    const requiredAlive = this.activePlayers.length > 1 ? 1 : 0;
     if (aliveCount <= requiredAlive) {
       this.finishRound(lastAlivePlayer);
     }
   }
 
   updateBots(dt) {
-    this.players.forEach(p => {
+    this.activePlayers.forEach(p => {
       if (!p.isBot || !p.alive) return;
 
-      // Raycast frontal, izquierda y derecha para evitar colisiones
       const rayDist = 28;
       const leftAngle = p.angle - 0.65;
       const rightAngle = p.angle + 0.65;
@@ -434,12 +521,10 @@ class CurveFeverEngine {
           p.turnLeft = true;
           p.turnRight = false;
         } else {
-          // Ambos lados amenazados: girar fuerte hacia el lado más abierto
           p.turnLeft = Math.random() < 0.5;
           p.turnRight = !p.turnLeft;
         }
       } else {
-        // Navegación suave aleatoria para generar curvas bonitas
         if (Math.random() < 0.04) {
           const r = Math.random();
           p.turnLeft = r < 0.35;
@@ -461,10 +546,16 @@ class CurveFeverEngine {
     return !(pixel[0] < 22 && pixel[1] < 30 && pixel[2] < 50);
   }
 
-  killPlayer(p, reason = '') {
+  killPlayer(p, reason = '', currentAliveCount = 1) {
     p.alive = false;
     this.screenShake = 14;
-    this.addFloatingText('¡ELIMINADO!', p.lineColor, 1.2, 1.4, p.x, p.y - 24);
+
+    // Puntos individuales según los rivales a los que ha sobrevivido
+    const outlastedCount = Math.max(0, this.activePlayers.length - currentAliveCount);
+    const pts = outlastedCount * 10;
+    p.totalScore += pts;
+
+    this.addFloatingText(pts > 0 ? `+${pts} PTS` : '¡ELIMINADO!', p.lineColor, 1.2, 1.4, p.x, p.y - 24);
 
     // Onda expansiva neón
     this.particles.push({
@@ -532,8 +623,7 @@ class CurveFeverEngine {
         collector.effectTimer = 4.0;
         break;
       case 'slow':
-        // Ralentizar a los rivales
-        this.players.forEach(pl => {
+        this.activePlayers.forEach(pl => {
           if (pl.id !== collector.id && pl.alive) {
             pl.speedMultiplier = 0.65;
             pl.effectTimer = 4.0;
@@ -541,8 +631,7 @@ class CurveFeverEngine {
         });
         break;
       case 'reverse':
-        // Invertir controles a los rivales
-        this.players.forEach(pl => {
+        this.activePlayers.forEach(pl => {
           if (pl.id !== collector.id && pl.alive) {
             pl.reverseControls = true;
             pl.effectTimer = 3.5;
@@ -550,7 +639,6 @@ class CurveFeverEngine {
         });
         break;
       case 'clear':
-        // Limpiar parcialmente estelas de la arena
         this.clearTrailCanvas();
         break;
     }
@@ -573,27 +661,23 @@ class CurveFeverEngine {
 
   finishRound(winnerPlayer) {
     this.gameState = 'round_over';
-    this.roundOverTimer = 2.5;
+    this.roundOverTimer = 2.8;
 
     if (winnerPlayer) {
-      winnerPlayer.score += 100;
-      if (winnerPlayer.team === 'teamA') {
-        this.teamScores.teamA += 1;
-      } else {
-        this.teamScores.teamB += 1;
-      }
+      winnerPlayer.roundWins = (winnerPlayer.roundWins || 0) + 1;
+      winnerPlayer.totalScore = (winnerPlayer.totalScore || 0) + 50;
+
+      this.addFloatingText('¡SUPERVIVIENTE! +50 PTS', winnerPlayer.lineColor, 2.0, 1.5, this.width / 2, this.height / 2);
+
       if (window.soundEngine) {
         window.soundEngine.playCelebrationJump();
       }
     }
   }
 
-  resolveMatchWinner() {
-    if (this.teamScores.teamA >= this.teamScores.teamB) {
-      this.winningTeam = 'teamA';
-    } else {
-      this.winningTeam = 'teamB';
-    }
+  resolveTournamentWinner() {
+    const sorted = this.allPlayers.slice().sort((a, b) => b.totalScore - a.totalScore);
+    this.grandWinner = sorted[0];
 
     if (window.soundEngine) {
       window.soundEngine.playSocialCreditVictory();
@@ -602,18 +686,19 @@ class CurveFeverEngine {
     setTimeout(() => {
       this.onComplete({
         gameType: 'curve',
-        winningTeam: this.winningTeam,
-        scores: this.teamScores,
-        players: this.players.map(p => ({ id: p.id, score: p.score }))
+        isFFA: true,
+        winnerId: this.grandWinner ? this.grandWinner.id : null,
+        scores: this.allPlayers.map(p => ({ id: p.id, score: p.totalScore })),
+        ranking: sorted.map(p => ({ id: p.id, name: p.name, score: p.totalScore }))
       });
-    }, 3500);
+    }, 4000);
   }
 
   render() {
     this.ctx.clearRect(0, 0, this.width, this.height);
     this.ctx.save();
 
-    // Pantalla sacudida (Screen Shake)
+    // Screen Shake
     if (this.screenShake > 0.2) {
       const sx = (Math.random() - 0.5) * this.screenShake;
       const sy = (Math.random() - 0.5) * this.screenShake;
@@ -624,7 +709,7 @@ class CurveFeverEngine {
     // 1. Fondo y estelas acumuladas
     this.ctx.drawImage(this.trailCanvas, 0, 0);
 
-    // Marco neón decorativo con esquinas tácticas
+    // Marco neón de la arena
     this.ctx.save();
     this.ctx.strokeStyle = '#38bdf8';
     this.ctx.shadowColor = '#38bdf8';
@@ -632,7 +717,7 @@ class CurveFeverEngine {
     this.ctx.lineWidth = 3;
     this.ctx.strokeRect(this.bounds.x, this.bounds.y, this.bounds.w, this.bounds.h);
 
-    // Esquinas tácticas reforzadas
+    // Esquinas reforzadas
     const cLen = 20;
     const bx = this.bounds.x, by = this.bounds.y, bw = this.bounds.w, bh = this.bounds.h;
     this.ctx.strokeStyle = '#00f2fe';
@@ -649,61 +734,49 @@ class CurveFeverEngine {
     const now = performance.now() * 0.005;
     this.powerups.forEach(pw => {
       this.ctx.save();
-      const pulse = Math.sin(now * 3) * 2;
+      const pulseR = pw.radius + Math.sin(now + pw.x) * 2;
       this.ctx.beginPath();
-      this.ctx.arc(pw.x, pw.y, pw.radius + pulse, 0, Math.PI * 2);
-
-      let color = '#38bdf8';
-      let icon = '⚡';
-      if (pw.type === 'slow') { color = '#f43f5e'; icon = '🐢'; }
-      if (pw.type === 'reverse') { color = '#a855f7'; icon = '🔄'; }
-      if (pw.type === 'clear') { color = '#22c55e'; icon = '🧹'; }
-
-      this.ctx.fillStyle = color;
-      this.ctx.shadowColor = color;
-      this.ctx.shadowBlur = 10;
+      this.ctx.arc(pw.x, pw.y, pulseR, 0, Math.PI * 2);
+      this.ctx.fillStyle = pw.type === 'speed' ? '#eab308' :
+                           pw.type === 'slow' ? '#06b6d4' :
+                           pw.type === 'reverse' ? '#ec4899' : '#22c55e';
+      this.ctx.shadowColor = this.ctx.fillStyle;
+      this.ctx.shadowBlur = 12;
       this.ctx.fill();
 
-      this.ctx.font = '13px sans-serif';
+      // Icono
+      this.ctx.fillStyle = '#0f172a';
+      this.ctx.font = 'bold 12px sans-serif';
       this.ctx.textAlign = 'center';
       this.ctx.textBaseline = 'middle';
+      const icon = pw.type === 'speed' ? '⚡' : pw.type === 'slow' ? '❄️' : pw.type === 'reverse' ? '🔄' : '🧹';
       this.ctx.fillText(icon, pw.x, pw.y);
       this.ctx.restore();
     });
 
-    // 3. Cabezas de los jugadores con avatares
-    this.players.forEach(p => {
+    // 3. Cabezas y avatares de jugadores activos
+    this.activePlayers.forEach(p => {
       if (!p.alive) return;
 
       this.ctx.save();
-      // Anillo de brillo alrededor de la cabeza
-      this.ctx.beginPath();
-      this.ctx.arc(p.x, p.y, p.radius + 3, 0, Math.PI * 2);
-      this.ctx.fillStyle = p.lineColor;
-      this.ctx.shadowColor = p.lineColor;
-      this.ctx.shadowBlur = 10;
-      this.ctx.fill();
-
-      // Mini avatar de la cabeza
       const img = this.avatarImages[p.id];
-      if (img && img.complete) {
-        const headSize = 24;
+      if (img) {
+        const headSize = 26;
         this.ctx.drawImage(img, p.x - headSize / 2, p.y - headSize / 2, headSize, headSize);
       } else {
-        // Fallback círculo blanco con inicial
         this.ctx.beginPath();
-        this.ctx.arc(p.x, p.y, p.radius + 1, 0, Math.PI * 2);
-        this.ctx.fillStyle = '#ffffff';
+        this.ctx.arc(p.x, p.y, p.radius + 2, 0, Math.PI * 2);
+        this.ctx.fillStyle = p.lineColor;
         this.ctx.fill();
       }
 
-      // Nombre flotante pequeño
-      this.ctx.font = 'bold 11px sans-serif';
+      // Nombre del jugador en su color
+      this.ctx.font = 'bold 12px sans-serif';
       this.ctx.textAlign = 'center';
-      this.ctx.fillStyle = '#f8fafc';
-      this.ctx.shadowColor = '#000';
-      this.ctx.shadowBlur = 4;
-      this.ctx.fillText(p.name, p.x, p.y - 14);
+      this.ctx.fillStyle = p.lineColor;
+      this.ctx.shadowColor = '#000000';
+      this.ctx.shadowBlur = 5;
+      this.ctx.fillText(p.name, p.x, p.y - 16);
       this.ctx.restore();
     });
 
@@ -749,10 +822,10 @@ class CurveFeverEngine {
       this.ctx.restore();
     });
 
-    // 6. HUD Superior (Rondas y Marcadores de Equipos)
+    // 6. HUD Superior Arcade (Todos Contra Todos y Marcador Individual)
     this.renderHUD();
 
-    // 7. Overlays de estado (Countdown, Round Over, Victory)
+    // 7. Overlays de estado
     if (this.gameState === 'countdown') {
       this.renderCountdown();
     } else if (this.gameState === 'round_over') {
@@ -761,45 +834,51 @@ class CurveFeverEngine {
       this.renderVictory();
     }
 
-    this.ctx.restore(); // Finaliza save de Screen Shake
+    this.ctx.restore();
   }
 
   renderHUD() {
     this.ctx.save();
-    // Barra superior
-    this.ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-    this.ctx.fillRect(this.bounds.x, 10, this.bounds.w, 42);
+    const phase = this.phases[this.currentPhaseIndex] || { title: 'CURVAS CHAVALIL', maxRounds: 3 };
+
+    // Barra superior estilo Candy Arcade
+    this.ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+    this.ctx.fillRect(this.bounds.x, 8, this.bounds.w, 46);
     this.ctx.strokeStyle = '#334155';
-    this.ctx.lineWidth = 1.5;
-    this.ctx.strokeRect(this.bounds.x, 10, this.bounds.w, 42);
+    this.ctx.lineWidth = 2;
+    this.ctx.strokeRect(this.bounds.x, 8, this.bounds.w, 46);
 
-    // Título central y Ronda
-    this.ctx.font = '900 16px sans-serif';
-    this.ctx.textAlign = 'center';
-    this.ctx.fillStyle = '#f8fafc';
-    this.ctx.fillText(`🌀 CURVAS CHAVALIL — RONDA ${this.roundNumber} / ${this.maxRounds}`, this.width / 2, 36);
-
-    // Equipo Azul (Izquierda)
-    this.ctx.font = '900 15px sans-serif';
+    // Título de la Fase y Ronda
+    this.ctx.font = '900 16px "Impact", "Arial Black", sans-serif';
     this.ctx.textAlign = 'left';
-    this.ctx.fillStyle = '#60a5fa';
-    this.ctx.fillText(`🔵 EQUIPO AZUL: ${this.teamScores.teamA} Victorias`, this.bounds.x + 16, 36);
+    this.ctx.fillStyle = '#f8fafc';
+    this.ctx.fillText(`🌀 CURVAS CHAVALIL — ${phase.title}  ·  RONDA ${this.currentRoundInPhase} / ${phase.maxRounds}`, this.bounds.x + 16, 36);
 
-    // Equipo Rojo (Derecha)
-    this.ctx.textAlign = 'right';
-    this.ctx.fillStyle = '#f87171';
-    this.ctx.fillText(`🔴 EQUIPO ROJO: ${this.teamScores.teamB} Victorias`, this.bounds.x + this.bounds.w - 16, 36);
+    // Badges de puntuación individual para los jugadores activos en este heat
+    let chipX = this.bounds.x + this.bounds.w - 16;
+    this.activePlayers.slice().reverse().forEach(p => {
+      this.ctx.textAlign = 'right';
+      this.ctx.font = '900 13px sans-serif';
+      const statusIcon = p.alive ? '●' : '✕';
+      const text = `${statusIcon} ${p.name}: ${p.totalScore} pts`;
+
+      this.ctx.fillStyle = p.alive ? p.lineColor : '#64748b';
+      this.ctx.fillText(text, chipX, 36);
+      chipX -= (this.ctx.measureText(text).width + 18);
+    });
+
     this.ctx.restore();
   }
 
   renderCountdown() {
     this.ctx.save();
-    this.ctx.fillStyle = 'rgba(15, 23, 42, 0.6)';
+    this.ctx.fillStyle = 'rgba(15, 23, 42, 0.65)';
     this.ctx.fillRect(0, 0, this.width, this.height);
 
+    const phase = this.phases[this.currentPhaseIndex] || { title: 'CURVAS' };
     const countNum = Math.ceil(this.countdownTimer);
     const frac = this.countdownTimer - Math.floor(this.countdownTimer);
-    const bounceScale = 1.0 + Math.sin(Math.max(0, frac) * Math.PI) * 0.35;
+    const bounceScale = 1.0 + Math.sin(Math.max(0, frac) * Math.PI) * 0.3;
 
     this.ctx.save();
     this.ctx.translate(this.width / 2, this.height / 2 - 20);
@@ -807,61 +886,87 @@ class CurveFeverEngine {
 
     const text = countNum > 0 ? `${countNum}` : '¡DERRAPA!';
 
-    this.ctx.font = '900 78px sans-serif';
+    this.ctx.font = '900 84px "Impact", "Arial Black", sans-serif';
     this.ctx.textAlign = 'center';
     this.ctx.textBaseline = 'middle';
     this.ctx.fillStyle = '#facc15';
     this.ctx.shadowColor = '#d97706';
-    this.ctx.shadowBlur = 22;
+    this.ctx.shadowBlur = 24;
     this.ctx.fillText(text, 0, 0);
     this.ctx.restore();
 
-    this.ctx.font = '800 22px sans-serif';
+    // Subtítulo con el grupo activo
+    this.ctx.font = '900 24px sans-serif';
     this.ctx.textAlign = 'center';
-    this.ctx.fillStyle = '#cbd5e1';
+    this.ctx.fillStyle = '#38bdf8';
     this.ctx.shadowBlur = 8;
-    this.ctx.fillText('Usa [◀ IZQ] y [DER ▶] en el móvil para esquivar estelas', this.width / 2, this.height / 2 + 55);
+    this.ctx.fillText(`★ ${phase.title} ★`, this.width / 2, this.height / 2 + 55);
+
+    // Controles
+    this.ctx.font = '700 16px sans-serif';
+    this.ctx.fillStyle = '#cbd5e1';
+    this.ctx.fillText('Pulsa [◀ IZQUIERDA] y [DERECHA ▶] en tu móvil para esquivar estelas', this.width / 2, this.height / 2 + 88);
+
     this.ctx.restore();
   }
 
   renderRoundOver() {
     this.ctx.save();
-    this.ctx.fillStyle = 'rgba(15, 23, 42, 0.55)';
+    this.ctx.fillStyle = 'rgba(15, 23, 42, 0.7)';
     this.ctx.fillRect(0, 0, this.width, this.height);
 
-    this.ctx.font = '900 48px sans-serif';
+    const phase = this.phases[this.currentPhaseIndex] || { title: 'CURVAS' };
+
+    this.ctx.font = '900 52px "Impact", "Arial Black", sans-serif';
     this.ctx.textAlign = 'center';
     this.ctx.textBaseline = 'middle';
     this.ctx.fillStyle = '#38bdf8';
-    this.ctx.fillText(`FIN DE LA RONDA ${this.roundNumber}`, this.width / 2, this.height / 2 - 20);
+    this.ctx.shadowColor = '#0284c7';
+    this.ctx.shadowBlur = 20;
+    this.ctx.fillText(`FIN DE LA RONDA ${this.currentRoundInPhase}`, this.width / 2, this.height / 2 - 40);
 
-    this.ctx.font = '800 20px sans-serif';
-    this.ctx.fillStyle = '#f8fafc';
-    this.ctx.fillText(`Azul: ${this.teamScores.teamA}  |  Rojo: ${this.teamScores.teamB}`, this.width / 2, this.height / 2 + 30);
+    // Tabla de puntuaciones del grupo
+    this.ctx.font = '900 22px sans-serif';
+    this.ctx.fillStyle = '#facc15';
+    this.ctx.shadowBlur = 10;
+    this.ctx.fillText(`Clasificación de ${phase.title}:`, this.width / 2, this.height / 2 + 10);
+
+    const sortedActive = this.activePlayers.slice().sort((a, b) => b.totalScore - a.totalScore);
+    const summary = sortedActive.map((p, i) => `${i + 1}º ${p.name} (${p.totalScore} pts)`).join('  ·  ');
+
+    this.ctx.font = '800 18px sans-serif';
+    this.ctx.fillStyle = '#ffffff';
+    this.ctx.fillText(summary, this.width / 2, this.height / 2 + 50);
+
     this.ctx.restore();
   }
 
   renderVictory() {
     this.ctx.save();
-    this.ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+    this.ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
     this.ctx.fillRect(0, 0, this.width, this.height);
 
-    const isAzul = this.winningTeam === 'teamA';
-    const teamName = isAzul ? 'EQUIPO AZUL' : 'EQUIPO ROJO';
-    const teamColor = isAzul ? '#3b82f6' : '#ef4444';
+    const champ = this.grandWinner || this.allPlayers[0];
 
-    this.ctx.font = '900 58px sans-serif';
+    this.ctx.font = '900 56px "Impact", "Arial Black", sans-serif';
     this.ctx.textAlign = 'center';
     this.ctx.textBaseline = 'middle';
-    this.ctx.fillStyle = teamColor;
-    this.ctx.shadowColor = teamColor;
-    this.ctx.shadowBlur = 25;
-    this.ctx.fillText(`🏆 ¡VICTORIA PARA EL ${teamName}!`, this.width / 2, this.height / 2 - 30);
-
-    this.ctx.font = '800 24px sans-serif';
     this.ctx.fillStyle = '#facc15';
-    this.ctx.shadowBlur = 10;
-    this.ctx.fillText(`Marcador Final: ${this.teamScores.teamA} - ${this.teamScores.teamB}`, this.width / 2, this.height / 2 + 40);
+    this.ctx.shadowColor = '#d97706';
+    this.ctx.shadowBlur = 25;
+    this.ctx.fillText(`🏆 ¡VICTORIA DE ${champ ? champ.name.toUpperCase() : 'CHAVAL'}!`, this.width / 2, this.height / 2 - 60);
+
+    // Avatar del campeón
+    if (champ && this.avatarImages[champ.id]) {
+      const aSize = 90;
+      this.ctx.drawImage(this.avatarImages[champ.id], this.width / 2 - aSize / 2, this.height / 2 - 20, aSize, aSize);
+    }
+
+    this.ctx.font = '900 26px sans-serif';
+    this.ctx.fillStyle = '#38bdf8';
+    this.ctx.shadowBlur = 12;
+    this.ctx.fillText(`Puntuación Ganadora: ${champ ? champ.totalScore : 0} PUNTOS`, this.width / 2, this.height / 2 + 95);
+
     this.ctx.restore();
   }
 

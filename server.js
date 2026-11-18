@@ -707,11 +707,18 @@ io.on('connection', (socket) => {
     // Award points to team or players (unless it's a prank minigame like Button Bash)
     const isPrank = Boolean(data?.isPrank || currentLevel?.isPrank);
     const winningTeam = data?.winningTeam || 'teamA';
-    if (!isPrank && gameState.teams[winningTeam]) {
-      gameState.teams[winningTeam].forEach(member => {
-        const p = players.get(member.id);
-        if (p) p.score += 100;
-      });
+    if (!isPrank) {
+      if (data?.isFFA && Array.isArray(data?.scores)) {
+        data.scores.forEach(s => {
+          const p = players.get(s.id);
+          if (p) p.score += (s.score || 0);
+        });
+      } else if (gameState.teams[winningTeam]) {
+        gameState.teams[winningTeam].forEach(member => {
+          const p = players.get(member.id);
+          if (p) p.score += 100;
+        });
+      }
     }
 
     // Calculate ordered rankings
