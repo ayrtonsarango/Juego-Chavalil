@@ -1,0 +1,72 @@
+{
+  "groupA": [
+    {
+      "id": "vista_error_hours",
+      "type": "error_dialog",
+      "title": "Windows Vista - Error de Barra",
+      "body": "Calculando trayectoria balística del dardo...\nTiempo restante estimado: 4.382 horas, 14 minutos y 2 segundos.",
+      "button": "Esperar sentado con un zurito"
+    },
+    {
+      "id": "gangbang_ramen",
+      "type": "invite_popup",
+      "title": "🍜 ¡URGENTE: GANGBANG DE RAMEN SOLIDARIO!",
+      "body": "La mamá de los dos gatos ruega encarecidamente que vayáis hoy por favor.\nEl viernes pasado sobraron 40 litros de caldo de cerdo y los gatos no dan abasto 🐾🐾",
+      "badge": "ASISTENCIA OBLIGATORIA",
+      "action": "Voy de cabeza (+2 tuppers)"
+    }
+  ],
+  "groupB": {
+    "glitch_texts": [
+      "¡DIOX! El dardo se ha desviado solo porque hay corriente de aire en la puerta del bar.",
+      "AVISO DEL CAMARERO: El que clave el dardo en el corcho paga ronda de chupitos a toda la barra.",
+      "ERROR: La diana no responde porque Marta y Violeta estaban mirando fotos de perros en el móvil."
+    ],
+    "rogue_darts_count": 3
+  },
+  "groupC": [
+    {
+      "id": "badostain_ad",
+      "type": "sleazy_ad",
+      "title": "🔞 ¡AVISO DE PROXIMIDAD BADOSTÁIN!",
+      "body": "¡Maduritas a menos de 3 km de Badostáin quieren echar una partida de dardos contigo en la bajera!",
+      "badge": "SOLTERAS CERCA",
+      "action": "Mandar ubicación por Bizum"
+    },
+    {
+      "id": "defender_pipas",
+      "type": "security_alert",
+      "title": "🛡️ WINDOWS DEFENDER - AMENAZA GRAVE",
+      "body": "Se ha detectado sal gorda de Pipas Facundo en la ranura de la diana.\nPor favor, sople fuerte para desinfectar.",
+      "badge": "PELIGRO MÁXIMO",
+      "action": "Limpiar con servilleta del bar"
+    }
+  ],
+  "groupD": {
+    "blackout_duration_seconds": 7,
+    "lines": [
+      "Mierda, Violeta, se ha ido la luz del bar...",
+      "¿Dónde está el enchufe del portátil de la barra?",
+      "Alvarito, no toques los plomos de Tracasa...",
+      "¡QUE ALGUIEN ENCHUFE LA NEVERA DE LOS KALIMOTXOS!"
+    ]
+  },
+  "fake_ranking": {
+    "winner": {
+      "name": "alvarito.tracasa.lover.69",
+      "score": "999.999.999 pts",
+      "badge": "🥪 EMPLEADO DEL MES EN TRACASA",
+      "comment": "¡Ha ganado el torneo de dardos sin levantarse de la silla de la oficina comiéndose un pincho de tortilla!"
+    },
+    "absurd_scores": [
+      "NaN pts (Se le cayó el dardo)",
+      "undefined",
+      "¯\\_(ツ)_/¯",
+      "-42.000 (Debe 3 rondas)",
+      "[object Object]",
+      "404 Dardo Not Found",
+      "12,5 Pipas Facundo",
+      "Infinito - 1"
+    ]
+  }
+}

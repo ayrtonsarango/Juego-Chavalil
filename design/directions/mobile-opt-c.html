@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Mando Opción C: 4 Botones Gigantes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Chango&family=Fredoka:wght@700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+    body {
+      width: 100vw; height: 100dvh; overflow: hidden;
+      background: #0f172a;
+      font-family: 'Fredoka', sans-serif;
+      display: flex; flex-direction: column;
+      padding: env(safe-area-inset-top, 12px) 14px env(safe-area-inset-bottom, 12px) 14px;
+      gap: 10px;
+    }
+    .header-prompt {
+      background: #1e293b; border: 3px solid #38bdf8; border-radius: 18px;
+      padding: 10px; text-align: center; color: #ffffff;
+    }
+    .header-prompt h1 { font-family: 'Chango', cursive; font-size: 22px; color: #facc15; }
+
+    /* 4 GIGANTIC SQUIRCLE BUTTONS FILLING 100% OF SCREEN */
+    .giant-buttons-grid {
+      flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
+      gap: 12px; position: relative;
+    }
+    .giant-btn {
+      border: 4.5px solid #1e293b; border-radius: 32px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Chango', cursive; font-size: 56px; color: #0f172a;
+      cursor: pointer; position: relative;
+    }
+    .giant-btn:active { transform: scale(0.96); }
+
+    .btn-a { background: #f472b6; box-shadow: 0 8px 0 #db2777, 0 8px 0 4px #1e293b; }
+    .btn-b { background: #4ade80; box-shadow: 0 8px 0 #16a34a, 0 8px 0 4px #1e293b; }
+    .btn-x { background: #38bdf8; box-shadow: 0 8px 0 #0284c7, 0 8px 0 4px #1e293b; }
+    .btn-y { background: #facc15; box-shadow: 0 8px 0 #ca8a04, 0 8px 0 4px #1e293b; }
+
+    .center-bang-badge {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 52px; height: 52px; background: #ffffff; border: 4px solid #1e293b; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; font-weight: 900; color: #f43f5e; box-shadow: 0 4px 0 #1e293b;
+    }
+  </style>
+</head>
+<body>
+  <div class="header-prompt">
+    <h1>¡RÁPIDO! ¡PULSA!</h1>
+  </div>
+
+  <div class="giant-buttons-grid">
+    <div class="giant-btn btn-a">A</div>
+    <div class="giant-btn btn-b">B</div>
+    <div class="giant-btn btn-x">X</div>
+    <div class="giant-btn btn-y">Y</div>
+    <div class="center-bang-badge">!</div>
+  </div>
+</body>
+</html>

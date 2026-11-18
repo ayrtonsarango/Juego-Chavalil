@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Mando: Super Smash</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Chango&family=Fredoka:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+    body {
+      width: 100vw; height: 100dvh; overflow: hidden;
+      background: #0f172a; font-family: 'Fredoka', sans-serif;
+      display: flex; flex-direction: column;
+      padding: 10px env(safe-area-inset-right, 16px) 10px env(safe-area-inset-left, 16px);
+      gap: 8px;
+    }
+    .smash-hud {
+      display: flex; justify-content: space-between; align-items: center;
+      background: #1e293b; border: 3px solid #f43f5e; border-radius: 16px;
+      padding: 6px 18px; color: #ffffff;
+    }
+    .hud-tag { font-family: 'Chango', cursive; font-size: 16px; color: #f43f5e; }
+    .dmg-badge { background: #facc15; color: #0f172a; font-size: 16px; font-weight: 900; border-radius: 10px; padding: 2px 14px; }
+
+    .arena-split {
+      flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+    }
+
+    /* Left: Movement D-Pad with Jump on UP */
+    .move-pad {
+      background: #1e293b; border: 4px solid #334155; border-radius: 28px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .dpad-smash {
+      display: grid; grid-template-columns: repeat(3, 62px); grid-template-rows: repeat(3, 62px);
+      gap: 4px;
+    }
+    .sm-btn {
+      background: #334155; border: 3px solid #1e293b; border-radius: 16px;
+      box-shadow: 0 4px 0 #0f172a; display: flex; align-items: center; justify-content: center;
+      font-size: 24px; font-weight: 900; color: #f8fafc; cursor: pointer;
+    }
+    .sm-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #0f172a; background: #38bdf8; }
+    .sm-u { grid-column: 2; grid-row: 1; background: #f59e0b; color: #0f172a; } /* Jump */
+    .sm-l { grid-column: 1; grid-row: 2; }
+    .sm-r { grid-column: 3; grid-row: 2; }
+    .sm-d { grid-column: 2; grid-row: 3; }
+
+    /* Right: Action Diamond (A Golpe, B Especial, X Salto, Y Escudo) */
+    .combat-diamond-zone {
+      background: #1e293b; border: 4px solid #334155; border-radius: 28px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .diamond-grid {
+      display: grid; grid-template-columns: repeat(3, 64px); grid-template-rows: repeat(3, 64px);
+      gap: 6px;
+    }
+    .btn-combat {
+      border: 3.5px solid #1e293b; border-radius: 50%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      cursor: pointer; text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
+    }
+    .btn-combat:active { transform: scale(0.92); }
+
+    .btn-sm-jump { grid-column: 2; grid-row: 1; background: #facc15; color: #0f172a; box-shadow: 0 5px 0 #ca8a04; }
+    .btn-sm-atk  { grid-column: 1; grid-row: 2; background: #f43f5e; color: #ffffff; box-shadow: 0 5px 0 #9f1239; }
+    .btn-sm-spec { grid-column: 3; grid-row: 2; background: #38bdf8; color: #0f172a; box-shadow: 0 5px 0 #0284c7; }
+    .btn-sm-shld { grid-column: 2; grid-row: 3; background: #22c55e; color: #ffffff; box-shadow: 0 5px 0 #15803d; }
+
+    .c-lbl { font-family: 'Chango', cursive; font-size: 18px; line-height: 1; }
+    .c-sub { font-size: 9px; font-weight: 900; }
+  </style>
+</head>
+<body>
+  <div class="smash-hud">
+    <span class="hud-tag">💥 SUPER SMASH CHAVALIL</span>
+    <span class="dmg-badge">DAÑO: 42%</span>
+  </div>
+
+  <div class="arena-split">
+    <!-- Move & Jump -->
+    <div class="move-pad">
+      <div class="dpad-smash">
+        <div class="sm-btn sm-u">▲ SALTO</div>
+        <div class="sm-btn sm-l">◀</div>
+        <div class="sm-btn sm-r">▶</div>
+        <div class="sm-btn sm-d">▼</div>
+      </div>
+    </div>
+
+    <!-- Diamond Combat Cluster -->
+    <div class="combat-diamond-zone">
+      <div class="diamond-grid">
+        <div class="btn-combat btn-sm-jump">
+          <span class="c-lbl">X</span>
+          <span class="c-sub">SALTO</span>
+        </div>
+        <div class="btn-combat btn-sm-atk">
+          <span class="c-lbl">A</span>
+          <span class="c-sub">GOLPE</span>
+        </div>
+        <div class="btn-combat btn-sm-spec">
+          <span class="c-lbl">B</span>
+          <span class="c-sub">ESPECIAL</span>
+        </div>
+        <div class="btn-combat btn-sm-shld">
+          <span class="c-lbl">R</span>
+          <span class="c-sub">ESCUDO</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

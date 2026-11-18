@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Environment and sensitive data
+.env
+*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE & Editor files
+.vscode/
+.idea/
+
+# Test artifacts generated during runs (keep base design docs, ignore run dumps)
+design/test-results/viewports/

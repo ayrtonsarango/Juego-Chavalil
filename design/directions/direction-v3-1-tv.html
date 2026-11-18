@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Opción 1 (TV): Chavalil Doodle Mania</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Chango&family=Fredoka:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      width: 1920px; height: 1080px; overflow: hidden;
+      background: #eef6ff;
+      background-image:
+        radial-gradient(#93c5fd 3px, transparent 3px),
+        radial-gradient(#fca5a5 2.5px, transparent 2.5px);
+      background-size: 60px 60px, 90px 90px;
+      background-position: 0 0, 30px 45px;
+      font-family: 'Fredoka', sans-serif;
+      color: #1e293b;
+      display: flex; flex-direction: column;
+      padding: 34px 48px;
+      position: relative;
+    }
+
+    /* Floating goofy doodles and face blobs inspired by Button Bash */
+    .doodle-bg-layer {
+      position: absolute; inset: 0; pointer-events: none; z-index: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='240' height='240' viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 40 Q 60 10, 100 45 T 180 40 T 230 90 Q 200 140, 160 110 T 80 140 T 30 200 Q 70 235, 130 220' stroke='%23cbd5e1' stroke-width='5' stroke-linecap='round' fill='none'/%3E%3Ccircle cx='45' cy='75' r='12' fill='%23ef4444'/%3E%3Ccircle cx='41' cy='73' r='2' fill='%23ffffff'/%3E%3Ccircle cx='49' cy='73' r='2' fill='%23ffffff'/%3E%3Cpath d='M39 81 Q 45 86, 51 81' stroke='%23ffffff' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='200' cy='170' r='14' fill='%230284c7'/%3E%3Ccircle cx='196' cy='168' r='2.5' fill='%23ffffff'/%3E%3Ccircle cx='204' cy='168' r='2.5' fill='%23ffffff'/%3E%3Cpath d='M195 175 Q 200 180, 205 175' stroke='%23ffffff' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='175' cy='35' r='10' fill='%23f59e0b'/%3E%3C/svg%3E");
+    }
+
+    /* Header Bar */
+    header {
+      position: relative; z-index: 1;
+      display: flex; justify-content: space-between; align-items: center;
+      background: #ffffff;
+      border: 4.5px solid #1e293b;
+      border-radius: 36px;
+      padding: 16px 36px;
+      box-shadow: 0 10px 0 #1e293b, 0 18px 25px rgba(0,0,0,0.08);
+      margin-bottom: 28px;
+    }
+    .brand-group {
+      display: flex; align-items: center; gap: 20px;
+    }
+    .brand-logo-disc {
+      width: 72px; height: 72px; background: #1e293b; border-radius: 50%;
+      border: 4px solid #38bdf8;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      color: #ffffff; font-family: 'Chango', cursive; font-size: 26px;
+      box-shadow: 4px 4px 0 #0284c7; transform: rotate(-6deg);
+    }
+    .brand-text-wrap { display: flex; flex-direction: column; }
+    .brand-title {
+      font-family: 'Chango', cursive; font-size: 40px; color: #1e293b;
+      line-height: 1.1; letter-spacing: 0.5px;
+      text-shadow: 2px 2px 0 #93c5fd;
+    }
+    .brand-sub {
+      font-size: 16px; font-weight: 900; color: #0284c7; letter-spacing: 1px;
+    }
+
+    .room-pills { display: flex; align-items: center; gap: 16px; }
+    .url-bubble {
+      background: #fef08a; border: 3.5px solid #1e293b; border-radius: 20px;
+      padding: 10px 24px; font-size: 22px; font-weight: 900; color: #1e293b;
+      box-shadow: 4px 4px 0 #1e293b; transform: rotate(1.2deg);
+    }
+    .ready-counter-pill {
+      background: #4ade80; border: 3.5px solid #1e293b; border-radius: 20px;
+      padding: 10px 22px; font-size: 22px; font-weight: 900; color: #0f172a;
+      box-shadow: 4px 4px 0 #1e293b; transform: rotate(-1.5deg);
+    }
+
+    /* Main Grid */
+    main {
+      position: relative; z-index: 1;
+      flex: 1; display: grid; grid-template-columns: 540px 1fr; gap: 36px;
+    }
+
+    /* QR Sticker Plaque */
+    .qr-plaque {
+      background: #ffffff; border: 5px solid #1e293b; border-radius: 44px;
+      padding: 32px; box-shadow: 10px 10px 0 #1e293b, 0 20px 30px rgba(0,0,0,0.1);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; transform: rotate(-1.4deg);
+      position: relative;
+    }
+    .pin-badge {
+      position: absolute; top: -18px; width: 36px; height: 36px; background: #ef4444;
+      border: 3px solid #1e293b; border-radius: 50%; box-shadow: 2px 2px 0 #1e293b;
+    }
+    .qr-frame {
+      padding: 18px; background: #ffffff; border: 4px solid #1e293b; border-radius: 28px;
+      box-shadow: 6px 6px 0 #38bdf8; margin-bottom: 20px;
+    }
+    .qr-frame img { width: 270px; height: 270px; display: block; border-radius: 12px; }
+    .qr-plaque h2 {
+      font-family: 'Chango', cursive; font-size: 28px; color: #1e293b; margin-bottom: 6px;
+    }
+    .qr-plaque p { font-size: 19px; font-weight: 800; color: #64748b; }
+    .sticker-j1 {
+      margin-top: 16px; background: #fde047; border: 3px solid #1e293b; border-radius: 16px;
+      padding: 8px 20px; font-size: 18px; font-weight: 900; box-shadow: 3px 3px 0 #1e293b;
+      transform: rotate(2deg);
+    }
+
+    /* Players Arena */
+    .players-plaque {
+      background: #ffffff; border: 5px solid #1e293b; border-radius: 44px;
+      padding: 36px; box-shadow: 10px 10px 0 #1e293b, 0 20px 30px rgba(0,0,0,0.1);
+      display: flex; flex-direction: column; transform: rotate(0.8deg);
+    }
+    .players-title-bar {
+      display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 26px;
+      padding-bottom: 16px; border-bottom: 4px dashed #cbd5e1;
+    }
+    .players-title-bar h2 {
+      font-family: 'Chango', cursive; font-size: 32px; color: #1e293b;
+    }
+    .players-title-bar span {
+      font-size: 20px; font-weight: 800; color: #0284c7;
+    }
+
+    .players-sticker-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; flex: 1;
+    }
+    .player-sticker {
+      border: 4px solid #1e293b; border-radius: 30px; padding: 18px 22px;
+      display: flex; align-items: center; gap: 20px;
+      position: relative;
+    }
+    .player-sticker.s1 { background: #bae6fd; box-shadow: 6px 6px 0 #0284c7; transform: rotate(-1.2deg); }
+    .player-sticker.s2 { background: #fecdd3; box-shadow: 6px 6px 0 #e11d48; transform: rotate(1.5deg); }
+    .player-sticker.s3 { background: #bbf7d0; box-shadow: 6px 6px 0 #16a34a; transform: rotate(-1deg); }
+    .player-sticker.s4 { background: #fed7aa; box-shadow: 6px 6px 0 #ea580c; transform: rotate(1.8deg); }
+
+    .sticker-number-tag {
+      position: absolute; top: -14px; left: 24px;
+      background: #1e293b; color: #ffffff; font-size: 13px; font-weight: 900;
+      padding: 3px 12px; border-radius: 8px; border: 2px solid #ffffff;
+    }
+    .player-avatar-circle {
+      width: 95px; height: 95px; background: #ffffff; border: 3.5px solid #1e293b;
+      border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; box-shadow: 3px 3px 0 #1e293b;
+    }
+    .player-details { flex: 1; }
+    .player-details h3 {
+      font-family: 'Fredoka', sans-serif; font-size: 30px; font-weight: 900; margin-bottom: 4px;
+    }
+    .player-tag {
+      display: inline-block; background: #ffffff; border: 2.5px solid #1e293b;
+      border-radius: 12px; padding: 4px 14px; font-size: 15px; font-weight: 900;
+      box-shadow: 2px 2px 0 #1e293b;
+    }
+
+    /* Bottom Bar */
+    footer.bottom-cheer-bar {
+      position: relative; z-index: 1;
+      margin-top: 24px; display: flex; justify-content: space-between; align-items: center;
+      background: #1e293b; color: #ffffff; border: 4.5px solid #1e293b; border-radius: 30px;
+      padding: 16px 36px; box-shadow: 0 10px 0 #0f172a;
+    }
+    .cheer-text { font-size: 22px; font-weight: 800; color: #93c5fd; }
+    .btn-big-play {
+      background: #f97316; color: #ffffff; border: 3.5px solid #1e293b;
+      font-family: 'Chango', cursive; font-size: 22px; padding: 12px 42px; border-radius: 20px;
+      box-shadow: 4px 4px 0 #ffffff; cursor: pointer; transform: rotate(-1deg);
+    }
+  </style>
+</head>
+<body>
+  <div class="doodle-bg-layer"></div>
+
+  <header>
+    <div class="brand-group">
+      <div class="brand-logo-disc">B!</div>
+      <div class="brand-text-wrap">
+        <h1 class="brand-title">JUEGO CHAVALIL</h1>
+        <span class="brand-sub">★ EDICIÓN CUADRILLA ★</span>
+      </div>
+    </div>
+    <div class="room-pills">
+      <div class="url-bubble">192.168.1.45:3000/player</div>
+      <div class="ready-counter-pill">4 / 8 LISTOS</div>
+    </div>
+  </header>
+
+  <main>
+    <div class="qr-plaque">
+      <div class="pin-badge"></div>
+      <div class="qr-frame"><img src="data:image/png;base64,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" alt="QR"></div>
+      <h2>¡APUNTA Y ENTRA!</h2>
+      <p>Escanea con la cámara de tu smartphone</p>
+      <div class="sticker-j1">👑 Ayrton tiene el mando (J1)</div>
+    </div>
+
+    <div class="players-plaque">
+      <div class="players-title-bar">
+        <h2>La Cuadrilla en la Sala</h2>
+        <span>4 Chavales dentro</span>
+      </div>
+
+      <div class="players-sticker-grid">
+        <div class="player-sticker s1">
+          <div class="sticker-number-tag">P1 · AZUL</div>
+          <div class="player-avatar-circle">
+    <svg viewBox="0 0 112 112" width="95" height="95" xmlns="http://www.w3.org/2000/svg" class="avatar-svg  ">
+      <!-- Sombra base -->
+      <ellipse cx="56" cy="107" rx="28" ry="4" fill="#000000" opacity="0.22" class="avatar-shadow"/>
+
+      <!-- Contenedor con altura dinámica -->
+      <g >
+        <!-- Pies / Zapatos animados para correr estilo Mario -->
+        <g class="avatar-feet">
+          
+      <ellipse class="avatar-foot-left" cx="42" cy="105" rx="8.5" ry="5" fill="#0f172a"/>
+      <ellipse class="avatar-foot-right" cx="70" cy="105" rx="8.5" ry="5" fill="#0f172a"/>
+    
+        </g>
+
+        <!-- Cuerpo / Ropa (Sudadera, Polo, Chupa de Cuero o Camiseta Negra) -->
+        <g id="body">
+          <path d="M 32 80 C 26 88, 24 102, 34 104 L 78 104 C 88 102, 86 88, 80 80 Z" fill="#f59e0b" stroke="#1e293b" stroke-width="2.5"/>
+          
+    <!-- Cremallera central de sudadera -->
+    <line x1="56" y1="80" x2="56" y2="103" stroke="#1e293b" stroke-width="2" stroke-dasharray="2 2"/>
+  
+        </g>
+
+        <!-- Air Jordans CÓMICAMENTE GRANDES renderizadas por encima de la ropa si está activado -->
+        
+
+        <!-- Brazos / Manos animadas que bombean al correr -->
+        <g class="avatar-arm-left">
+          <circle class="avatar-hand-left" cx="28" cy="94" r="7" fill="#ffe0bd" stroke="#1e293b" stroke-width="2"/>
+        </g>
+        <g class="avatar-arm-right">
+          <circle class="avatar-hand-right" cx="84" cy="94" r="7" fill="#ffe0bd" stroke="#1e293b" stroke-width="2"/>
+          
+        </g>
+
+        <!-- Cabeza con silueta personalizada -->
+        <g id="head" class="avatar-head">
+          
+    <!-- Cabeza redonda clásica South Park / Chibi -->
+    <ellipse cx="56" cy="54" rx="34" ry="32" fill="#ffe0bd" stroke="#1e293b" stroke-width="2.5"/>
+    <circle cx="34" cy="62" r="5" fill="#f43f5e" opacity="0.25"/>
+    <circle cx="78" cy="62" r="5" fill="#f43f5e" opacity="0.25"/>
+  
+        </g>
+
+        <!-- Pelo -->
+        <g id="hair">
+        <!-- Pelo Despeinado Chavalil (Ayrton) con mechones dinámicos y volumen -->
+        <!-- Sombra base detrás de la silueta -->
+        <path d="M 18 48 C 14 36, 18 24, 28 17 C 36 12, 48 11, 56 11 C 66 11, 76 13, 85 18 C 94 25, 98 36, 94 48 Q 78 30 56 30 Q 34 30 18 48 Z" fill="#090d16" opacity="0.45"/>
+        <!-- Silueta principal texturada con picos naturales -->
+        <path d="M 19 48 C 15 37, 18 27, 26 21 L 29 25 L 36 15 L 43 21 L 52 12 L 58 12 L 67 19 L 76 14 L 81 23 L 90 20 C 97 29, 97 39, 93 48 C 87 43, 81 42, 75 44 C 67 38, 57 39, 49 43 C 41 38, 31 39, 23 45 Z" fill="#1e293b" stroke="#0f172a" stroke-width="2.2" stroke-linejoin="round"/>
+        <!-- Mechones frontales con caída sobre la frente -->
+        <path d="M 27 43 Q 33 37 41 42 Q 49 36 57 41 Q 65 35 75 40 Q 82 36 86 43" fill="none" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+        <!-- Mechones sueltos pícaros -->
+        <path d="M 33 24 Q 38 18 44 23" fill="none" stroke="#0f172a" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M 60 21 Q 66 16 71 22" fill="none" stroke="#0f172a" stroke-width="1.8" stroke-linecap="round"/>
+        <!-- Brillo / highlight sutil superior -->
+        <path d="M 38 19 Q 54 14 70 19" fill="none" stroke="#64748b" stroke-width="2.2" stroke-linecap="round" opacity="0.5"/>
+      </g>
+
+        <!-- Ojos -->
+        <g id="eyes">
+        <!-- Ojos chinillos / achinados pícaros (Ayrton) -->
+        <path d="M 32 53 Q 44 46 54 54 Q 44 51 32 53 Z" fill="#0f172a" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M 58 54 Q 68 46 80 53 Q 68 51 58 54 Z" fill="#0f172a" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round"/>
+        <!-- Pestañita pícara sonriente -->
+        <line x1="31" y1="52" x2="27" y2="49" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+        <line x1="81" y1="52" x2="85" y2="49" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+      </g>
+
+        <!-- Boca -->
+        <g id="mouth">
+        <!-- Cara loca con lengua fuera desquiciada (Ayrton) -->
+        <ellipse cx="56" cy="69" rx="12" ry="7" fill="#7f1d1d" stroke="#0f172a" stroke-width="2"/>
+        <rect x="50" y="63" width="12" height="4" rx="1.5" fill="#ffffff"/>
+        <!-- Lengua fuera cayendo hacia abajo -->
+        <path d="M 49 69 C 48 84, 63 86, 62 70 Z" fill="#f43f5e" stroke="#0f172a" stroke-width="1.8"/>
+        <line x1="55.5" y1="70" x2="55.5" y2="79" stroke="#be123c" stroke-width="1.2"/>
+        <!-- Gotita de baba derp -->
+        <circle cx="64" cy="80" r="1.5" fill="#38bdf8" opacity="0.8"/>
+      </g>
+
+        <!-- Accesorios -->
+        <g id="accessories"></g>
+      </g>
+    </svg>
+  </div>
+          <div class="player-details">
+            <h3>Ayrton</h3>
+            <div class="player-tag">¡LISTO PARA JUGAR!</div>
+          </div>
+        </div>
+
+        <div class="player-sticker s2">
+          <div class="sticker-number-tag">P2 · ROJO</div>
+          <div class="player-avatar-circle">
+    <svg viewBox="0 0 112 112" width="95" height="95" xmlns="http://www.w3.org/2000/svg" class="avatar-svg  ">
+      <!-- Sombra base -->
+      <ellipse cx="56" cy="107" rx="28" ry="4" fill="#000000" opacity="0.22" class="avatar-shadow"/>
+
+      <!-- Contenedor con altura dinámica -->
+      <g >
+        <!-- Pies / Zapatos animados para correr estilo Mario -->
+        <g class="avatar-feet">
+          
+      <!-- Nike Air Jordan 1 Chicago Grandes Estándar (Left Foot) -->
+      <g class="avatar-foot-left" style="transform-origin: 40px 105px;">
+        <ellipse cx="40" cy="107" rx="11" ry="3.8" fill="#000000" opacity="0.32"/>
+        <path d="M 28 107 Q 40 109 52 107 L 52 104 Q 40 105 28 104 Z" fill="#dc2626"/>
+        <rect x="28" y="102" width="24" height="3.5" rx="1" fill="#f8fafc" stroke="#1e293b" stroke-width="1"/>
+        <path d="M 29 102 L 30 96 Q 38 95 46 97 L 50 100 L 51 102 Z" fill="#dc2626" stroke="#1e293b" stroke-width="1"/>
+        <path d="M 30 102 L 31 98 Q 37 98 40 102 Z" fill="#ffffff"/>
+        <path d="M 40 98 Q 45 101 49 97 Q 45 99 41 99.5 Z" fill="#09090b"/>
+        <line x1="35" y1="97" x2="40" y2="98" stroke="#09090b" stroke-width="1.2"/>
+      </g>
+      <!-- Nike Air Jordan 1 Chicago Grandes Estándar (Right Foot) -->
+      <g class="avatar-foot-right" style="transform-origin: 72px 105px;">
+        <ellipse cx="72" cy="107" rx="11" ry="3.8" fill="#000000" opacity="0.32"/>
+        <path d="M 60 107 Q 72 109 84 107 L 84 104 Q 72 105 60 104 Z" fill="#dc2626"/>
+        <rect x="60" y="102" width="24" height="3.5" rx="1" fill="#f8fafc" stroke="#1e293b" stroke-width="1"/>
+        <path d="M 61 102 L 62 96 Q 70 95 78 97 L 82 100 L 83 102 Z" fill="#dc2626" stroke="#1e293b" stroke-width="1"/>
+        <path d="M 62 102 L 63 98 Q 69 98 72 102 Z" fill="#ffffff"/>
+        <path d="M 72 98 Q 77 101 81 97 Q 77 99 73 99.5 Z" fill="#09090b"/>
+        <line x1="67" y1="97" x2="72" y2="98" stroke="#09090b" stroke-width="1.2"/>
+      </g>
+    
+        </g>
+
+        <!-- Cuerpo / Ropa (Sudadera, Polo, Chupa de Cuero o Camiseta Negra) -->
+        <g id="body">
+          <path d="M 32 80 C 26 88, 24 102, 34 104 L 78 104 C 88 102, 86 88, 80 80 Z" fill="#09090b" stroke="#1e293b" stroke-width="2.5"/>
+          
+    <!-- Cuello redondo de camiseta negra lisa de Adriachi -->
+    <path d="M 45 80 Q 56 85 67 80" stroke="#27272a" stroke-width="2.4" fill="none"/>
+    <circle cx="48" cy="94" r="1.5" fill="#27272a"/>
+  
+        </g>
+
+        <!-- Air Jordans CÓMICAMENTE GRANDES renderizadas por encima de la ropa si está activado -->
+        
+
+        <!-- Brazos / Manos animadas que bombean al correr -->
+        <g class="avatar-arm-left">
+          <circle class="avatar-hand-left" cx="28" cy="94" r="7" fill="#fed7aa" stroke="#1e293b" stroke-width="2"/>
+        </g>
+        <g class="avatar-arm-right">
+          <circle class="avatar-hand-right" cx="84" cy="94" r="7" fill="#fed7aa" stroke="#1e293b" stroke-width="2"/>
+          
+        </g>
+
+        <!-- Cabeza con silueta personalizada -->
+        <g id="head" class="avatar-head">
+          
+    <!-- Cabeza cuadrada estilo Buford Van Stomm (Adriachi) -->
+    <path d="M 23 36 C 23 22, 89 22, 89 36 L 89 68 C 89 79, 78 84, 56 84 C 34 84, 23 79, 23 68 Z" fill="#fed7aa" stroke="#1e293b" stroke-width="2.6"/>
+    <line x1="51" y1="80" x2="61" y2="80" stroke="#1e293b" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+    <circle cx="31" cy="63" r="5.5" fill="#f43f5e" opacity="0.25"/>
+    <circle cx="81" cy="63" r="5.5" fill="#f43f5e" opacity="0.25"/>
+  
+        </g>
+
+        <!-- Pelo -->
+        <g id="hair">
+        <!-- French Crop / Fade Urbano con textura y sienes cuadradas (Adriachi) -->
+        <!-- Sombra fade en los laterales y nuca que se adapta a la mandíbula Buford -->
+        <path d="M 22 50 C 21 34, 30 22, 56 22 C 82 22, 91 34, 90 50 C 86 48, 80 44, 74 42 C 64 40, 48 40, 38 42 C 32 44, 26 48, 22 50 Z" fill="#09090b" opacity="0.55"/>
+        <!-- Corte superior con textura recta y perfilado cuadrado -->
+        <path d="M 23 48 L 24 33 C 26 21, 40 18, 56 18 C 72 18, 86 21, 88 33 L 89 48 C 84 44, 78 41, 70 41 L 42 41 C 34 41, 28 44, 23 48 Z" fill="#09090b" stroke="#1e293b" stroke-width="2.2"/>
+        <!-- Flequillo recto texturado estilo crop de barbería -->
+        <line x1="38" y1="41" x2="74" y2="41" stroke="#0f172a" stroke-width="2.5" stroke-linecap="square"/>
+        <!-- Micro texturas de corte a tijera en la parte superior -->
+        <path d="M 36 28 L 40 24 L 46 27 L 52 23 L 58 27 L 64 24 L 70 28" stroke="#334155" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <!-- Perfilado nítido en las patillas y sienes cuadradas -->
+        <line x1="24" y1="48" x2="24" y2="42" stroke="#0f172a" stroke-width="2"/>
+        <line x1="88" y1="48" x2="88" y2="42" stroke="#0f172a" stroke-width="2"/>
+      </g>
+
+        <!-- Ojos -->
+        <g id="eyes">
+        <!-- Ojos clásicos South Park -->
+        <ellipse cx="43" cy="52" rx="9" ry="12" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+        <ellipse cx="69" cy="52" rx="9" ry="12" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+        <circle cx="45" cy="52" r="3" fill="#0f172a"/>
+        <circle cx="67" cy="52" r="3" fill="#0f172a"/>
+      </g>
+
+        <!-- Boca -->
+        <g id="mouth">
+        <path d="M 47 67 Q 56 74 65 67" stroke="#1e293b" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      </g>
+
+        <!-- Accesorios -->
+        <g id="accessories">
+        <!-- Gafas de pasta negras cuadradas estilo Adriachi y Lerga -->
+        <rect x="26" y="44" width="24" height="15" rx="3.5" fill="none" stroke="#09090b" stroke-width="3.2"/>
+        <rect x="62" y="44" width="24" height="15" rx="3.5" fill="none" stroke="#09090b" stroke-width="3.2"/>
+        <line x1="50" y1="48" x2="62" y2="48" stroke="#09090b" stroke-width="3.2"/>
+        <line x1="26" y1="48" x2="19" y2="46" stroke="#09090b" stroke-width="2.6"/>
+        <line x1="86" y1="48" x2="93" y2="46" stroke="#09090b" stroke-width="2.6"/>
+        <line x1="30" y1="47" x2="38" y2="47" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" opacity="0.6"/>
+        <line x1="66" y1="47" x2="74" y2="47" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" opacity="0.6"/>
+      </g>
+      </g>
+    </svg>
+  </div>
+          <div class="player-details">
+            <h3>Adriachi</h3>
+            <div class="player-tag">¡LISTO PARA JUGAR!</div>
+          </div>
+        </div>
+
+        <div class="player-sticker s3">
+          <div class="sticker-number-tag">P3 · VERDE</div>
+          <div class="player-avatar-circle">
+    <svg viewBox="0 0 112 112" width="95" height="95" xmlns="http://www.w3.org/2000/svg" class="avatar-svg  ">
+      <!-- Sombra base -->
+      <ellipse cx="56" cy="107" rx="28" ry="4" fill="#000000" opacity="0.22" class="avatar-shadow"/>
+
+      <!-- Contenedor con altura dinámica -->
+      <g >
+        <!-- Pies / Zapatos animados para correr estilo Mario -->
+        <g class="avatar-feet">
+          
+      <g class="avatar-foot-left" style="transform-origin: 42px 105px;">
+        <ellipse cx="42" cy="106" rx="9" ry="3.5" fill="#000000" opacity="0.25"/>
+        <path d="M 33 105 Q 42 107 50 105 L 50 100 Q 42 98 33 101 Z" fill="#f8fafc" stroke="#1e293b" stroke-width="1"/>
+        <line x1="33" y1="104" x2="50" y2="104" stroke="#cbd5e1" stroke-width="1.5"/>
+      </g>
+      <g class="avatar-foot-right" style="transform-origin: 70px 105px;">
+        <ellipse cx="70" cy="106" rx="9" ry="3.5" fill="#000000" opacity="0.25"/>
+        <path d="M 62 105 Q 70 107 79 105 L 79 100 Q 70 98 62 101 Z" fill="#f8fafc" stroke="#1e293b" stroke-width="1"/>
+        <line x1="62" y1="104" x2="79" y2="104" stroke="#cbd5e1" stroke-width="1.5"/>
+      </g>
+    
+        </g>
+
+        <!-- Cuerpo / Ropa (Sudadera, Polo, Chupa de Cuero o Camiseta Negra) -->
+        <g id="body">
+          <path d="M 32 80 C 26 88, 24 102, 34 104 L 78 104 C 88 102, 86 88, 80 80 Z" fill="#10b981" stroke="#1e293b" stroke-width="2.5"/>
+          
+    <!-- Cremallera central de sudadera -->
+    <line x1="56" y1="80" x2="56" y2="103" stroke="#1e293b" stroke-width="2" stroke-dasharray="2 2"/>
+  
+        </g>
+
+        <!-- Air Jordans CÓMICAMENTE GRANDES renderizadas por encima de la ropa si está activado -->
+        
+
+        <!-- Brazos / Manos animadas que bombean al correr -->
+        <g class="avatar-arm-left">
+          <circle class="avatar-hand-left" cx="28" cy="94" r="7" fill="#ffe0bd" stroke="#1e293b" stroke-width="2"/>
+        </g>
+        <g class="avatar-arm-right">
+          <circle class="avatar-hand-right" cx="84" cy="94" r="7" fill="#ffe0bd" stroke="#1e293b" stroke-width="2"/>
+          
+        <!-- Smartphone con TikTok a toda pantalla (Asier/Marta - Ipadkid) -->
+        <g class="hand-item hand-item-tiktok" transform="translate(78, 74)">
+          <rect x="0" y="0" width="16" height="26" rx="3" fill="#09090b" stroke="#334155" stroke-width="1.4"/>
+          <rect x="1.5" y="2" width="13" height="22" rx="1.5" fill="#000000"/>
+          <g transform="translate(3.5, 6) scale(0.68)">
+            <path d="M 5 2 L 8 2 C 8 4, 10 5, 12 5 L 12 7 C 10 7, 8 6, 7 5 L 7 11 C 7 13.5, 4.5 15, 2.5 13.5 C 1 12, 1.5 9.5, 3.5 9 L 3.5 11 C 2.5 11.2, 2.5 12.5, 3.5 12.8 C 5 13, 5.5 11.8, 5.5 11 Z" fill="#06b6d4"/>
+            <path d="M 5.8 2 L 8.8 2 C 8.8 4, 10.8 5, 12.8 5 L 12.8 7 C 10.8 7, 8.8 6, 7.8 5 L 7.8 11 C 7.8 13.5, 5.3 15, 3.3 13.5 C 1.8 12, 2.3 9.5, 4.3 9 L 4.3 11 C 3.3 11.2, 3.3 12.5, 4.3 12.8 C 5.8 13, 6.3 11.8, 6.3 11 Z" fill="#f43f5e" opacity="0.85"/>
+          </g>
+          <line x1="2" y1="22" x2="9" y2="22" stroke="#f43f5e" stroke-width="1.2"/>
+        </g>
+      
+        </g>
+
+        <!-- Cabeza con silueta personalizada -->
+        <g id="head" class="avatar-head">
+          
+    <!-- Cabeza redonda clásica South Park / Chibi -->
+    <ellipse cx="56" cy="54" rx="34" ry="32" fill="#ffe0bd" stroke="#1e293b" stroke-width="2.5"/>
+    <circle cx="34" cy="62" r="5" fill="#f43f5e" opacity="0.25"/>
+    <circle cx="78" cy="62" r="5" fill="#f43f5e" opacity="0.25"/>
+  
+        </g>
+
+        <!-- Pelo -->
+        <g id="hair">
+        <!-- Pelo corto chic chica / Bob moderno (Marta) -->
+        <path d="M 22 48 C 18 64, 20 74, 28 72 C 26 56, 26 40, 34 26 C 44 18, 68 18, 78 26 C 86 40, 86 56, 84 72 C 92 74, 94 64, 90 48 C 90 20, 22 20, 22 48 Z" fill="#1e293b" stroke="#1e293b" stroke-width="2"/>
+        <path d="M 30 40 Q 52 46 68 34" stroke="#1e293b" stroke-width="2" fill="none"/>
+      </g>
+
+        <!-- Ojos -->
+        <g id="eyes">
+        <!-- Ojos clásicos South Park -->
+        <ellipse cx="43" cy="52" rx="9" ry="12" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+        <ellipse cx="69" cy="52" rx="9" ry="12" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+        <circle cx="45" cy="52" r="3" fill="#0f172a"/>
+        <circle cx="67" cy="52" r="3" fill="#0f172a"/>
+      </g>
+
+        <!-- Boca -->
+        <g id="mouth">
+        <path d="M 47 67 Q 56 74 65 67" stroke="#1e293b" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      </g>
+
+        <!-- Accesorios -->
+        <g id="accessories">
+        <!-- Gorra verde fosforito BRAT (Charli XCX) de Marta -->
+        <path d="M 22 45 C 22 22, 90 22, 90 45 Z" fill="#86efac" stroke="#16a34a" stroke-width="2.2"/>
+        <path d="M 18 45 Q 56 36 98 45 L 94 49 Q 56 41 18 49 Z" fill="#4ade80" stroke="#16a34a" stroke-width="1.6"/>
+        <text x="56" y="38" font-family="'Arial', 'Helvetica', sans-serif" font-size="8.5" font-weight="900" text-anchor="middle" fill="#000000" letter-spacing="-0.5">brat</text>
+      </g>
+      </g>
+    </svg>
+  </div>
+          <div class="player-details">
+            <h3>Marta</h3>
+            <div class="player-tag">¡LISTA PARA JUGAR!</div>
+          </div>
+        </div>
+
+        <div class="player-sticker s4">
+          <div class="sticker-number-tag">P4 · NARANJA</div>
+          <div class="player-avatar-circle">
+    <svg viewBox="0 0 112 112" width="95" height="95" xmlns="http://www.w3.org/2000/svg" class="avatar-svg is-tall ">
+      <!-- Sombra base -->
+      <ellipse cx="56" cy="107" rx="28" ry="4" fill="#000000" opacity="0.22" class="avatar-shadow"/>
+
+      <!-- Contenedor con altura dinámica -->
+      <g transform="scale(0.96, 1.07) translate(2.2, -4)">
+        <!-- Pies / Zapatos animados para correr estilo Mario -->
+        <g class="avatar-feet">
+          
+      <ellipse class="avatar-foot-left" cx="42" cy="105" rx="8.5" ry="5" fill="#0f172a"/>
+      <ellipse class="avatar-foot-right" cx="70" cy="105" rx="8.5" ry="5" fill="#0f172a"/>
+    
+        </g>
+
+        <!-- Cuerpo / Ropa (Sudadera, Polo, Chupa de Cuero o Camiseta Negra) -->
+        <g id="body">
+          <path d="M 32 80 C 26 88, 24 102, 34 104 L 78 104 C 88 102, 86 88, 80 80 Z" fill="#3b82f6" stroke="#1e293b" stroke-width="2.5"/>
+          
+    <!-- Cremallera central de sudadera -->
+    <line x1="56" y1="80" x2="56" y2="103" stroke="#1e293b" stroke-width="2" stroke-dasharray="2 2"/>
+  
+        </g>
+
+        <!-- Air Jordans CÓMICAMENTE GRANDES renderizadas por encima de la ropa si está activado -->
+        
+
+        <!-- Brazos / Manos animadas que bombean al correr -->
+        <g class="avatar-arm-left">
+          <circle class="avatar-hand-left" cx="28" cy="94" r="7" fill="#ffe0bd" stroke="#1e293b" stroke-width="2"/>
+        </g>
+        <g class="avatar-arm-right">
+          <circle class="avatar-hand-right" cx="84" cy="94" r="7" fill="#ffe0bd" stroke="#1e293b" stroke-width="2"/>
+          
+        <!-- Mandarina fresca pelada en la mano (Manu) -->
+        <g class="hand-item hand-item-mandarina" transform="translate(81, 85)">
+          <circle cx="8" cy="8" r="7.5" fill="#f97316" stroke="#c2410c" stroke-width="1.4"/>
+          <path d="M 5 4 Q 8 2 11 4 L 8 8 Z" fill="#fed7aa"/>
+          <ellipse cx="8" cy="1.5" rx="3" ry="1.5" fill="#22c55e" transform="rotate(-25, 8, 1.5)"/>
+          <circle cx="6" cy="6" r="1" fill="#ffffff" opacity="0.6"/>
+        </g>
+      
+        </g>
+
+        <!-- Cabeza con silueta personalizada -->
+        <g id="head" class="avatar-head">
+          
+    <!-- Cabeza redonda clásica South Park / Chibi -->
+    <ellipse cx="56" cy="54" rx="34" ry="32" fill="#ffe0bd" stroke="#1e293b" stroke-width="2.5"/>
+    <circle cx="34" cy="62" r="5" fill="#f43f5e" opacity="0.25"/>
+    <circle cx="78" cy="62" r="5" fill="#f43f5e" opacity="0.25"/>
+  
+        </g>
+
+        <!-- Pelo -->
+        <g id="hair">
+        <!-- Pelo ondulado con textura y raya desenfadada (Manu) -->
+        <!-- Sombra base -->
+        <path d="M 20 48 C 17 33, 22 22, 32 16 C 42 12, 54 12, 64 14 C 76 16, 88 23, 92 48 Q 78 32 56 32 Q 34 32 20 48 Z" fill="#3f1d0b" opacity="0.45"/>
+        <!-- Masa principal con ondulación lateral hacia la izquierda/derecha -->
+        <path d="M 21 48 C 18 36, 20 27, 28 20 C 35 14, 46 13, 56 14 C 67 12, 79 15, 87 22 C 94 28, 95 38, 92 48 C 86 42, 80 41, 74 43 C 68 37, 58 36, 50 41 C 42 36, 31 38, 24 45 Z" fill="#78350f" stroke="#1e293b" stroke-width="2.2"/>
+        <!-- Ondas y mechones suaves que enmarcan la frente -->
+        <path d="M 28 42 C 34 36, 42 37, 48 42 C 54 36, 64 36, 72 41 C 78 37, 84 39, 88 44" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round"/>
+        <path d="M 38 23 Q 48 19 56 22" fill="none" stroke="#92400e" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+        <path d="M 64 23 Q 74 21 82 25" fill="none" stroke="#92400e" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+      </g>
+
+        <!-- Ojos -->
+        <g id="eyes">
+        <!-- Ojos clásicos South Park -->
+        <ellipse cx="43" cy="52" rx="9" ry="12" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+        <ellipse cx="69" cy="52" rx="9" ry="12" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+        <circle cx="45" cy="52" r="3" fill="#0f172a"/>
+        <circle cx="67" cy="52" r="3" fill="#0f172a"/>
+      </g>
+
+        <!-- Boca -->
+        <g id="mouth">
+        <path d="M 47 67 Q 56 74 65 67" stroke="#1e293b" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      </g>
+
+        <!-- Accesorios -->
+        <g id="accessories">
+        <!-- Gafas de ver rojas de pasta de Manu -->
+        <rect x="28" y="44" width="23" height="16" rx="4" fill="none" stroke="#dc2626" stroke-width="3"/>
+        <rect x="61" y="44" width="23" height="16" rx="4" fill="none" stroke="#dc2626" stroke-width="3"/>
+        <path d="M 51 51 Q 56 48 61 51" stroke="#dc2626" stroke-width="3" fill="none"/>
+        <line x1="28" y1="48" x2="21" y2="46" stroke="#b91c1c" stroke-width="2.5"/>
+        <line x1="84" y1="48" x2="91" y2="46" stroke="#b91c1c" stroke-width="2.5"/>
+        <line x1="33" y1="47" x2="40" y2="47" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" opacity="0.8"/>
+        <line x1="66" y1="47" x2="73" y2="47" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" opacity="0.8"/>
+      </g>
+      </g>
+    </svg>
+  </div>
+          <div class="player-details">
+            <h3>Manu</h3>
+            <div class="player-tag">¡LISTO PARA JUGAR!</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="bottom-cheer-bar">
+    <div class="cheer-text">Ayrton puede pulsar INICIAR en su móvil cuando estéis todos</div>
+    <div class="btn-big-play">¡ARRANCAR! ▶</div>
+  </footer>
+</body>
+</html>

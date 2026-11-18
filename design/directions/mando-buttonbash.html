@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Mando: Button Bash</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Chango&family=Fredoka:wght@700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+    body {
+      width: 100vw; height: 100dvh; overflow: hidden;
+      background: #eef6ff;
+      background-image: radial-gradient(#93c5fd 2.5px, transparent 2.5px);
+      background-size: 28px 28px;
+      font-family: 'Fredoka', sans-serif;
+      display: flex; flex-direction: column;
+      padding: env(safe-area-inset-top, 12px) 16px env(safe-area-inset-bottom, 12px) 16px;
+      gap: 12px;
+    }
+    .bash-hdr {
+      background: #ffffff; border: 3.5px solid #1e293b; border-radius: 20px;
+      padding: 10px 16px; display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 4px 4px 0 #1e293b;
+    }
+    .bash-logo { font-family: 'Chango', cursive; font-size: 18px; color: #1e293b; }
+    .badge-player { background: #0284c7; color: #ffffff; border-radius: 10px; padding: 4px 12px; font-weight: 900; }
+
+    /* ONE GIANT CANDY BUZZER BUTTON (85% OF SCREEN) */
+    .giant-buzzer-container {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+    }
+    .the-giant-button {
+      width: 100%; height: 100%; border: 6px solid #1e293b; border-radius: 44px;
+      background: linear-gradient(135deg, #38bdf8, #0284c7);
+      box-shadow: 0 14px 0 #0369a1, 0 14px 0 5px #1e293b, inset 0 6px 0 rgba(255,255,255,0.4);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+      cursor: pointer; color: #ffffff; text-align: center;
+    }
+    .the-giant-button:active {
+      transform: translateY(8px); box-shadow: 0 6px 0 #0369a1, 0 6px 0 5px #1e293b;
+    }
+    .buzzer-icon { font-size: 72px; }
+    .buzzer-title { font-family: 'Chango', cursive; font-size: 44px; line-height: 1; text-shadow: 2px 2px 0 #0f172a; }
+    .buzzer-sub { font-size: 16px; font-weight: 900; opacity: 0.95; }
+  </style>
+</head>
+<body>
+  <div class="bash-hdr">
+    <span class="bash-logo">🎯 BUTTON BASH!</span>
+    <span class="badge-player">AYRTON (AZUL)</span>
+  </div>
+
+  <div class="giant-buzzer-container">
+    <div class="the-giant-button">
+      <span class="buzzer-icon">🎯</span>
+      <span class="buzzer-title">¡PULSA!</span>
+      <span class="buzzer-sub">DISPARA EL DARDO A LA DIANA</span>
+    </div>
+  </div>
+</body>
+</html>

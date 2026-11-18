@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Mando: Mario Kart</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Chango&family=Fredoka:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+    body {
+      width: 100vw; height: 100dvh; overflow: hidden;
+      background: #0f172a;
+      font-family: 'Fredoka', sans-serif;
+      display: flex; flex-direction: column;
+      padding: 10px env(safe-area-inset-right, 16px) 10px env(safe-area-inset-left, 16px);
+      gap: 8px;
+    }
+    .hud-bar {
+      display: flex; justify-content: space-between; align-items: center;
+      background: #1e293b; border: 3px solid #38bdf8; border-radius: 16px;
+      padding: 6px 16px; color: #ffffff;
+    }
+    .hud-title { font-family: 'Chango', cursive; font-size: 16px; color: #facc15; }
+    .hud-pos { background: #f43f5e; border-radius: 10px; padding: 3px 12px; font-weight: 900; font-size: 13px; }
+
+    .kart-surface {
+      flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+    }
+
+    /* Left: Steer Buttons (Massive 50% split) */
+    .steer-zone {
+      background: #1e293b; border: 4px solid #334155; border-radius: 28px;
+      padding: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    }
+    .btn-steer {
+      border: 4px solid #1e293b; border-radius: 22px;
+      background: #38bdf8; color: #0f172a;
+      box-shadow: 0 6px 0 #0284c7, 0 6px 0 3px #1e293b;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      cursor: pointer;
+    }
+    .btn-steer:active { transform: translateY(4px); box-shadow: 0 2px 0 #0284c7, 0 2px 0 3px #1e293b; }
+    .steer-arrow { font-size: 40px; font-weight: 900; }
+    .steer-lbl { font-family: 'Chango', cursive; font-size: 16px; margin-top: 4px; }
+
+    /* Right: Gas + Drift + Item */
+    .pedal-zone {
+      background: #1e293b; border: 4px solid #334155; border-radius: 28px;
+      padding: 12px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 10px;
+    }
+    .btn-gas {
+      border: 4px solid #1e293b; border-radius: 24px;
+      background: #22c55e; color: #ffffff;
+      box-shadow: 0 8px 0 #15803d, 0 8px 0 3.5px #1e293b;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      cursor: pointer;
+    }
+    .btn-gas:active { transform: translateY(4px); box-shadow: 0 3px 0 #15803d, 0 3px 0 3.5px #1e293b; }
+    .gas-icon { font-size: 38px; }
+    .gas-lbl { font-family: 'Chango', cursive; font-size: 20px; }
+
+    .sub-pedals { display: flex; flex-direction: column; gap: 10px; }
+    .btn-drift {
+      flex: 1; border: 3.5px solid #1e293b; border-radius: 18px;
+      background: #f59e0b; color: #0f172a;
+      box-shadow: 0 5px 0 #b45309, 0 5px 0 2.5px #1e293b;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      font-size: 15px; font-weight: 900; cursor: pointer;
+    }
+    .btn-drift:active { transform: translateY(3px); box-shadow: 0 2px 0 #b45309, 0 2px 0 2.5px #1e293b; }
+
+    .btn-item {
+      flex: 1; border: 3.5px solid #1e293b; border-radius: 18px;
+      background: #f43f5e; color: #ffffff;
+      box-shadow: 0 5px 0 #9f1239, 0 5px 0 2.5px #1e293b;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      font-size: 15px; font-weight: 900; cursor: pointer;
+    }
+    .btn-item:active { transform: translateY(3px); box-shadow: 0 2px 0 #9f1239, 0 2px 0 2.5px #1e293b; }
+  </style>
+</head>
+<body>
+  <div class="hud-bar">
+    <span class="hud-title">🏎️ MARIO KART · VUELTA 2/3</span>
+    <span class="hud-pos">AYRTON · 1º PUESTO 👑</span>
+  </div>
+
+  <div class="kart-surface">
+    <!-- Steer Left / Right -->
+    <div class="steer-zone">
+      <div class="btn-steer">
+        <span class="steer-arrow">◀</span>
+        <span class="steer-lbl">IZQUIERDA</span>
+      </div>
+      <div class="btn-steer">
+        <span class="steer-arrow">▶</span>
+        <span class="steer-lbl">DERECHA</span>
+      </div>
+    </div>
+
+    <!-- Gas + Drift + Item -->
+    <div class="pedal-zone">
+      <div class="btn-gas">
+        <span class="gas-icon">⚡</span>
+        <span class="gas-lbl">ACELERAR</span>
+      </div>
+      <div class="sub-pedals">
+        <div class="btn-drift">💨 DERRAPE</div>
+        <div class="btn-item">❓ OBJETO</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

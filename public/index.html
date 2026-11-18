@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Juego Chavalil 🎮</title>
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: radial-gradient(circle at 50% 25%, #1e1b4b 0%, #0f172a 65%, #020617 100%);
+      padding: 20px;
+    }
+    .landing-card {
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+      padding: 36px 24px;
+      border: 2px solid rgba(56, 189, 248, 0.4);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 0 0 25px rgba(56, 189, 248, 0.25);
+    }
+    .landing-title {
+      font-size: 2.2rem;
+      font-weight: 900;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #f59e0b, #ec4899, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+  </style>
+</head>
+<body>
+  <div class="landing-card glass-panel">
+    <div style="font-size: 3.5rem; margin-bottom: 10px;">🕹️</div>
+    <h1 class="landing-title">JUEGO CHAVALIL</h1>
+    <p style="color: #cbd5e1; margin-bottom: 28px;">¿Dónde estás jugando?</p>
+
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+      <a href="/player" class="btn btn-primary" style="padding: 18px; font-size: 1.25rem;">
+        📱 SOY UN JUGADOR (Móvil)
+      </a>
+      <a href="/host" class="btn btn-secondary" style="padding: 14px; font-size: 1.05rem;">
+        🖥️ PANTALLA PRINCIPAL (PC / TV)
+      </a>
+    </div>
+  </div>
+
+  <script>
+    // Automatic redirect for mobile devices directly to /player
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isMobile) {
+      window.location.replace('/player');
+    }
+  </script>
+</body>
+</html>

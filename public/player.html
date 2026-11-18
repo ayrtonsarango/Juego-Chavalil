@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Mando Chavalil 📱</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Mando Chavalil">
+  <meta name="theme-color" content="#38bdf8">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/player.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="player-container">
+    
+    <!-- Top Bar -->
+    <header class="player-header">
+      <div class="header-left">
+        <span class="header-icon">🎮</span>
+        <h1 class="player-title">MANDO CHAVALIL</h1>
+      </div>
+      <div id="player-top-badge" class="badge badge-connected" style="display: none;">
+        ● EN VIVO
+      </div>
+    </header>
+
+    <!-- SCREEN 1: AVATAR CREATOR & REGISTRATION -->
+    <section id="screen-creator" class="player-screen active">
+
+      <!-- Step 1: Base Character Selection -->
+      <div class="preset-chavales-box">
+        <div class="preset-chavales-title">👑 Elige tu Chaval</div>
+        <div class="preset-chips-scroll" id="preset-chips-scroll">
+          <!-- Injected dynamically via player.js from AVATAR_PRESETS -->
+        </div>
+      </div>
+
+      <!-- Avatar Preview & Name Input Card -->
+      <div class="creator-preview-card">
+        <div class="creator-avatar-preview" id="preview-avatar-box">
+          <!-- Live SVG injected -->
+        </div>
+        <div class="input-name-wrap">
+          <input type="text" id="input-player-name" class="input-name" placeholder="Tu mote / Nombre" minlength="2" maxlength="15" autocomplete="off">
+        </div>
+      </div>
+
+      <!-- Character Specific Options (Rendered dynamically if available) -->
+      <div class="character-specific-box" id="character-specific-box" style="display: none;">
+        <div class="specific-options-container" id="specific-options-container">
+          <!-- Injected dynamically by player.js based on selected character -->
+        </div>
+      </div>
+
+      <!-- Accessories (Hand Items & Pets) -->
+      <div class="global-accessories-box" id="global-accessories-box">
+        <div class="creator-tabs" id="creator-tabs">
+          <button class="tab-btn active" data-tab="handItem">🖐️ En Mano</button>
+          <button class="tab-btn" data-tab="pet">🐾 Mascota</button>
+        </div>
+        <div class="options-scroller" id="options-scroller">
+          <!-- Injected dynamically based on active tab -->
+        </div>
+      </div>
+
+      <!-- Android Joke Simulator Switch -->
+      <div class="android-toggle-card">
+        <label for="check-android-sim" class="android-toggle-label">
+          🤖 Simular que soy Android (Meme)
+        </label>
+        <input type="checkbox" id="check-android-sim" class="toggle-checkbox">
+      </div>
+
+      <div class="ready-action-box">
+        <div id="ready-status-banner" class="ready-status-banner" style="display: none;">
+          🟢 ¡ESTÁS LISTO! Selección bloqueada
+        </div>
+        <div id="name-validation-msg" class="name-validation-msg" style="display: none;">
+          ⚠️ El nombre debe tener entre 2 y 15 letras.
+        </div>
+        <button class="btn btn-success btn-big-action btn-ready-main" id="btn-toggle-ready">
+          ✅ ¡LISTO PARA JUGAR!
+        </button>
+      </div>
+
+      <!-- Soundboard Meme de la Cuadrilla en Lobby -->
+      <div class="emote-board">
+        <div class="emote-title">
+          <span>🔊 Soundboard Chavalil</span>
+          <span class="badge soundboard-cooldown-badge" style="display: none;">⏳ Espera 4s</span>
+        </div>
+        <div class="emote-buttons">
+          <button class="btn-emote" data-sound="bocina" data-emote="📢"><span>📢</span><span>BOCINA</span></button>
+          <button class="btn-emote" data-sound="auuu" data-emote="🐺"><span>🐺</span><span>AUUUU</span></button>
+          <button class="btn-emote" data-sound="bing_chilling" data-emote="🍦"><span>🍦</span><span>BING</span></button>
+          <button class="btn-emote" data-sound="faaah" data-emote="🗣️"><span>🗣️</span><span>FAAAH</span></button>
+          <button class="btn-emote" data-sound="oh_my_god" data-emote="😱"><span>😱</span><span>OMG</span></button>
+          <button class="btn-emote" data-sound="allah_akbar" data-emote="💣"><span>💣</span><span>ALLAH</span></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 2: IN-GAME CONTROLLER -->
+    <section id="screen-controller" class="player-screen">
+      
+      <!-- Player Profile Strip -->
+      <div class="player-status-badge">
+        <div class="player-avatar-small" id="controller-avatar-thumb"></div>
+        <div class="player-info-meta">
+          <span class="player-nickname" id="controller-player-name">Chaval</span>
+          <div class="player-meta-badges">
+            <span id="controller-role-badge" class="badge">Jugador</span>
+            <span id="controller-device-badge" class="badge">Dispositivo</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Android Meme Warning (If player is Android) -->
+      <div class="android-player-meme" id="box-android-meme" style="display: none;">
+        <div class="android-meme-txt">🥀 Ya lo siento amigo Android...</div>
+        <div class="android-meme-sub">Te queremos igual, pero ha sonado la alarma de penuria 🙏</div>
+      </div>
+
+      <!-- J1 Controls in Lobby -->
+      <div class="j1-control-card" id="box-j1-controls" style="display: none;">
+        <div class="j1-control-title">👑 ERES EL J1 (LÍDER DE LA SALA)</div>
+        <div id="j1-lobby-hint" class="j1-lobby-hint">
+          ⏳ Esperando a que el Admin inicie la partida en la TV...
+        </div>
+      </div>
+
+      <!-- Overworld Map Multi-Player Navigation Pad (Super Mario Bros Wii style) -->
+      <div id="box-player-map-nav" class="map-nav-card" style="display: none;">
+        <div class="map-world-banner">
+          <span class="world-icon">🏰</span>
+          <div class="world-meta">
+            <span class="world-title">MUNDO 1 · REINO CHAVALIL</span>
+            <span class="world-sub">¡Mueve a tu chaval al siguiente minijuego!</span>
+          </div>
+        </div>
+        <div id="player-my-node-badge" class="map-node-badge">
+          📍 Mi posición: Mundo 1-1
+        </div>
+        <div class="map-nav-buttons">
+          <button class="btn btn-secondary btn-map-nav" id="btn-player-move-prev">
+            ◀ Anterior
+          </button>
+          <button class="btn btn-secondary btn-map-nav" id="btn-player-move-next">
+            Siguiente ▶
+          </button>
+        </div>
+
+        <div id="player-peloton-gather-card" class="peloton-gather-card">
+          👥 Pelotón en este nivel: <span id="gather-count" class="gather-count-val">1 / 1</span>
+        </div>
+
+        <!-- J1 Enter Level or Gather Squad -->
+        <div id="j1-map-actions" class="j1-map-actions" style="display: none;">
+          <button class="btn btn-warning btn-big-action btn-hold-protected" id="btn-j1-enter-level">
+            <div class="hold-progress-bar" id="j1-hold-progress"></div>
+            <span class="btn-hold-text" id="j1-enter-text">🏁 MANTÉN PARA ENTRAR (750ms)</span>
+          </button>
+          <button class="btn btn-secondary btn-gather-call" id="btn-j1-gather-all">
+            📣 Llamar y Reunir al Pelotón
+          </button>
+        </div>
+      </div>
+
+      <!-- Minigame Active Team & Custom Gamepads -->
+      <div id="box-minigame-controls" class="minigame-controls-box" style="display: none;">
+        <div id="minigame-team-banner" class="minigame-team-banner">
+          EQUIPO
+        </div>
+
+        <!-- 1. MARIO KART GAMEPAD (50% Steer Left + Stacked Action Cluster Right) -->
+        <div id="pad-race" class="pad-layout pad-race" style="display: none;">
+          <div class="race-steer-grid">
+            <button class="btn btn-steer" id="btn-kart-left" aria-label="Girar izquierda">
+              ◀
+            </button>
+            <button class="btn btn-steer" id="btn-kart-right" aria-label="Girar derecha">
+              ▶
+            </button>
+          </div>
+
+          <div class="race-action-stack">
+            <button class="btn btn-kart-gas" id="btn-kart-gas">
+              ⚡ ACELERAR
+            </button>
+            <button class="btn btn-kart-drift" id="btn-kart-drift">
+              ✨ DERRAPE
+            </button>
+            <button class="btn btn-kart-item" id="btn-kart-item">
+              ❓ OBJETO
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. SUPER SMASH BROS GAMEPAD (D-Pad Cross Left + Diamond A,B,X,Y Right) -->
+        <div id="pad-smash" class="pad-layout pad-smash" style="display: none;">
+          <div class="smash-dpad-wrapper">
+            <div class="dpad-cross-container">
+              <button class="dpad-cross-btn dpad-btn-up" id="btn-smash-up" aria-label="Arriba / Salto">▲</button>
+              <button class="dpad-cross-btn dpad-btn-left" id="btn-smash-left" aria-label="Izquierda">◀</button>
+              <div class="dpad-btn-center"></div>
+              <button class="dpad-cross-btn dpad-btn-right" id="btn-smash-right" aria-label="Derecha">▶</button>
+              <button class="dpad-cross-btn dpad-btn-down" id="btn-smash-down" aria-label="Abajo / Bajar">▼</button>
+            </div>
+          </div>
+
+          <div class="smash-diamond-wrapper">
+            <div class="diamond-cluster-container">
+              <button class="diamond-btn diamond-btn-top" id="btn-smash-jump-x" aria-label="Salto (X)">
+                <span>X</span>
+                <span class="diamond-sublabel">SALTO</span>
+              </button>
+              <button class="diamond-btn diamond-btn-left" id="btn-smash-shield" aria-label="Escudo (Y)">
+                <span>Y</span>
+                <span class="diamond-sublabel">ESCUDO</span>
+              </button>
+              <button class="diamond-btn diamond-btn-right" id="btn-smash-attack" aria-label="Golpe (A)">
+                <span>A</span>
+                <span class="diamond-sublabel">GOLPE</span>
+              </button>
+              <button class="diamond-btn diamond-btn-bottom" id="btn-smash-special" aria-label="Especial (B)">
+                <span>B</span>
+                <span class="diamond-sublabel">PODER</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. CURVE FEVER GAMEPAD (2 BOTONES GIGANTES 50%/50%) -->
+        <div id="pad-curve" class="pad-layout pad-curve" style="display: none;">
+          <button class="btn btn-primary btn-curve-half" id="btn-curve-left">
+            ◀ IZQUIERDA
+          </button>
+          <button class="btn btn-warning btn-curve-half" id="btn-curve-right">
+            DERECHA ▶
+          </button>
+        </div>
+
+        <!-- 4. TANK TROUBLE GAMEPAD (D-Pad Cross + Giant Fire Candy Button) -->
+        <div id="pad-tank" class="pad-layout pad-tank" style="display: none;">
+          <div class="dpad-cross-wrapper">
+            <div class="dpad-cross-container">
+              <button class="dpad-cross-btn dpad-btn-up" id="btn-tank-up" aria-label="Adelante">▲</button>
+              <button class="dpad-cross-btn dpad-btn-left" id="btn-tank-left" aria-label="Izquierda">◀</button>
+              <div class="dpad-btn-center"></div>
+              <button class="dpad-cross-btn dpad-btn-right" id="btn-tank-right" aria-label="Derecha">▶</button>
+              <button class="dpad-cross-btn dpad-btn-down" id="btn-tank-down" aria-label="Atrás">▼</button>
+            </div>
+          </div>
+          <div class="tank-fire-wrapper">
+            <button class="btn btn-tank-fire" id="btn-tank-fire">
+              💥 DISPARAR
+            </button>
+          </div>
+        </div>
+
+        <!-- 5. SPORTS HEADS / HEAD SOCCER GAMEPAD -->
+        <div id="pad-headsoccer" class="pad-layout pad-headsoccer" style="display: none;">
+          <div class="head-controls-grid">
+            <div class="head-steer">
+              <button class="btn btn-secondary btn-head-arrow" id="btn-head-left">◀</button>
+              <button class="btn btn-secondary btn-head-arrow" id="btn-head-right">▶</button>
+            </div>
+            <div class="head-actions">
+              <button class="btn btn-warning btn-head-action" id="btn-head-jump">▲ SALTAR</button>
+              <button class="btn btn-success btn-head-action btn-head-kick" id="btn-head-kick">⚽ CHUTAR</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. BOMBERMAN GAMEPAD (D-Pad Cross + Giant Bomb Candy Button) -->
+        <div id="pad-bomberman" class="pad-layout pad-bomberman" style="display: none;">
+          <div class="dpad-cross-wrapper">
+            <div class="dpad-cross-container">
+              <button class="dpad-cross-btn dpad-btn-up" id="btn-bomb-up" aria-label="Arriba">▲</button>
+              <button class="dpad-cross-btn dpad-btn-left" id="btn-bomb-left" aria-label="Izquierda">◀</button>
+              <div class="dpad-btn-center"></div>
+              <button class="dpad-cross-btn dpad-btn-right" id="btn-bomb-right" aria-label="Derecha">▶</button>
+              <button class="dpad-cross-btn dpad-btn-down" id="btn-bomb-down" aria-label="Abajo">▼</button>
+            </div>
+          </div>
+          <div class="bomber-action-wrapper">
+            <button class="btn btn-bomb-drop" id="btn-bomb-drop">
+              💣 BOMBA
+            </button>
+          </div>
+        </div>
+
+        <!-- 7. HAXBALL GAMEPAD (D-Pad Cross + Giant Kick Candy Button) -->
+        <div id="pad-haxball" class="pad-layout pad-haxball" style="display: none;">
+          <div class="dpad-cross-wrapper">
+            <div class="dpad-cross-container">
+              <button class="dpad-cross-btn dpad-btn-up" id="btn-hax-up" aria-label="Arriba">▲</button>
+              <button class="dpad-cross-btn dpad-btn-left" id="btn-hax-left" aria-label="Izquierda">◀</button>
+              <div class="dpad-btn-center"></div>
+              <button class="dpad-cross-btn dpad-btn-right" id="btn-hax-right" aria-label="Derecha">▶</button>
+              <button class="dpad-cross-btn dpad-btn-down" id="btn-hax-down" aria-label="Abajo">▼</button>
+            </div>
+          </div>
+          <div class="hax-action-wrapper">
+            <button class="btn btn-hax-kick" id="btn-hax-kick">
+              ⚽ CHUTAR
+            </button>
+          </div>
+        </div>
+
+        <!-- 8. BANQUILLO / MODO ESPECTADOR INTERACTIVO -->
+        <div id="box-bench-spectator" class="bench-spectator-card" style="display: none;">
+          <div class="bench-header-glow">
+            <span class="bench-icon">🛋️</span>
+            <div class="bench-title">EN EL BANQUILLO</div>
+          </div>
+          <div id="bench-heat-status" class="bench-heat-status">
+            Calentando... Tu turno llegará en la siguiente ronda.
+          </div>
+          <div class="bench-subtitle">
+            ¡Anima a tu equipo con reacciones en directo!
+          </div>
+          <div class="bench-cheer-grid">
+            <button class="btn btn-bench-cheer cheer-vamooos" data-cheer="👏" data-cheer-text="¡VAMOOOS!" data-cheer-sound="mario_coin">
+              <span class="cheer-emoji">👏</span>
+              <span class="cheer-label">¡VAMOOOS!</span>
+            </button>
+            <button class="btn btn-bench-cheer cheer-dale" data-cheer="🔥" data-cheer-text="¡DALE CAÑA!" data-cheer-sound="mario_coin">
+              <span class="cheer-emoji">🔥</span>
+              <span class="cheer-label">¡DALE CAÑA!</span>
+            </button>
+            <button class="btn btn-bench-cheer cheer-vigila" data-cheer="💀" data-cheer-text="¡NO TE DUERMAS!" data-cheer-sound="bocina">
+              <span class="cheer-emoji">💀</span>
+              <span class="cheer-label">¡VIGILA!</span>
+            </button>
+            <button class="btn btn-bench-cheer cheer-equipo" data-cheer="🏆" data-cheer-text="¡POR EL EQUIPO!" data-cheer-sound="mario_coin">
+              <span class="cheer-emoji">🏆</span>
+              <span class="cheer-label">¡A POR ELLOS!</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 9. BUTTON BASH DIANA BUZZER GAMEPAD & PRANK OVERLAYS -->
+        <div id="pad-buttonbash" class="pad-layout pad-buttonbash" style="display: none;">
+          
+          <!-- Normal Buzzer Controls -->
+          <div class="bash-active-controls" id="bash-normal-controls">
+            <div class="bash-diana-wrapper">
+              <button class="btn btn-bash-buzzer" id="btn-bash-target">
+                <span class="buzzer-icon">🎯</span>
+                <span class="buzzer-label">¡PULSA!</span>
+                <span class="buzzer-hint">1º Fija X · 2º Fija Y</span>
+              </button>
+            </div>
+            <div class="bash-sub-buttons">
+              <button class="btn btn-secondary btn-bash-pill" id="btn-bash-react-left">💨 ¡VAMOS!</button>
+              <button class="btn btn-secondary btn-bash-pill" id="btn-bash-react-right">🎯 ¡DIANA!</button>
+            </div>
+          </div>
+
+          <!-- PRANK OVERLAYS ON SMARTPHONE -->
+          <div id="bash-mobile-prank-overlay" class="bash-mobile-prank" style="display: none;">
+            
+            <!-- PRANK STAGE A1: VISTA DELAY ERROR -->
+            <div id="prank-step-vista" class="prank-card prank-vista-card" style="display: none;">
+              <div class="prank-titlebar">
+                <span class="titlebar-icon">⚠️</span>
+                <span class="titlebar-text">Windows Vista - Retardo de Botón</span>
+                <span class="titlebar-close">✕</span>
+              </div>
+              <div class="prank-card-body">
+                <div class="prank-msg-bold">Ups, la comunicación botón-receptor va con delay.</div>
+                <div class="prank-msg-sub">Tiempo estimado para sincronizar: 4.382 horas. Por favor vuelva a probar.</div>
+                <button class="btn btn-warning btn-prank-action" id="btn-prank-close-vista">
+                  Cerrar aviso
+                </button>
+              </div>
+            </div>
+
+            <!-- PRANK STAGE A2: GANGBANG RAMEN -->
+            <div id="prank-step-ramen" class="prank-card prank-ramen-card" style="display: none;">
+              <div class="prank-titlebar ramen-bar">
+                <span class="titlebar-icon">🍜</span>
+                <span class="titlebar-text">¡OFERTA EXCLUSIVA!</span>
+              </div>
+              <div class="prank-card-body">
+                <div id="ramen-msg-stage1">
+                  <div class="prank-msg-bold">¿Quieres venir a probar Button Bash en GangBang Ramen?</div>
+                  <div class="prank-msg-sub">Menú especial con 40L de caldo y 2 gatos supervisando 🐱🐱</div>
+                  <div class="prank-btn-pair">
+                    <button class="btn btn-success btn-prank-opt" id="btn-ramen-yes">¡Sí, voy!</button>
+                    <button class="btn btn-danger btn-prank-opt" id="btn-ramen-no">No, gracias</button>
+                  </div>
+                </div>
+                <div id="ramen-msg-stage2" style="display: none;">
+                  <div class="prank-msg-bold">¿Por qué no? 🥺 Tengo que comer...</div>
+                  <div class="prank-msg-sub">¿Dejarías a una mamá de dos gatos sin comida? Por favor...</div>
+                  <div class="prank-btn-pair">
+                    <button class="btn btn-warning btn-prank-opt" id="btn-ramen-force-1">Vale, voy</button>
+                    <button class="btn btn-warning btn-prank-opt" id="btn-ramen-force-2">Vale, voy</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- PRANK STAGE C: BADOSTÁIN MADURITAS -->
+            <div id="prank-step-badostain" class="prank-card prank-badostain-card" style="display: none;">
+              <div class="prank-titlebar badostain-bar">
+                <span class="titlebar-icon">🔞</span>
+                <span class="titlebar-text">Aviso de Proximidad · Bajera</span>
+              </div>
+              <div class="prank-card-body">
+                <div class="prank-msg-bold">¡Maduritas a menos de 3 km de Badostáin!</div>
+                <div class="prank-msg-sub">Quieren echar unos dardos y kalimotxo contigo en la bajera.</div>
+                <button class="btn btn-danger btn-prank-action" id="btn-badostain-bizum">
+                  Mandar ubicación por Bizum
+                </button>
+              </div>
+            </div>
+
+            <!-- PRANK STAGE C2: CAPTCHA RIDÍCULO -->
+            <div id="prank-step-captcha" class="prank-card prank-captcha-card" style="display: none;">
+              <div class="prank-titlebar captcha-bar">
+                <span class="titlebar-icon">🔒</span>
+                <span class="titlebar-text">Verificación de Humano</span>
+              </div>
+              <div class="prank-card-body">
+                <div class="prank-msg-bold">Selecciona el kalimotxo auténtico:</div>
+                <div class="captcha-options-grid">
+                  <button class="btn btn-secondary btn-captcha-opt" data-correct="false">🥤 Kalimotxo con hielo gourmet</button>
+                  <button class="btn btn-secondary btn-captcha-opt" data-correct="true">🍷 Don Simón tibio en vaso de tubo</button>
+                  <button class="btn btn-secondary btn-captcha-opt" data-correct="false">☕ Café con leche descafeinado</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- FULLSCREEN BLACKOUT (7s) -->
+          <div id="bash-blackout-fullscreen" class="bash-blackout-screen" style="display: none;">
+            <div class="crt-scanlines"></div>
+            <div class="blackout-content">
+              <div class="crt-warning-icon">⚡</div>
+              <div class="crt-title">[SIN SEÑAL · RECEPTOR APAGADO]</div>
+              <div class="crt-quote">"Mierda, Violeta, se ha quedado sin batería. Enchufa de nuevo."</div>
+              <div class="crt-timer-badge">⏳ Restableciendo corriente: <span id="blackout-sec-timer">7</span>s</div>
+            </div>
+          </div>
+
+          <!-- FAKE RANKING CELEBRATION -->
+          <div id="bash-fake-ranking-mobile" class="bash-fake-ranking-screen" style="display: none;">
+            <div class="ranking-winner-banner">
+              <span class="crown-icon">👑</span>
+              <div class="winner-title">CAMPEÓN OFICIAL BUTTON BASH</div>
+              <div class="winner-name">alvarito.tracasa.lover.69</div>
+              <div class="winner-score">999.999.999 PTS</div>
+              <div class="winner-desc">Tortilla de patatas en mesa de Tracasa</div>
+            </div>
+            <div class="my-fake-score-card">
+              <div class="my-fake-label">Tu puntuación final:</div>
+              <div class="my-fake-val">NaN / undefined / ¯\_(ツ)_/¯</div>
+              <div class="my-fake-pos">Posición: #420 de 4</div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Soundboard Meme de la Cuadrilla -->
+      <div class="emote-board" id="soundboard-box">
+        <div class="emote-title">
+          <span>🔊 Soundboard Chavalil</span>
+          <span id="soundboard-cooldown-badge" class="badge" style="display: none;">⏳ Espera 4s</span>
+        </div>
+        <div class="emote-buttons" id="soundboard-buttons">
+          <button class="btn-emote" data-sound="bocina" data-emote="📢"><span>📢</span><span>BOCINA</span></button>
+          <button class="btn-emote" data-sound="auuu" data-emote="🐺"><span>🐺</span><span>AUUUU</span></button>
+          <button class="btn-emote" data-sound="bing_chilling" data-emote="🍦"><span>🍦</span><span>BING</span></button>
+          <button class="btn-emote" data-sound="faaah" data-emote="🗣️"><span>🗣️</span><span>FAAAH</span></button>
+          <button class="btn-emote" data-sound="oh_my_god" data-emote="😱"><span>😱</span><span>OMG</span></button>
+          <button class="btn-emote" data-sound="allah_akbar" data-emote="💣"><span>💣</span><span>ALLAH</span></button>
+        </div>
+      </div>
+
+    </section>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/avatar-engine.js?v=4.3"></script>
+  <script src="/js/sound-engine.js?v=4.3"></script>
+  <script src="/js/player.js?v=4.3"></script>
+</body>
+</html>

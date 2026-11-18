@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Gira el Móvil</title>
+  <style>
+    
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700;800;900&family=Outfit:wght@600;700;800;900&display=swap');
+
+  :root {
+    --navy: #1e293b;
+    --navy-dark: #0f172a;
+    --navy-skirt: #090d16;
+    --border-w: 3.5px;
+    --bg-page: #edf5fd;
+    --bg-card: #ffffff;
+    
+    --c-cyan: #38bdf8;
+    --c-cyan-skirt: #0284c7;
+    --c-green: #22c55e;
+    --c-green-skirt: #15803d;
+    --c-pink: #f43f5e;
+    --c-pink-skirt: #be123c;
+    --c-yellow: #facc15;
+    --c-yellow-skirt: #ca8a04;
+    --c-orange: #fb923c;
+    --c-orange-skirt: #c2410c;
+    --c-purple: #a855f7;
+    --c-purple-skirt: #7e22ce;
+  }
+
+  * {
+    margin: 0; padding: 0; box-sizing: border-box;
+    user-select: none; -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: var(--bg-page);
+    /* Doodle doodle squiggly pattern + candy confetti sprinkles */
+    background-image: 
+      radial-gradient(#93c5fd 2px, transparent 2.5px),
+      radial-gradient(#fca5a5 2px, transparent 2.5px),
+      radial-gradient(#fde047 2px, transparent 2.5px),
+      url("data:image/svg+xml,%3Csvg width='160' height='160' viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 25 Q 35 5, 60 30 T 110 25 T 145 55 Q 130 90, 100 70 T 50 90 T 20 125 Q 45 155, 80 140 T 135 150' stroke='%23cbd5e1' stroke-width='3' stroke-linecap='round' fill='none' opacity='0.7'/%3E%3C/svg%3E");
+    background-size: 80px 80px, 120px 120px, 95px 95px, 160px 160px;
+    background-position: 0 0, 40px 60px, 80px 30px, 0 0;
+    font-family: 'Outfit', sans-serif;
+    color: var(--navy);
+    overflow: hidden;
+  }
+
+  /* Universal Player Identity Strip */
+  .player-header {
+    background: #ffffff;
+    border: var(--border-w) solid var(--navy);
+    border-radius: 22px;
+    padding: 8px 14px;
+    box-shadow: 0 5px 0 rgba(30, 41, 59, 0.14);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    z-index: 10;
+  }
+  .player-identity {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .avatar-frame {
+    width: 44px;
+    height: 44px;
+    border: 2.5px solid var(--navy);
+    border-radius: 50%;
+    background: #bae6fd;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 0 rgba(0,0,0,0.15);
+  }
+  .player-name-wrap {
+    display: flex;
+    flex-direction: column;
+  }
+  .player-name {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 20px;
+    font-weight: 900;
+    line-height: 1.1;
+    color: var(--navy);
+  }
+  .player-sub {
+    font-size: 11px;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .player-badge-pill {
+    background: var(--navy);
+    color: #ffffff;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 13px;
+    font-weight: 900;
+    padding: 5px 12px;
+    border-radius: 12px;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .dot-online {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 6px #22c55e;
+  }
+
+  /* Universal Candy-Arcade Button Mixin */
+  .candy-btn {
+    border: var(--border-w) solid var(--navy);
+    border-radius: 20px;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 900;
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.06s ease, box-shadow 0.06s ease;
+  }
+  .candy-btn:active {
+    transform: translateY(4px);
+  }
+
+  /* Soundboard Bottom Strip */
+  .soundboard-drawer {
+    background: #ffffff;
+    border: var(--border-w) solid var(--navy);
+    border-radius: 20px;
+    padding: 8px 10px;
+    box-shadow: 0 4px 0 rgba(30, 41, 59, 0.12);
+    margin-top: auto;
+  }
+  .sb-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    padding: 0 4px;
+  }
+  .sb-title {
+    font-size: 11px;
+    font-weight: 900;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .sb-chips-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 5px;
+  }
+  .sb-chip {
+    background: #f8fafc;
+    border: 2px solid var(--navy);
+    border-radius: 10px;
+    padding: 6px 2px;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 11px;
+    font-weight: 900;
+    color: var(--navy);
+    text-align: center;
+    box-shadow: 0 3px 0 var(--navy);
+    cursor: pointer;
+  }
+  .sb-chip:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 var(--navy);
+  }
+
+    body {
+      width: 850px; height: 412px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--navy-dark);
+      color: #ffffff;
+      padding: 24px;
+    }
+    .rotate-card {
+      background: #1e293b;
+      border: 4px solid #38bdf8;
+      border-radius: 32px;
+      padding: 36px 48px;
+      box-shadow: 0 14px 40px rgba(0,0,0,0.6);
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+      max-width: 620px;
+    }
+    .rotate-badge {
+      background: #f43f5e; color: #ffffff;
+      font-family: 'Fredoka', sans-serif; font-size: 14px; font-weight: 900;
+      padding: 4px 16px; border-radius: 12px; margin-bottom: 16px;
+      letter-spacing: 0.5px;
+    }
+    .rotate-icon {
+      font-size: 54px; margin-bottom: 12px;
+      animation: wiggle 1.8s ease-in-out infinite;
+    }
+    @keyframes wiggle {
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(-25deg); }
+      75% { transform: rotate(90deg); }
+    }
+    .rotate-title {
+      font-family: 'Fredoka', sans-serif; font-size: 34px; font-weight: 900;
+      color: #facc15; margin-bottom: 8px;
+    }
+    .rotate-sub {
+      font-size: 18px; font-weight: 700; color: #cbd5e1;
+    }
+  </style>
+</head>
+<body>
+  <div class="rotate-card">
+    <div class="rotate-badge">MINIJUEGO DE VELOCIDAD</div>
+    <div class="rotate-icon">📱 ↷</div>
+    <h1 class="rotate-title">¡GIRA EL MÓVIL EN HORIZONTAL!</h1>
+    <p class="rotate-sub">Para jugar cómodamente con los dos pulgares en pantalla</p>
+  </div>
+</body>
+</html>

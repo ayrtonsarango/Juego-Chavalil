@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Dirección 2A (TV): Doodle Soft Remote</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700;800;900&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      width: 1920px; height: 1080px; overflow: hidden;
+      background: #edf5ff;
+      background-image: url("data:image/svg+xml,%3Csvg width='160' height='160' viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15 30 Q 40 10, 65 35 T 120 30 T 150 65 Q 130 95, 105 75 T 50 95 T 20 130 Q 45 155, 85 145 T 140 155' stroke='%23cbd5e1' stroke-width='4' stroke-linecap='round' fill='none'/%3E%3Ccircle cx='125' cy='40' r='7' fill='%2393c5fd' opacity='0.35'/%3E%3Ccircle cx='35' cy='115' r='6' fill='%23fca5a5' opacity='0.35'/%3E%3C/svg%3E");
+      font-family: 'Outfit', sans-serif;
+      color: #1e293b;
+      display: flex; flex-direction: column;
+      padding: 36px 48px;
+    }
+    header {
+      display: flex; justify-content: space-between; align-items: center;
+      background: #ffffff;
+      border: 4px solid #1e293b;
+      border-radius: 32px;
+      padding: 16px 36px;
+      box-shadow: 0 12px 0 rgba(30, 41, 59, 0.12);
+      margin-bottom: 30px;
+    }
+    .brand { display: flex; align-items: center; gap: 18px; }
+    .brand-badge {
+      background: #1e293b; color: #ffffff;
+      border-radius: 20px; padding: 6px 16px;
+      font-family: 'Fredoka', sans-serif; font-size: 20px; font-weight: 900;
+    }
+    .brand-title {
+      font-family: 'Fredoka', sans-serif; font-weight: 900; font-size: 38px;
+      color: #1e293b; letter-spacing: -0.5px;
+    }
+    .room-pill { display: flex; align-items: center; gap: 16px; }
+    .url-chip {
+      background: #e0f2fe; border: 3px solid #1e293b; border-radius: 20px;
+      padding: 8px 24px; font-size: 22px; font-weight: 800; color: #0284c7;
+    }
+    .count-chip {
+      background: #4ade80; border: 3px solid #1e293b; border-radius: 20px;
+      padding: 8px 22px; font-size: 20px; font-weight: 900; color: #0f172a;
+    }
+
+    main { flex: 1; display: grid; grid-template-columns: 560px 1fr; gap: 36px; }
+    .qr-card {
+      background: #ffffff; border: 4px solid #1e293b; border-radius: 36px;
+      padding: 36px; box-shadow: 0 14px 0 rgba(30, 41, 59, 0.12);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center;
+    }
+    .qr-frame {
+      padding: 16px; background: #ffffff; border: 3.5px solid #1e293b; border-radius: 24px;
+      box-shadow: 0 8px 0 rgba(30, 41, 59, 0.1); margin-bottom: 24px;
+    }
+    .qr-frame img { width: 280px; height: 280px; display: block; border-radius: 8px; }
+    .qr-card h2 {
+      font-family: 'Fredoka', sans-serif; font-size: 32px; font-weight: 900; margin-bottom: 8px;
+    }
+    .qr-card p { font-size: 20px; font-weight: 700; color: #64748b; }
+    .j1-callout {
+      margin-top: 18px; background: #fef08a; border: 2.5px solid #1e293b; border-radius: 14px;
+      padding: 6px 16px; font-weight: 800; font-size: 17px;
+    }
+
+    .players-area {
+      background: #ffffff; border: 4px solid #1e293b; border-radius: 36px;
+      padding: 36px; box-shadow: 0 14px 0 rgba(30, 41, 59, 0.12);
+      display: flex; flex-direction: column;
+    }
+    .players-header {
+      display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 26px;
+      padding-bottom: 16px; border-bottom: 3.5px solid #e2e8f0;
+    }
+    .players-header h2 { font-family: 'Fredoka', sans-serif; font-size: 34px; font-weight: 900; }
+    .players-header span { font-size: 20px; font-weight: 800; color: #64748b; }
+
+    .players-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; flex: 1; }
+    .p-card {
+      border: 3.5px solid #1e293b; border-radius: 28px; padding: 18px 24px;
+      display: flex; align-items: center; gap: 20px; background: #f8fafc;
+      box-shadow: 0 8px 0 rgba(30, 41, 59, 0.1); position: relative;
+    }
+    .p-card.p1 { background: #e0f2fe; border-color: #0284c7; }
+    .p-card.p2 { background: #fee2e2; border-color: #ef4444; }
+    .p-card.p3 { background: #dcfce7; border-color: #22c55e; }
+    .p-card.p4 { background: #fef3c7; border-color: #f59e0b; }
+
+    .p-avatar {
+      width: 90px; height: 90px; background: #ffffff; border: 3px solid #1e293b;
+      border-radius: 22px; overflow: hidden; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; box-shadow: 0 4px 0 rgba(30, 41, 59, 0.1);
+    }
+    .p-info { flex: 1; }
+    .p-name { font-family: 'Fredoka', sans-serif; font-size: 28px; font-weight: 900; margin-bottom: 6px; }
+    .p-status {
+      display: inline-block; background: #1e293b; color: #ffffff;
+      border-radius: 10px; padding: 4px 14px; font-size: 14px; font-weight: 800;
+    }
+
+    footer.bottom-bar {
+      margin-top: 24px; display: flex; justify-content: space-between; align-items: center;
+      background: #1e293b; color: #ffffff; border-radius: 24px; padding: 16px 36px;
+    }
+    .bottom-hint { font-size: 20px; font-weight: 700; color: #94a3b8; }
+    .btn-start {
+      background: #38bdf8; color: #0f172a; border: 3px solid #1e293b;
+      font-family: 'Fredoka', sans-serif; font-weight: 900; font-size: 22px;
+      padding: 12px 36px; border-radius: 18px; box-shadow: 0 6px 0 #0284c7;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-badge">PARTY</div>
+      <h1 class="brand-title">JUEGO CHAVALIL</h1>
+    </div>
+    <div class="room-pill">
+      <div class="url-chip">192.168.1.45:3000/player</div>
+      <div class="count-chip">4 / 8 LISTOS</div>
+    </div>
+  </header>
+
+  <main>
+    <div class="qr-card">
+      <div class="qr-frame"><img src="data:image/png;base64,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" alt="QR"></div>
+      <h2>¡APUNTA CON TU MÓVIL!</h2>
+      <p>Entra instantáneamente desde el navegador</p>
+      <div class="j1-callout">👑 Ayrton es el J1 (Líder)</div>
+    </div>
+
+    <div class="players-area">
+      <div class="players-header">
+        <h2>Chavales Conectados</h2>
+        <span>4 Jugadores en sala</span>
+      </div>
+
+      <div class="players-grid">
+        <div class="p-card p1">
+          <div class="p-avatar">
+    <svg viewBox="0 0 112 112" width="90" height="90" xmlns="http://www.w3.org/2000/svg" class="avatar-svg  ">
+      <!-- Sombra base -->
+      <ellipse cx="56" cy="107" rx="28" ry="4" fill="#000000" opacity="0.22" class="avatar-shadow"/>
+
+      <!-- Contenedor con altura dinámica -->
+      <g >
+        <!-- Pies / Zapatos animados para correr estilo Mario -->
+        <g class="avatar-feet">
+          
+      <ellipse class="avatar-foot-left" cx="42" cy="105" rx="8.5" ry="5" fill="#0f172a"/>
+      <ellipse class="avatar-foot-right" cx="70" cy="105" rx="8.5" ry="5" fill="#0f172a"/>
+    
+        </g>
+
+        <!-- Cuerpo / Ropa (Sudadera, Polo, Chupa de Cuero o Camiseta Negra) -->
+        <g id="body">
+          <path d="M 32 80 C 26 88, 24 102, 34 104 L 78 104 C 88 102, 86 88, 80 80 Z" fill="#f59e0b" stroke="#1e293b" stroke-width="2.5"/>
+          
+    <!-- Cremallera central de sudadera -->
+    <line x1="56" y1="80" x2="56" y2="103" stroke="#1e293b" stroke-width="2" stroke-dasharray="2 2"/>
+  
+        </g>
+
+        <!-- Air Jordans CÓMICAMENTE GRANDES renderizadas por encima de la ropa si está activado -->
+        
+
+        <!-- Brazos / Manos animadas que bombean al correr -->
+        <g class="avatar-arm-left">
+          <circle class="avatar-hand-left" cx="28" cy="94" r="7" fill="#ffe0bd" stroke="#1e293b" stroke-width="2"/>
+        </g>
+        <g class="avatar-arm-right">
+          <circle class="avatar-hand-right" cx="84" cy="94" r="7" fill="#ffe0bd" stroke="#1e293b" stroke-width="2"/>
+          
+        </g>
+
+        <!-- Cabeza con silueta personalizada -->
+        <g id="head" class="avatar-head">
+          
+    <!-- Cabeza redonda clásica South Park / Chibi -->
+    <ellipse cx="56" cy="54" rx="34" ry="32" fill="#ffe0bd" stroke="#1e293b" stroke-width="2.5"/>
+    <circle cx="34" cy="62" r="5" fill="#f43f5e" opacity="0.25"/>
+    <circle cx="78" cy="62" r="5" fill="#f43f5e" opacity="0.25"/>
+  
+        </g>
+
+        <!-- Pelo -->
+        <g id="hair">
+        <!-- Pelo Despeinado Chavalil (Ayrton) con mechones dinámicos y volumen -->
+        <!-- Sombra base detrás de la silueta -->
+        <path d="M 18 48 C 14 36, 18 24, 28 17 C 36 12, 48 11, 56 11 C 66 11, 76 13, 85 18 C 94 25, 98 36, 94 48 Q 78 30 56 30 Q 34 30 18 48 Z" fill="#090d16" opacity="0.45"/>
+        <!-- Silueta principal texturada con picos naturales -->
+        <path d="M 19 48 C 15 37, 18 27, 26 21 L 29 25 L 36 15 L 43 21 L 52 12 L 58 12 L 67 19 L 76 14 L 81 23 L 90 20 C 97 29, 97 39, 93 48 C 87 43, 81 42, 75 44 C 67 38, 57 39, 49 43 C 41 38, 31 39, 23 45 Z" fill="#1e293b" stroke="#0f172a" stroke-width="2.2" stroke-linejoin="round"/>
+        <!-- Mechones frontales con caída sobre la frente -->
+        <path d="M 27 43 Q 33 37 41 42 Q 49 36 57 41 Q 65 35 75 40 Q 82 36 86 43" fill="none" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+        <!-- Mechones sueltos pícaros -->
+        <path d="M 33 24 Q 38 18 44 23" fill="none" stroke="#0f172a" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M 60 21 Q 66 16 71 22" fill="none" stroke="#0f172a" stroke-width="1.8" stroke-linecap="round"/>
+        <!-- Brillo / highlight sutil superior -->
+        <path d="M 38 19 Q 54 14 70 19" fill="none" stroke="#64748b" stroke-width="2.2" stroke-linecap="round" opacity="0.5"/>
+      </g>
+
+        <!-- Ojos -->
+        <g id="eyes">
+        <!-- Ojos chinillos / achinados pícaros (Ayrton) -->
+        <path d="M 32 53 Q 44 46 54 54 Q 44 51 32 53 Z" fill="#0f172a" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M 58 54 Q 68 46 80 53 Q 68 51 58 54 Z" fill="#0f172a" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round"/>
+        <!-- Pestañita pícara sonriente -->
+        <line x1="31" y1="52" x2="27" y2="49" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+        <line x1="81" y1="52" x2="85" y2="49" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+      </g>
+
+        <!-- Boca -->
+        <g id="mouth">
+        <!-- Cara loca con lengua fuera desquiciada (Ayrton) -->
+        <ellipse cx="56" cy="69" rx="12" ry="7" fill="#7f1d1d" stroke="#0f172a" stroke-width="2"/>
+        <rect x="50" y="63" width="12" height="4" rx="1.5" fill="#ffffff"/>
+        <!-- Lengua fuera cayendo hacia abajo -->
+        <path d="M 49 69 C 48 84, 63 86, 62 70 Z" fill="#f43f5e" stroke="#0f172a" stroke-width="1.8"/>
+        <line x1="55.5" y1="70" x2="55.5" y2="79" stroke="#be123c" stroke-width="1.2"/>
+        <!-- Gotita de baba derp -->
+        <circle cx="64" cy="80" r="1.5" fill="#38bdf8" opacity="0.8"/>
+      </g>
+
+        <!-- Accesorios -->
+        <g id="accessories"></g>
+      </g>
+    </svg>
+  </div>
+          <div class="p-info">
+            <div class="p-name">Ayrton</div>
+            <div class="p-status">J1 · AZUL</div>
+          </div>
+        </div>
+
+        <div class="p-card p2">
+          <div class="p-avatar">
+    <svg viewBox="0 0 112 112" width="90" height="90" xmlns="http://www.w3.org/2000/svg" class="avatar-svg  ">
+      <!-- Sombra base -->
+      <ellipse cx="56" cy="107" rx="28" ry="4" fill="#000000" opacity="0.22" class="avatar-shadow"/>
+
+      <!-- Contenedor con altura dinámica -->
+      <g >
+        <!-- Pies / Zapatos animados para correr estilo Mario -->
+        <g class="avatar-feet">
+          
+      <!-- Nike Air Jordan 1 Chicago Grandes Estándar (Left Foot) -->
+      <g class="avatar-foot-left" style="transform-origin: 40px 105px;">
+        <ellipse cx="40" cy="107" rx="11" ry="3.8" fill="#000000" opacity="0.32"/>
+        <path d="M 28 107 Q 40 109 52 107 L 52 104 Q 40 105 28 104 Z" fill="#dc2626"/>
+        <rect x="28" y="102" width="24" height="3.5" rx="1" fill="#f8fafc" stroke="#1e293b" stroke-width="1"/>
+        <path d="M 29 102 L 30 96 Q 38 95 46 97 L 50 100 L 51 102 Z" fill="#dc2626" stroke="#1e293b" stroke-width="1"/>
+        <path d="M 30 102 L 31 98 Q 37 98 40 102 Z" fill="#ffffff"/>
+        <path d="M 40 98 Q 45 101 49 97 Q 45 99 41 99.5 Z" fill="#09090b"/>
+        <line x1="35" y1="97" x2="40" y2="98" stroke="#09090b" stroke-width="1.2"/>
+      </g>
+      <!-- Nike Air Jordan 1 Chicago Grandes Estándar (Right Foot) -->
+      <g class="avatar-foot-right" style="transform-origin: 72px 105px;">
+        <ellipse cx="72" cy="107" rx="11" ry="3.8" fill="#000000" opacity="0.32"/>
+        <path d="M 60 107 Q 72 109 84 107 L 84 104 Q 72 105 60 104 Z" fill="#dc2626"/>
+        <rect x="60" y="102" width="24" height="3.5" rx="1" fill="#f8fafc" stroke="#1e293b" stroke-width="1"/>
+        <path d="M 61 102 L 62 96 Q 70 95 78 97 L 82 100 L 83 102 Z" fill="#dc2626" stroke="#1e293b" stroke-width="1"/>
+        <path d="M 62 102 L 63 98 Q 69 98 72 102 Z" fill="#ffffff"/>
+        <path d="M 72 98 Q 77 101 81 97 Q 77 99 73 99.5 Z" fill="#09090b"/>
+        <line x1="67" y1="97" x2="72" y2="98" stroke="#09090b" stroke-width="1.2"/>
+      </g>
+    
+        </g>
+
+        <!-- Cuerpo / Ropa (Sudadera, Polo, Chupa de Cuero o Camiseta Negra) -->
+        <g id="body">
+          <path d="M 32 80 C 26 88, 24 102, 34 104 L 78 104 C 88 102, 86 88, 80 80 Z" fill="#09090b" stroke="#1e293b" stroke-width="2.5"/>
+          
+    <!-- Cuello redondo de camiseta negra lisa de Adriachi -->
+    <path d="M 45 80 Q 56 85 67 80" stroke="#27272a" stroke-width="2.4" fill="none"/>
+    <circle cx="48" cy="94" r="1.5" fill="#27272a"/>
+  
+        </g>
+
+        <!-- Air Jordans CÓMICAMENTE GRANDES renderizadas por encima de la ropa si está activado -->
+        
+
+        <!-- Brazos / Manos animadas que bombean al correr -->
+        <g class="avatar-arm-left">
+          <circle class="avatar-hand-left" cx="28" cy="94" r="7" fill="#fed7aa" stroke="#1e293b" stroke-width="2"/>
+        </g>
+        <g class="avatar-arm-right">
+          <circle class="avatar-hand-right" cx="84" cy="94" r="7" fill="#fed7aa" stroke="#1e293b" stroke-width="2"/>
+          
+        </g>
+
+        <!-- Cabeza con silueta personalizada -->
+        <g id="head" class="avatar-head">
+          
+    <!-- Cabeza cuadrada estilo Buford Van Stomm (Adriachi) -->
+    <path d="M 23 36 C 23 22, 89 22, 89 36 L 89 68 C 89 79, 78 84, 56 84 C 34 84, 23 79, 23 68 Z" fill="#fed7aa" stroke="#1e293b" stroke-width="2.6"/>
+    <line x1="51" y1="80" x2="61" y2="80" stroke="#1e293b" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+    <circle cx="31" cy="63" r="5.5" fill="#f43f5e" opacity="0.25"/>
+    <circle cx="81" cy="63" r="5.5" fill="#f43f5e" opacity="0.25"/>
+  
+        </g>
+
+        <!-- Pelo -->
+        <g id="hair">
+        <!-- French Crop / Fade Urbano con textura y sienes cuadradas (Adriachi) -->
+        <!-- Sombra fade en los laterales y nuca que se adapta a la mandíbula Buford -->
+        <path d="M 22 50 C 21 34, 30 22, 56 22 C 82 22, 91 34, 90 50 C 86 48, 80 44, 74 42 C 64 40, 48 40, 38 42 C 32 44, 26 48, 22 50 Z" fill="#09090b" opacity="0.55"/>
+        <!-- Corte superior con textura recta y perfilado cuadrado -->
+        <path d="M 23 48 L 24 33 C 26 21, 40 18, 56 18 C 72 18, 86 21, 88 33 L 89 48 C 84 44, 78 41, 70 41 L 42 41 C 34 41, 28 44, 23 48 Z" fill="#09090b" stroke="#1e293b" stroke-width="2.2"/>
+        <!-- Flequillo recto texturado estilo crop de barbería -->
+        <line x1="38" y1="41" x2="74" y2="41" stroke="#0f172a" stroke-width="2.5" stroke-linecap="square"/>
+        <!-- Micro texturas de corte a tijera en la parte superior -->
+        <path d="M 36 28 L 40 24 L 46 27 L 52 23 L 58 27 L 64 24 L 70 28" stroke="#334155" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <!-- Perfilado nítido en las patillas y sienes cuadradas -->
+        <line x1="24" y1="48" x2="24" y2="42" stroke="#0f172a" stroke-width="2"/>
+        <line x1="88" y1="48" x2="88" y2="42" stroke="#0f172a" stroke-width="2"/>
+      </g>
+
+        <!-- Ojos -->
+        <g id="eyes">
+        <!-- Ojos clásicos South Park -->
+        <ellipse cx="43" cy="52" rx="9" ry="12" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+        <ellipse cx="69" cy="52" rx="9" ry="12" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+        <circle cx="45" cy="52" r="3" fill="#0f172a"/>
+        <circle cx="67" cy="52" r="3" fill="#0f172a"/>
+      </g>
+
+        <!-- Boca -->
+        <g id="mouth">
+        <path d="M 47 67 Q 56 74 65 67" stroke="#1e293b" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      </g>
+
+        <!-- Accesorios -->
+        <g id="accessories">
+        <!-- Gafas de pasta negras cuadradas estilo Adriachi y Lerga -->
+        <rect x="26" y="44" width="24" height="15" rx="3.5" fill="none" stroke="#09090b" stroke-width="3.2"/>
+        <rect x="62" y="44" width="24" height="15" rx="3.5" fill="none" stroke="#09090b" stroke-width="3.2"/>
+        <line x1="50" y1="48" x2="62" y2="48" stroke="#09090b" stroke-width="3.2"/>
+        <line x1="26" y1="48" x2="19" y2="46" stroke="#09090b" stroke-width="2.6"/>
+        <line x1="86" y1="48" x2="93" y2="46" stroke="#09090b" stroke-width="2.6"/>
+        <line x1="30" y1="47" x2="38" y2="47" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" opacity="0.6"/>
+        <line x1="66" y1="47" x2="74" y2="47" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" opacity="0.6"/>
+      </g>
+      </g>
+    </svg>
+  </div>
+          <div class="p-info">
+            <div class="p-name">Adriachi</div>
+            <div class="p-status">ROJO</div>
+          </div>
+        </div>
+
+        <div class="p-card p3">
+          <div class="p-avatar">
+    <svg viewBox="0 0 112 112" width="90" height="90" xmlns="http://www.w3.org/2000/svg" class="avatar-svg  ">
+      <!-- Sombra base -->
+      <ellipse cx="56" cy="107" rx="28" ry="4" fill="#000000" opacity="0.22" class="avatar-shadow"/>
+
+      <!-- Contenedor con altura dinámica -->
+      <g >
+        <!-- Pies / Zapatos animados para correr estilo Mario -->
+        <g class="avatar-feet">
+          
+      <g class="avatar-foot-left" style="transform-origin: 42px 105px;">
+        <ellipse cx="42" cy="106" rx="9" ry="3.5" fill="#000000" opacity="0.25"/>
+        <path d="M 33 105 Q 42 107 50 105 L 50 100 Q 42 98 33 101 Z" fill="#f8fafc" stroke="#1e293b" stroke-width="1"/>
+        <line x1="33" y1="104" x2="50" y2="104" stroke="#cbd5e1" stroke-width="1.5"/>
+      </g>
+      <g class="avatar-foot-right" style="transform-origin: 70px 105px;">
+        <ellipse cx="70" cy="106" rx="9" ry="3.5" fill="#000000" opacity="0.25"/>
+        <path d="M 62 105 Q 70 107 79 105 L 79 100 Q 70 98 62 101 Z" fill="#f8fafc" stroke="#1e293b" stroke-width="1"/>
+        <line x1="62" y1="104" x2="79" y2="104" stroke="#cbd5e1" stroke-width="1.5"/>
+      </g>
+    
+        </g>
+
+        <!-- Cuerpo / Ropa (Sudadera, Polo, Chupa de Cuero o Camiseta Negra) -->
+        <g id="body">
+          <path d="M 32 80 C 26 88, 24 102, 34 104 L 78 104 C 88 102, 86 88, 80 80 Z" fill="#10b981" stroke="#1e293b" stroke-width="2.5"/>
+          
+    <!-- Cremallera central de sudadera -->
+    <line x1="56" y1="80" x2="56" y2="103" stroke="#1e293b" stroke-width="2" stroke-dasharray="2 2"/>
+  
+        </g>
+
+        <!-- Air Jordans CÓMICAMENTE GRANDES renderizadas por encima de la ropa si está activado -->
+        
+
+        <!-- Brazos / Manos animadas que bombean al correr -->
+        <g class="avatar-arm-left">
+          <circle class="avatar-hand-left" cx="28" cy="94" r="7" fill="#ffe0bd" stroke="#1e293b" stroke-width="2"/>
+        </g>
+        <g class="avatar-arm-right">
+          <circle class="avatar-hand-right" cx="84" cy="94" r="7" fill="#ffe0bd" stroke="#1e293b" stroke-width="2"/>
+          
+        <!-- Smartphone con TikTok a toda pantalla (Asier/Marta - Ipadkid) -->
+        <g class="hand-item hand-item-tiktok" transform="translate(78, 74)">
+          <rect x="0" y="0" width="16" height="26" rx="3" fill="#09090b" stroke="#334155" stroke-width="1.4"/>
+          <rect x="1.5" y="2" width="13" height="22" rx="1.5" fill="#000000"/>
+          <g transform="translate(3.5, 6) scale(0.68)">
+            <path d="M 5 2 L 8 2 C 8 4, 10 5, 12 5 L 12 7 C 10 7, 8 6, 7 5 L 7 11 C 7 13.5, 4.5 15, 2.5 13.5 C 1 12, 1.5 9.5, 3.5 9 L 3.5 11 C 2.5 11.2, 2.5 12.5, 3.5 12.8 C 5 13, 5.5 11.8, 5.5 11 Z" fill="#06b6d4"/>
+            <path d="M 5.8 2 L 8.8 2 C 8.8 4, 10.8 5, 12.8 5 L 12.8 7 C 10.8 7, 8.8 6, 7.8 5 L 7.8 11 C 7.8 13.5, 5.3 15, 3.3 13.5 C 1.8 12, 2.3 9.5, 4.3 9 L 4.3 11 C 3.3 11.2, 3.3 12.5, 4.3 12.8 C 5.8 13, 6.3 11.8, 6.3 11 Z" fill="#f43f5e" opacity="0.85"/>
+          </g>
+          <line x1="2" y1="22" x2="9" y2="22" stroke="#f43f5e" stroke-width="1.2"/>
+        </g>
+      
+        </g>
+
+        <!-- Cabeza con silueta personalizada -->
+        <g id="head" class="avatar-head">
+          
+    <!-- Cabeza redonda clásica South Park / Chibi -->
+    <ellipse cx="56" cy="54" rx="34" ry="32" fill="#ffe0bd" stroke="#1e293b" stroke-width="2.5"/>
+    <circle cx="34" cy="62" r="5" fill="#f43f5e" opacity="0.25"/>
+    <circle cx="78" cy="62" r="5" fill="#f43f5e" opacity="0.25"/>
+  
+        </g>
+
+        <!-- Pelo -->
+        <g id="hair">
+        <!-- Pelo corto chic chica / Bob moderno (Marta) -->
+        <path d="M 22 48 C 18 64, 20 74, 28 72 C 26 56, 26 40, 34 26 C 44 18, 68 18, 78 26 C 86 40, 86 56, 84 72 C 92 74, 94 64, 90 48 C 90 20, 22 20, 22 48 Z" fill="#1e293b" stroke="#1e293b" stroke-width="2"/>
+        <path d="M 30 40 Q 52 46 68 34" stroke="#1e293b" stroke-width="2" fill="none"/>
+      </g>
+
+        <!-- Ojos -->
+        <g id="eyes">
+        <!-- Ojos clásicos South Park -->
+        <ellipse cx="43" cy="52" rx="9" ry="12" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+        <ellipse cx="69" cy="52" rx="9" ry="12" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+        <circle cx="45" cy="52" r="3" fill="#0f172a"/>
+        <circle cx="67" cy="52" r="3" fill="#0f172a"/>
+      </g>
+
+        <!-- Boca -->
+        <g id="mouth">
+        <path d="M 47 67 Q 56 74 65 67" stroke="#1e293b" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      </g>
+
+        <!-- Accesorios -->
+        <g id="accessories">
+        <!-- Gorra verde fosforito BRAT (Charli XCX) de Marta -->
+        <path d="M 22 45 C 22 22, 90 22, 90 45 Z" fill="#86efac" stroke="#16a34a" stroke-width="2.2"/>
+        <path d="M 18 45 Q 56 36 98 45 L 94 49 Q 56 41 18 49 Z" fill="#4ade80" stroke="#16a34a" stroke-width="1.6"/>
+        <text x="56" y="38" font-family="'Arial', 'Helvetica', sans-serif" font-size="8.5" font-weight="900" text-anchor="middle" fill="#000000" letter-spacing="-0.5">brat</text>
+      </g>
+      </g>
+    </svg>
+  </div>
+          <div class="p-info">
+            <div class="p-name">Marta</div>
+            <div class="p-status">VERDE</div>
+          </div>
+        </div>
+
+        <div class="p-card p4">
+          <div class="p-avatar">
+    <svg viewBox="0 0 112 112" width="90" height="90" xmlns="http://www.w3.org/2000/svg" class="avatar-svg is-tall ">
+      <!-- Sombra base -->
+      <ellipse cx="56" cy="107" rx="28" ry="4" fill="#000000" opacity="0.22" class="avatar-shadow"/>
+
+      <!-- Contenedor con altura dinámica -->
+      <g transform="scale(0.96, 1.07) translate(2.2, -4)">
+        <!-- Pies / Zapatos animados para correr estilo Mario -->
+        <g class="avatar-feet">
+          
+      <ellipse class="avatar-foot-left" cx="42" cy="105" rx="8.5" ry="5" fill="#0f172a"/>
+      <ellipse class="avatar-foot-right" cx="70" cy="105" rx="8.5" ry="5" fill="#0f172a"/>
+    
+        </g>
+
+        <!-- Cuerpo / Ropa (Sudadera, Polo, Chupa de Cuero o Camiseta Negra) -->
+        <g id="body">
+          <path d="M 32 80 C 26 88, 24 102, 34 104 L 78 104 C 88 102, 86 88, 80 80 Z" fill="#3b82f6" stroke="#1e293b" stroke-width="2.5"/>
+          
+    <!-- Cremallera central de sudadera -->
+    <line x1="56" y1="80" x2="56" y2="103" stroke="#1e293b" stroke-width="2" stroke-dasharray="2 2"/>
+  
+        </g>
+
+        <!-- Air Jordans CÓMICAMENTE GRANDES renderizadas por encima de la ropa si está activado -->
+        
+
+        <!-- Brazos / Manos animadas que bombean al correr -->
+        <g class="avatar-arm-left">
+          <circle class="avatar-hand-left" cx="28" cy="94" r="7" fill="#ffe0bd" stroke="#1e293b" stroke-width="2"/>
+        </g>
+        <g class="avatar-arm-right">
+          <circle class="avatar-hand-right" cx="84" cy="94" r="7" fill="#ffe0bd" stroke="#1e293b" stroke-width="2"/>
+          
+        <!-- Mandarina fresca pelada en la mano (Manu) -->
+        <g class="hand-item hand-item-mandarina" transform="translate(81, 85)">
+          <circle cx="8" cy="8" r="7.5" fill="#f97316" stroke="#c2410c" stroke-width="1.4"/>
+          <path d="M 5 4 Q 8 2 11 4 L 8 8 Z" fill="#fed7aa"/>
+          <ellipse cx="8" cy="1.5" rx="3" ry="1.5" fill="#22c55e" transform="rotate(-25, 8, 1.5)"/>
+          <circle cx="6" cy="6" r="1" fill="#ffffff" opacity="0.6"/>
+        </g>
+      
+        </g>
+
+        <!-- Cabeza con silueta personalizada -->
+        <g id="head" class="avatar-head">
+          
+    <!-- Cabeza redonda clásica South Park / Chibi -->
+    <ellipse cx="56" cy="54" rx="34" ry="32" fill="#ffe0bd" stroke="#1e293b" stroke-width="2.5"/>
+    <circle cx="34" cy="62" r="5" fill="#f43f5e" opacity="0.25"/>
+    <circle cx="78" cy="62" r="5" fill="#f43f5e" opacity="0.25"/>
+  
+        </g>
+
+        <!-- Pelo -->
+        <g id="hair">
+        <!-- Pelo ondulado con textura y raya desenfadada (Manu) -->
+        <!-- Sombra base -->
+        <path d="M 20 48 C 17 33, 22 22, 32 16 C 42 12, 54 12, 64 14 C 76 16, 88 23, 92 48 Q 78 32 56 32 Q 34 32 20 48 Z" fill="#3f1d0b" opacity="0.45"/>
+        <!-- Masa principal con ondulación lateral hacia la izquierda/derecha -->
+        <path d="M 21 48 C 18 36, 20 27, 28 20 C 35 14, 46 13, 56 14 C 67 12, 79 15, 87 22 C 94 28, 95 38, 92 48 C 86 42, 80 41, 74 43 C 68 37, 58 36, 50 41 C 42 36, 31 38, 24 45 Z" fill="#78350f" stroke="#1e293b" stroke-width="2.2"/>
+        <!-- Ondas y mechones suaves que enmarcan la frente -->
+        <path d="M 28 42 C 34 36, 42 37, 48 42 C 54 36, 64 36, 72 41 C 78 37, 84 39, 88 44" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round"/>
+        <path d="M 38 23 Q 48 19 56 22" fill="none" stroke="#92400e" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+        <path d="M 64 23 Q 74 21 82 25" fill="none" stroke="#92400e" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+      </g>
+
+        <!-- Ojos -->
+        <g id="eyes">
+        <!-- Ojos clásicos South Park -->
+        <ellipse cx="43" cy="52" rx="9" ry="12" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+        <ellipse cx="69" cy="52" rx="9" ry="12" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+        <circle cx="45" cy="52" r="3" fill="#0f172a"/>
+        <circle cx="67" cy="52" r="3" fill="#0f172a"/>
+      </g>
+
+        <!-- Boca -->
+        <g id="mouth">
+        <path d="M 47 67 Q 56 74 65 67" stroke="#1e293b" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      </g>
+
+        <!-- Accesorios -->
+        <g id="accessories">
+        <!-- Gafas de ver rojas de pasta de Manu -->
+        <rect x="28" y="44" width="23" height="16" rx="4" fill="none" stroke="#dc2626" stroke-width="3"/>
+        <rect x="61" y="44" width="23" height="16" rx="4" fill="none" stroke="#dc2626" stroke-width="3"/>
+        <path d="M 51 51 Q 56 48 61 51" stroke="#dc2626" stroke-width="3" fill="none"/>
+        <line x1="28" y1="48" x2="21" y2="46" stroke="#b91c1c" stroke-width="2.5"/>
+        <line x1="84" y1="48" x2="91" y2="46" stroke="#b91c1c" stroke-width="2.5"/>
+        <line x1="33" y1="47" x2="40" y2="47" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" opacity="0.8"/>
+        <line x1="66" y1="47" x2="73" y2="47" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" opacity="0.8"/>
+      </g>
+      </g>
+    </svg>
+  </div>
+          <div class="p-info">
+            <div class="p-name">Manu</div>
+            <div class="p-status">ÁMBAR</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="bottom-bar">
+    <div class="bottom-hint">Esperando a que Ayrton pulse INICIAR desde su móvil...</div>
+    <div class="btn-start">INICIAR PARTIDA ▶</div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Aviso: ¡Gira el móvil!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Chango&family=Fredoka:wght@700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      width: 100vw; height: 100dvh; overflow: hidden;
+      background: #0f172a;
+      font-family: 'Fredoka', sans-serif;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 24px; text-align: center; color: #ffffff;
+    }
+    .rotate-card {
+      background: #1e293b; border: 4.5px solid #38bdf8; border-radius: 36px;
+      padding: 36px 24px; box-shadow: 0 0 35px rgba(56, 189, 248, 0.35);
+      display: flex; flex-direction: column; align-items: center; gap: 20px;
+      max-width: 360px;
+    }
+    .rotate-icon-svg {
+      width: 120px; height: 120px; animation: rotatePhone 2.4s infinite ease-in-out;
+    }
+    @keyframes rotatePhone {
+      0%, 20% { transform: rotate(0deg); }
+      50%, 80% { transform: rotate(90deg); }
+      100% { transform: rotate(0deg); }
+    }
+    .rotate-title {
+      font-family: 'Chango', cursive; font-size: 26px; color: #facc15; line-height: 1.2;
+    }
+    .rotate-sub {
+      font-size: 16px; font-weight: 800; color: #94a3b8; line-height: 1.4;
+    }
+    .badge-game {
+      background: #f43f5e; color: #ffffff; border-radius: 12px;
+      padding: 6px 16px; font-size: 14px; font-weight: 900;
+    }
+  </style>
+</head>
+<body>
+  <div class="rotate-card">
+    <div class="badge-game">🏎️ MARIO KART · MINIJUEGO</div>
+    <svg class="rotate-icon-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="32" y="15" width="36" height="70" rx="8" stroke="#38bdf8" stroke-width="5" fill="#0f172a"/>
+      <circle cx="50" cy="76" r="3.5" fill="#38bdf8"/>
+      <path d="M20 50 A 30 30 0 0 1 50 20" stroke="#facc15" stroke-width="4" stroke-linecap="round" stroke-dasharray="4 4"/>
+      <polygon points="50,15 58,20 50,25" fill="#facc15"/>
+      <path d="M80 50 A 30 30 0 0 1 50 80" stroke="#facc15" stroke-width="4" stroke-linecap="round" stroke-dasharray="4 4"/>
+      <polygon points="50,85 42,80 50,75" fill="#facc15"/>
+    </svg>
+    <h2 class="rotate-title">¡GIRA EL MÓVIL EN HORIZONTAL!</h2>
+    <p class="rotate-sub">Este minijuego se juega con dos pulgares a máxima velocidad.</p>
+  </div>
+</body>
+</html>

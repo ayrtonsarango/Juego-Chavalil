@@ -1,0 +1,680 @@
+/* ==========================================================================
+   JUEGO CHAVALIL - STYLE.CSS (CANDY-ARCADE POLISH & ANIMATIONS)
+   Light Theme Doodle Pop Design System
+   Keyframe Animations, Confetti, Floating Emotes & Clean Modal Overlays
+   ========================================================================== */
+
+/* 1. GLOBAL KEYFRAME ANIMATIONS */
+@keyframes candyPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 4px 0 var(--navy), 0 8px 16px rgba(0, 0, 0, 0.1);
+  }
+  50% {
+    transform: scale(1.03);
+    box-shadow: 0 6px 0 var(--navy), 0 12px 24px rgba(0, 0, 0, 0.15);
+  }
+}
+
+@keyframes floatMemeBubble {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.6);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(0) scale(1.1);
+  }
+  80% {
+    opacity: 1;
+    transform: translateY(-80px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-130px) scale(0.8);
+  }
+}
+
+@keyframes crownBounce {
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50% { transform: translateY(-8px) rotate(3deg); }
+}
+
+@keyframes popWiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-4deg); }
+  75% { transform: rotate(4deg); }
+}
+
+/* 2. BASE BUTTON BEHAVIOR & PRESS STATES (CANDY 3D) */
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-title);
+  font-weight: 900;
+  border-radius: 9999px;
+  border: var(--border-w) solid var(--navy);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  transition: transform 0.06s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.06s cubic-bezier(0.2, 0, 0, 1), filter 0.06s ease;
+  will-change: transform, box-shadow;
+  box-shadow: 0 5px 0 var(--navy), 0 6px 14px rgba(0, 0, 0, 0.12);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* Candy Gloss Highlight Bar */
+.btn::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 12%;
+  right: 12%;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.45);
+  border-radius: 9999px;
+  pointer-events: none;
+}
+
+.btn:active,
+.btn.is-pressed {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 var(--navy), 0 2px 6px rgba(0, 0, 0, 0.18);
+  filter: brightness(0.96);
+}
+
+/* Candy Button Color Flavors */
+.btn-primary {
+  background: linear-gradient(180deg, #7dd3fc 0%, #38bdf8 55%, #0284c7 100%);
+  color: #0f172a;
+}
+
+.btn-success {
+  background: linear-gradient(180deg, #86efac 0%, #22c55e 55%, #15803d 100%);
+  color: #0f172a;
+}
+
+.btn-warning {
+  background: linear-gradient(180deg, #fef08a 0%, #facc15 55%, #ca8a04 100%);
+  color: #0f172a;
+}
+
+.btn-danger {
+  background: linear-gradient(180deg, #fda4af 0%, #f43f5e 55%, #be123c 100%);
+  color: #ffffff;
+  text-shadow: 0 1.5px 0 rgba(0, 0, 0, 0.35);
+}
+
+.btn-secondary {
+  background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 60%, #e2e8f0 100%);
+  color: var(--navy);
+}
+
+.btn-purple {
+  background: linear-gradient(180deg, #d8b4fe 0%, #a855f7 55%, #7e22ce 100%);
+  color: #ffffff;
+  text-shadow: 0 1.5px 0 rgba(0, 0, 0, 0.35);
+}
+
+.btn-big-action {
+  width: 100%;
+  padding: 14px 20px;
+  font-size: 1.25rem;
+  letter-spacing: 0.5px;
+  border-radius: 22px;
+}
+
+/* 3. SOUNDBOARD MEME BOARD */
+.emote-board {
+  background: #ffffff;
+  border: var(--border-w) solid var(--navy);
+  border-radius: 20px;
+  padding: 8px 12px;
+  box-shadow: 0 5px 0 rgba(30, 41, 59, 0.12);
+}
+
+.emote-title {
+  font-family: var(--font-title);
+  font-size: 0.85rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.emote-buttons {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+}
+
+.btn-emote {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 60%, #e2e8f0 100%);
+  border: 2.5px solid var(--navy);
+  border-radius: 14px;
+  padding: 6px 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--navy);
+  transition: transform 0.05s ease, box-shadow 0.05s ease;
+  position: relative;
+}
+
+.btn-emote:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--navy);
+}
+
+.btn-emote span:first-child {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.btn-emote span:last-child {
+  font-family: var(--font-title);
+  font-size: 0.65rem;
+  font-weight: 900;
+  color: var(--navy);
+  white-space: nowrap;
+}
+
+/* 4. SPECTATOR BENCH CARD (MODO BANQUILLO) */
+.bench-spectator-card,
+#box-bench-spectator {
+  background: #ffffff;
+  border: var(--border-w) solid var(--navy);
+  border-radius: 24px;
+  padding: 16px 14px;
+  text-align: center;
+  box-shadow: 0 6px 0 rgba(30, 41, 59, 0.12);
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.bench-header-glow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.bench-icon {
+  font-size: 2.2rem;
+  animation: crownBounce 2.5s infinite ease-in-out;
+}
+
+.bench-title {
+  font-family: var(--font-title);
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: var(--navy);
+}
+
+.bench-heat-status {
+  display: inline-block;
+  font-family: var(--font-title);
+  font-size: 0.92rem;
+  font-weight: 900;
+  color: #b45309;
+  background: #fef3c7;
+  border: 2px solid #f59e0b;
+  padding: 6px 16px;
+  border-radius: 9999px;
+  width: auto;
+  max-width: 90%;
+  box-sizing: border-box;
+}
+
+.bench-subtitle {
+  font-family: var(--font-title);
+  font-size: 0.85rem;
+  font-weight: 900;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.bench-cheer-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+}
+
+.btn-bench-cheer {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  padding: 12px 8px !important;
+  border-radius: 18px !important;
+  border: var(--border-w) solid var(--navy) !important;
+  box-shadow: 0 4px 0 var(--navy) !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  touch-action: manipulation !important;
+  transition: transform 0.06s ease, box-shadow 0.06s ease !important;
+}
+
+.btn-bench-cheer:active {
+  transform: translateY(3px) !important;
+  box-shadow: 0 1px 0 var(--navy) !important;
+}
+
+.btn-bench-cheer .cheer-emoji {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.btn-bench-cheer .cheer-label {
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: var(--navy);
+}
+
+.btn-bench-cheer[data-cheer="👏"] {
+  background: linear-gradient(180deg, #bae6fd 0%, #7dd3fc 100%) !important;
+}
+
+.btn-bench-cheer[data-cheer="🔥"] {
+  background: linear-gradient(180deg, #fed7aa 0%, #fb923c 100%) !important;
+}
+
+.btn-bench-cheer[data-cheer="💀"] {
+  background: linear-gradient(180deg, #fecdd3 0%, #f43f5e 100%) !important;
+}
+
+.btn-bench-cheer[data-cheer="🏆"] {
+  background: linear-gradient(180deg, #fef08a 0%, #facc15 100%) !important;
+}
+
+/* 5. PODIUM OVERLAY (LIGHT THEME DOODLE POP CANDY-ARCADE) */
+.podium-results-modal,
+#modal-podium-results {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.podium-card {
+  background: #ffffff;
+  border: 4px solid var(--navy);
+  border-radius: 32px;
+  padding: 32px 36px;
+  max-width: 1040px;
+  width: 92%;
+  box-shadow: 0 16px 0 var(--navy), 0 25px 60px rgba(0, 0, 0, 0.4);
+  text-align: center;
+  animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.podium-header {
+  margin-bottom: 24px;
+}
+
+.podium-trophy-icon {
+  font-size: 3rem;
+  margin-bottom: 6px;
+}
+
+.podium-title {
+  font-family: 'Fredoka', cursive, sans-serif;
+  font-size: 2.4rem;
+  font-weight: 900;
+  color: var(--navy);
+  margin-bottom: 6px;
+}
+
+.podium-subtitle {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #64748b;
+}
+
+.podium-content-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 32px;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.podium-winner-column {
+  background: #fef08a;
+  border: 3px solid var(--navy);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 8px 0 var(--navy);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.podium-winner-pill {
+  background: #ca8a04;
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 900;
+  padding: 6px 18px;
+  border-radius: 9999px;
+  border: 2px solid var(--navy);
+  box-shadow: 0 3px 0 var(--navy);
+  margin-bottom: 16px;
+}
+
+.podium-avatar-wrapper {
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 4px solid var(--navy);
+  box-shadow: 0 8px 0 var(--navy);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.podium-winner-name {
+  font-family: 'Fredoka', cursive, sans-serif;
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: var(--navy);
+  margin-bottom: 8px;
+}
+
+.podium-winner-badge {
+  background: #ffffff;
+  border: 2.5px solid var(--navy);
+  color: var(--navy);
+  font-weight: 900;
+  font-size: 1.05rem;
+  padding: 6px 18px;
+  border-radius: 9999px;
+  box-shadow: 0 4px 0 var(--navy);
+}
+
+.podium-ranking-column {
+  background: #f8fafc;
+  border: 3px solid var(--navy);
+  border-radius: 24px;
+  padding: 20px;
+  box-shadow: 0 8px 0 var(--navy);
+}
+
+.podium-ranking-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 2px dashed #cbd5e1;
+}
+
+.ranking-header-title {
+  font-weight: 900;
+  font-size: 1.1rem;
+  color: var(--navy);
+}
+
+.ranking-header-subtitle {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #64748b;
+}
+
+.podium-ranking-list {
+  max-height: 280px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.podium-footer {
+  display: flex;
+  justify-content: center;
+}
+
+.btn-podium-action {
+  background: #4ade80 !important;
+  color: var(--navy) !important;
+  border: 3px solid var(--navy) !important;
+  box-shadow: 0 6px 0 var(--navy) !important;
+  font-size: 1.25rem !important;
+  font-weight: 900 !important;
+  padding: 14px 36px !important;
+  border-radius: 20px !important;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.btn-podium-action:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 var(--navy) !important;
+}
+
+/* ==========================================================================
+   BUTTON BASH - FULLSCREEN STANDALONE ARCADE MODE
+   Expands Button Bash to 100% full screen edge-to-edge as an independent game
+   ========================================================================== */
+body.standalone-game-active {
+  overflow: hidden !important;
+  background: #000000 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+body.standalone-game-active .tv-header,
+body.standalone-game-active .host-header,
+body.standalone-game-active .minigame-header-banner,
+body.standalone-game-active .teams-grid,
+body.standalone-game-active .admin-footer,
+body.standalone-game-active .admin-bar,
+body.standalone-game-active #view-minigame > div:last-child {
+  display: none !important;
+}
+
+body.standalone-game-active .host-container {
+  max-width: 100vw !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: #000000 !important;
+  overflow: hidden !important;
+}
+
+body.standalone-game-active .host-main {
+  width: 100vw !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+body.standalone-game-active #view-minigame {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  gap: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #000000 !important;
+  z-index: 1000 !important;
+}
+
+body.standalone-game-active .minigame-canvas-container {
+  width: 100vw !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #000000 !important;
+}
+
+body.standalone-game-active #minigame-canvas {
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  aspect-ratio: 16/9 !important;
+  object-fit: contain !important;
+  border-radius: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  background: #000000 !important;
+}
+
+/* FLOATING STANDALONE ARCADE HUD */
+.standalone-arcade-hud {
+  position: absolute;
+  top: 18px;
+  left: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 1050;
+  pointer-events: none;
+}
+
+.standalone-hud-left,
+.standalone-hud-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hud-neon-pill {
+  pointer-events: auto;
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: #fff;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
+  padding: 6px 16px;
+  border-radius: 9999px;
+  border: 2px solid #f43f5e;
+  box-shadow: 0 0 15px rgba(244, 63, 94, 0.5), 0 4px 10px rgba(0,0,0,0.5);
+  letter-spacing: 0.5px;
+}
+
+.hud-badge-tag {
+  font-family: var(--font-title);
+  font-size: 0.75rem;
+  font-weight: 900;
+  color: #fef08a;
+  background: rgba(161, 98, 7, 0.8);
+  border: 1.5px solid #facc15;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  letter-spacing: 0.5px;
+}
+
+.standalone-hud-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(8px);
+  padding: 6px 24px;
+  border-radius: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  pointer-events: auto;
+}
+
+.hud-center-title {
+  font-family: var(--font-title);
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: #38bdf8;
+  letter-spacing: 1px;
+  text-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
+}
+
+.hud-center-sub {
+  font-family: var(--font-title);
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #e2e8f0;
+}
+
+.hud-admin-pill {
+  pointer-events: auto;
+  font-family: var(--font-title);
+  font-size: 0.85rem;
+  font-weight: 900;
+  color: #fff;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
+  padding: 6px 14px;
+  border-radius: 9999px;
+  border: 2px solid #10b981;
+  box-shadow: 0 0 14px rgba(16, 185, 129, 0.4);
+}
+
+.btn-standalone-exit {
+  pointer-events: auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.7);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: #f87171;
+  font-weight: 900;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.4;
+  transition: opacity 0.2s, background 0.2s, transform 0.2s;
+}
+
+.btn-standalone-exit:hover {
+  opacity: 1;
+  background: #ef4444;
+  color: #fff;
+  border-color: #fff;
+  transform: scale(1.1);
+}

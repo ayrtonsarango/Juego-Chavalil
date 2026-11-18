@@ -1,0 +1,207 @@
+/* COMMON STYLES - JUEGO CHAVALIL (LIGHT THEME DOODLE POP CANDY-ARCADE) */
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700;800;900&family=Outfit:wght@600;700;800;900&display=swap');
+
+:root {
+  --navy: #1e293b;
+  --navy-dark: #0f172a;
+  --navy-skirt: #090d16;
+  --border-w: 3.5px;
+  --border-radius: 24px;
+  --font-title: 'Fredoka', cursive, sans-serif;
+  --font-body: 'Outfit', -apple-system, sans-serif;
+  
+  /* Candy Palette */
+  --c-cyan: #38bdf8;
+  --c-cyan-top: #bae6fd;
+  --c-cyan-skirt: #0284c7;
+
+  --c-green: #22c55e;
+  --c-green-top: #bbf7d0;
+  --c-green-skirt: #15803d;
+
+  --c-pink: #f43f5e;
+  --c-pink-top: #fecdd3;
+  --c-pink-skirt: #be123c;
+
+  --c-yellow: #facc15;
+  --c-yellow-top: #fef08a;
+  --c-yellow-skirt: #ca8a04;
+
+  --c-orange: #fb923c;
+  --c-orange-top: #fed7aa;
+  --c-orange-skirt: #c2410c;
+
+  --bg-page: #f1f7fe;
+  --bg-card: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-page);
+  /* Doodle wavy squiggles + confetti sprinkles */
+  background-image: 
+    radial-gradient(#38bdf8 2px, transparent 2.5px),
+    radial-gradient(#f43f5e 2px, transparent 2.5px),
+    radial-gradient(#facc15 2px, transparent 2.5px),
+    url("data:image/svg+xml,%3Csvg width='140' height='140' viewBox='0 0 140 140' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 20 Q 30 5, 50 25 T 90 20 T 125 45 Q 110 75, 80 55 T 40 75 T 15 105 Q 35 135, 65 125 T 115 135' stroke='%23cbd5e1' stroke-width='2.8' stroke-linecap='round' fill='none' opacity='0.75'/%3E%3C/svg%3E");
+  background-size: 70px 70px, 110px 110px, 90px 90px, 140px 140px;
+  background-position: 0 0, 35px 55px, 70px 25px, 0 0;
+  color: var(--navy);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Animations */
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes pulseSquish {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+
+@keyframes shakeMeme {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  20% { transform: translateX(-8px) rotate(-2deg); }
+  40% { transform: translateX(8px) rotate(2deg); }
+  60% { transform: translateX(-6px) rotate(-1deg); }
+  80% { transform: translateX(6px) rotate(1deg); }
+}
+
+.bounce {
+  animation: bounce 1.8s infinite ease-in-out;
+}
+
+.shake {
+  animation: shakeMeme 0.4s ease-in-out;
+}
+
+/* Candy 3D Buttons */
+.btn, .candy-btn {
+  font-family: var(--font-title);
+  font-weight: 900;
+  font-size: 1.15rem;
+  padding: 12px 24px;
+  border-radius: 20px;
+  border: var(--border-w) solid var(--navy);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 
+    inset 0 3px 0 rgba(255,255,255,0.6),
+    inset 0 -3px 0 rgba(0,0,0,0.12),
+    0 6px 0 var(--btn-skirt, #94a3b8),
+    0 6px 0 var(--border-w) var(--navy);
+  transition: transform 0.05s ease, box-shadow 0.05s ease;
+}
+
+.btn::before, .candy-btn::before {
+  content: '';
+  position: absolute;
+  top: 2px; left: 8px; right: 8px; height: 35%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 100%);
+  border-radius: 12px 12px 50px 50px;
+  pointer-events: none;
+}
+
+.btn:active, .candy-btn:active {
+  transform: translateY(4px);
+  box-shadow: 
+    inset 0 2px 0 rgba(255,255,255,0.4),
+    inset 0 -2px 0 rgba(0,0,0,0.1),
+    0 2px 0 var(--btn-skirt, #94a3b8),
+    0 2px 0 var(--border-w) var(--navy);
+}
+
+.btn-primary, .btn-cyan {
+  background: linear-gradient(180deg, var(--c-cyan-top) 0%, var(--c-cyan) 60%);
+  color: #ffffff;
+  --btn-skirt: var(--c-cyan-skirt);
+  text-shadow: 0 2px 0 rgba(2, 132, 199, 0.7);
+}
+
+.btn-success, .btn-green {
+  background: linear-gradient(180deg, var(--c-green-top) 0%, var(--c-green) 60%);
+  color: #ffffff;
+  --btn-skirt: var(--c-green-skirt);
+  text-shadow: 0 2px 0 rgba(21, 128, 61, 0.7);
+}
+
+.btn-warning, .btn-yellow {
+  background: linear-gradient(180deg, var(--c-yellow-top) 0%, var(--c-yellow) 60%);
+  color: var(--navy);
+  --btn-skirt: var(--c-yellow-skirt);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.btn-danger, .btn-pink {
+  background: linear-gradient(180deg, var(--c-pink-top) 0%, var(--c-pink) 60%);
+  color: #ffffff;
+  --btn-skirt: var(--c-pink-skirt);
+  text-shadow: 0 2px 0 rgba(190, 18, 60, 0.7);
+}
+
+.btn-orange {
+  background: linear-gradient(180deg, var(--c-orange-top) 0%, var(--c-orange) 60%);
+  color: #ffffff;
+  --btn-skirt: var(--c-orange-skirt);
+  text-shadow: 0 2px 0 rgba(194, 65, 12, 0.7);
+}
+
+.btn-secondary {
+  background: #f8fafc;
+  color: var(--navy);
+  --btn-skirt: #cbd5e1;
+}
+
+/* Doodle Card Panel (Replacement for dark glassmorphism) */
+.glass-panel, .doodle-panel {
+  background: #ffffff;
+  border: var(--border-w) solid var(--navy);
+  border-radius: var(--border-radius);
+  box-shadow: 0 8px 0 rgba(30, 41, 59, 0.12);
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  border-radius: 14px;
+  font-family: var(--font-title);
+  font-size: 0.9rem;
+  font-weight: 900;
+  border: 2px solid var(--navy);
+  box-shadow: 0 2px 0 var(--navy);
+}
+
+.badge-j1 {
+  background: #fde047;
+  color: var(--navy);
+}
+
+.badge-android {
+  background: #4ade80;
+  color: var(--navy);
+}
+
+.badge-ios {
+  background: #bae6fd;
+  color: var(--navy);
+}

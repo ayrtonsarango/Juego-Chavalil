@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Mando: Curve Fever</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Chango&family=Fredoka:wght@700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+    body {
+      width: 100vw; height: 100dvh; overflow: hidden;
+      background: #0f172a; font-family: 'Fredoka', sans-serif;
+      display: flex; flex-direction: column;
+      padding: env(safe-area-inset-top, 10px) 12px env(safe-area-inset-bottom, 10px) 12px;
+      gap: 10px;
+    }
+    .curve-header {
+      background: #1e293b; border: 3px solid #38bdf8; border-radius: 16px;
+      padding: 8px 16px; display: flex; justify-content: space-between; align-items: center;
+      color: #ffffff;
+    }
+    .curve-title { font-family: 'Chango', cursive; font-size: 16px; color: #38bdf8; }
+
+    /* 2 GIGANTIC 50% TOUCH PADS */
+    .curve-pads {
+      flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    }
+    .pad-turn {
+      border: 4.5px solid #1e293b; border-radius: 32px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      cursor: pointer; text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+    }
+    .pad-turn:active { transform: scale(0.96); }
+
+    .pad-left {
+      background: #38bdf8; color: #0f172a;
+      box-shadow: 0 8px 0 #0284c7, 0 8px 0 4px #1e293b;
+    }
+    .pad-right {
+      background: #f97316; color: #ffffff;
+      box-shadow: 0 8px 0 #c2410c, 0 8px 0 4px #1e293b;
+    }
+
+    .turn-arrow { font-size: 64px; font-weight: 900; }
+    .turn-lbl { font-family: 'Chango', cursive; font-size: 26px; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div class="curve-header">
+    <span class="curve-title">🌀 CURVAS CHAVALIL (CURVE FEVER)</span>
+    <span style="font-weight:900; color:#4ade80;">VIVO 🟢</span>
+  </div>
+
+  <div class="curve-pads">
+    <div class="pad-turn pad-left">
+      <span class="turn-arrow">◀</span>
+      <span class="turn-lbl">GIRAR IZQ</span>
+    </div>
+    <div class="pad-turn pad-right">
+      <span class="turn-arrow">▶</span>
+      <span class="turn-lbl">GIRAR DER</span>
+    </div>
+  </div>
+</body>
+</html>

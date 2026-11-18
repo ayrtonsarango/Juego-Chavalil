@@ -1,0 +1,19 @@
+{
+  "name": "Juego Chavalil - Mando Móvil",
+  "short_name": "Chavalil Mando",
+  "description": "Mando móvil táctil oficial para Juego Chavalil (Edición Cuadrilla). Cero retraso, botones de caramelo y feedback háptico.",
+  "start_url": "/player",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#e8f1f5",
+  "theme_color": "#38bdf8",
+  "icons": [
+    {
+      "src": "/images/hotbunnies_bar.jpg",
+      "sizes": "192x192 512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}
