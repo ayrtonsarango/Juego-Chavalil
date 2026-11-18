@@ -1,5 +1,5 @@
 /**
- * LOBBY ROOM - 2D INTERACTIVE WAITING ROOM (LA SALA DE LA CUADRILLA)
+ * LOBBY ROOM - 2D INTERACTIVE WAITING ROOM (SALA)
  * Permite a los chavales que ya están listos moverse libremente, saltar
  * sobre el sofá, la máquina recreativa y plataformas mientras esperan.
  */
