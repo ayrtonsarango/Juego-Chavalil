@@ -80,7 +80,15 @@ app.get('/player', (req, res) => {
 });
 
 app.get('/api/info', async (req, res) => {
-  const isCloud = Boolean(process.env.K_SERVICE || process.env.PUBLIC_URL || req.headers['x-forwarded-host']);
+  const hostHeader = req.headers.host || '';
+  const isCloud = Boolean(
+    process.env.K_SERVICE ||
+    process.env.PUBLIC_URL ||
+    req.headers['x-forwarded-host'] ||
+    hostHeader.includes('.run.app') ||
+    hostHeader.includes('.trycloudflare.com') ||
+    hostHeader.includes('.app')
+  );
   let joinUrl;
 
   if (process.env.PUBLIC_URL) {
