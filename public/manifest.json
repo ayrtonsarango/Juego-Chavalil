@@ -1,7 +1,7 @@
 {
   "name": "Juego Chavalil - Mando Móvil",
   "short_name": "Chavalil Mando",
-  "description": "Mando móvil táctil oficial para Juego Chavalil (Edición Cuadrilla). Cero retraso, botones de caramelo y feedback háptico.",
+  "description": "Mando móvil táctil oficial para Juego Chavalil. Cero retraso, botones de caramelo y feedback háptico.",
   "start_url": "/player",
   "scope": "/",
   "display": "standalone",

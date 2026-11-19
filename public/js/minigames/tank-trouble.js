@@ -22,6 +22,9 @@ class TankTroubleEngine {
     this.running = false;
     this.animationId = null;
     this.lastTime = performance.now();
+    this.completed = false;
+    this.matchEnded = false;
+    this.completeTimeout = null;
 
     // Laberinto de cuadrícula (11 columnas x 6 filas con paredes internas)
     this.maze = {
@@ -44,6 +47,8 @@ class TankTroubleEngine {
     this.gameState = 'countdown'; // 'countdown' | 'playing' | 'round_over' | 'victory'
     this.countdownTimer = 3.0;
     this.roundOverTimer = 0;
+    this.roundDuration = 60.0; // 60 segundos por ronda (3 rondas = máx 3 min)
+    this.roundTimer = this.roundDuration;
     this.roundNumber = 1;
     this.maxRounds = 3;
     this.teamScores = { teamA: 0, teamB: 0 };
@@ -122,9 +127,16 @@ class TankTroubleEngine {
 
   init(playerList, teams = {}) {
     this.running = true;
+    this.completed = false;
+    this.matchEnded = false;
+    if (this.completeTimeout) {
+      clearTimeout(this.completeTimeout);
+      this.completeTimeout = null;
+    }
     this.gameState = 'countdown';
     this.countdownTimer = 3.0;
     this.roundOverTimer = 0;
+    this.roundTimer = this.roundDuration;
     this.roundNumber = 1;
     this.bullets = [];
     this.particles = [];
@@ -198,6 +210,7 @@ class TankTroubleEngine {
   }
 
   spawnPlayersForRound() {
+    this.roundTimer = this.roundDuration;
     this.bullets = [];
     this.particles = [];
     this.powerups = [];
@@ -418,7 +431,24 @@ class TankTroubleEngine {
       return;
     }
 
-    if (this.gameState === 'victory') return;
+    if (this.gameState === 'victory' || !this.running) return;
+
+    // Conteo regresivo del asalto (máx 60s por ronda)
+    if (this.gameState === 'playing') {
+      const prevTimer = this.roundTimer;
+      this.roundTimer -= dt;
+      if (prevTimer > 10 && this.roundTimer <= 10) {
+        this.addFloatingText('⚠️ ¡ÚLTIMOS 10 SEGUNDOS!', '#ef4444', 1.5, 1.4, this.width / 2, this.height / 2 - 30);
+        if (window.soundEngine && typeof soundEngine.playUndertakerBell === 'function') {
+          soundEngine.playUndertakerBell(0.85);
+        }
+      }
+      if (this.roundTimer <= 0) {
+        this.roundTimer = 0;
+        this.handleTimeExpired();
+        return;
+      }
+    }
 
     // Update Floating Texts
     for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
@@ -736,6 +766,7 @@ class TankTroubleEngine {
   }
 
   checkRoundStatus() {
+    if (this.gameState !== 'playing') return;
     const teamAAlive = this.players.filter(p => p.team === 'teamA' && p.alive).length;
     const teamBAlive = this.players.filter(p => p.team === 'teamB' && p.alive).length;
 
@@ -744,7 +775,35 @@ class TankTroubleEngine {
     }
   }
 
+  handleTimeExpired() {
+    if (this.gameState !== 'playing') return;
+
+    const teamAAlive = this.players.filter(p => p.team === 'teamA' && p.alive);
+    const teamBAlive = this.players.filter(p => p.team === 'teamB' && p.alive);
+
+    // Otorgar puntos de supervivencia a los tanques que resistieron el asedio
+    this.players.filter(p => p.alive).forEach(p => {
+      p.score += 30;
+    });
+
+    if (teamAAlive.length > teamBAlive.length) {
+      this.addFloatingText('¡TIEMPO! GANA AZUL POR SUPERVIVENCIA', '#60a5fa', 2.0, 1.3, this.width / 2, this.height / 2 - 40);
+      this.finishRound('teamA');
+    } else if (teamBAlive.length > teamAAlive.length) {
+      this.addFloatingText('¡TIEMPO! GANA ROJO POR SUPERVIVENCIA', '#f87171', 2.0, 1.3, this.width / 2, this.height / 2 - 40);
+      this.finishRound('teamB');
+    } else {
+      if (teamAAlive.length > 0) {
+        this.teamScores.teamA++;
+        this.teamScores.teamB++;
+      }
+      this.addFloatingText('¡TIEMPO! EMPATE EN SUPERVIVENCIA', '#facc15', 2.0, 1.3, this.width / 2, this.height / 2 - 40);
+      this.finishRound('tie');
+    }
+  }
+
   finishRound(winningTeam) {
+    if (this.gameState !== 'playing') return;
     this.gameState = 'round_over';
     this.roundOverTimer = 2.5;
 
@@ -760,17 +819,40 @@ class TankTroubleEngine {
   }
 
   resolveMatchWinner() {
+    if (this.matchEnded) return;
+    this.matchEnded = true;
+    this.gameState = 'victory';
     this.winningTeam = this.teamScores.teamA >= this.teamScores.teamB ? 'teamA' : 'teamB';
     if (window.soundEngine) {
       window.soundEngine.playSocialCreditVictory();
     }
 
-    setTimeout(() => {
+    this.completeTimeout = setTimeout(() => {
+      if (this.completed) return;
+      this.completed = true;
+      this.stop();
+
+      const isFFA = Boolean(this.options.isFFA);
+      let playersPayload;
+      if (isFFA) {
+        const rankTable = [100, 75, 50, 35];
+        const sorted = [...this.players].sort((a, b) => b.score - a.score);
+        playersPayload = sorted.map((p, idx) => ({
+          id: p.id,
+          score: idx < rankTable.length ? rankTable[idx] : 20
+        }));
+      } else {
+        playersPayload = this.players.map(p => ({
+          id: p.id,
+          score: p.team === this.winningTeam ? 100 : 25
+        }));
+      }
+
       this.onComplete({
         gameType: 'tank',
         winningTeam: this.winningTeam,
         scores: this.teamScores,
-        players: this.players.map(p => ({ id: p.id, score: p.score }))
+        players: playersPayload
       });
     }, 3500);
   }
@@ -1034,19 +1116,26 @@ class TankTroubleEngine {
     this.ctx.lineWidth = 1.5;
     this.ctx.strokeRect(this.maze.offsetX, 14, this.maze.cols * this.maze.cellW, 46);
 
+    const secLeft = Math.max(0, Math.ceil(this.roundTimer));
+    const isUrgent = secLeft <= 10 && this.gameState === 'playing';
+
     this.ctx.font = '900 16px sans-serif';
     this.ctx.textAlign = 'center';
     this.ctx.fillStyle = '#f8fafc';
-    this.ctx.fillText(`🎯 TANK TROUBLE CHAVALIL — RONDA ${this.roundNumber} / ${this.maxRounds}`, this.width / 2, 42);
+    this.ctx.fillText(`🎯 RONDA ${this.roundNumber} / ${this.maxRounds}`, this.width / 2 - 45, 42);
+
+    this.ctx.font = '900 17px monospace';
+    this.ctx.fillStyle = isUrgent ? '#ef4444' : '#38bdf8';
+    this.ctx.fillText(`⏱️ ${secLeft}s`, this.width / 2 + 55, 42);
 
     this.ctx.font = '900 15px sans-serif';
     this.ctx.textAlign = 'left';
     this.ctx.fillStyle = '#60a5fa';
-    this.ctx.fillText(`🔵 AZUL: ${this.teamScores.teamA} Victorias`, this.maze.offsetX + 20, 42);
+    this.ctx.fillText(`🔵 AZUL: ${this.teamScores.teamA}`, this.maze.offsetX + 20, 42);
 
     this.ctx.textAlign = 'right';
     this.ctx.fillStyle = '#f87171';
-    this.ctx.fillText(`🔴 ROJO: ${this.teamScores.teamB} Victorias`, this.maze.offsetX + this.maze.cols * this.maze.cellW - 20, 42);
+    this.ctx.fillText(`🔴 ROJO: ${this.teamScores.teamB}`, this.maze.offsetX + this.maze.cols * this.maze.cellW - 20, 42);
     this.ctx.restore();
   }
 
@@ -1131,7 +1220,9 @@ class TankTroubleEngine {
     this.update(dt);
     this.render();
 
-    this.animationId = requestAnimationFrame(this.loop);
+    if (this.running) {
+      this.animationId = requestAnimationFrame(this.loop);
+    }
   }
 
   stop() {
@@ -1139,6 +1230,10 @@ class TankTroubleEngine {
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
       this.animationId = null;
+    }
+    if (this.completeTimeout) {
+      clearTimeout(this.completeTimeout);
+      this.completeTimeout = null;
     }
   }
 }

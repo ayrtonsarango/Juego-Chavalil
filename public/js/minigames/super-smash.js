@@ -32,6 +32,8 @@ class SuperSmashEngine {
 
     this.running = false;
     this.animationId = null;
+    this.completed = false;
+    this.victoryTimeout = null;
     this.lastTime = performance.now();
 
     // Stage Geometry (Battlefield Layout)
@@ -69,6 +71,7 @@ class SuperSmashEngine {
     this.gameState = 'countdown'; // 'countdown' | 'brawl' | 'heat_over' | 'victory'
     this.countdownTimer = 3.2;
     this.heatOverTimer = 0;
+    this.heatTimer = 90.0; // Máx 90s por asalto
     this.teamScores = { teamA: 0, teamB: 0 };
     this.winningTeam = null;
 
@@ -106,6 +109,16 @@ class SuperSmashEngine {
 
   init(playerList, teams = {}) {
     this.running = true;
+    this.completed = false;
+    if (this.victoryTimeout) {
+      clearTimeout(this.victoryTimeout);
+      this.victoryTimeout = null;
+    }
+    if (this.animationId) {
+      cancelAnimationFrame(this.animationId);
+      this.animationId = null;
+    }
+
     this.allPlayers = playerList;
     this.teams = teams;
     this.teamScores = { teamA: 0, teamB: 0 };
@@ -113,31 +126,62 @@ class SuperSmashEngine {
     this.currentHeatIndex = 0;
 
     // Build Tournament Heats (Max 4 players per heat for authentic 2v2 Smash combat)
-    const teamA = (teams.teamA || []).map(p => p.id);
-    const playersTeamA = playerList.filter(p => teamA.includes(p.id));
-    const playersTeamB = playerList.filter(p => !teamA.includes(p.id));
+    const teamAIds = (teams.teamA || []).map(p => p.id || p);
+    const teamBIds = (teams.teamB || []).map(p => p.id || p);
+    this.allPlayers.forEach((p, idx) => {
+      if (!p.team) {
+        if (teamAIds.length > 0 && teamAIds.includes(p.id)) {
+          p.team = 'teamA';
+        } else if (teamBIds.length > 0 && teamBIds.includes(p.id)) {
+          p.team = 'teamB';
+        } else {
+          p.team = (idx % 2 === 0) ? 'teamA' : 'teamB';
+        }
+      }
+    });
+
+    const playersTeamA = playerList.filter(p => p.team === 'teamA');
+    const playersTeamB = playerList.filter(p => p.team === 'teamB');
 
     this.heats = [];
     if (playerList.length <= 4) {
       // Single Heat with all players
       this.heats.push(playerList);
     } else {
-      // Split into 2 or 3 balanced heats (2 Team Azul vs 2 Team Rojo per heat)
+      // Reparto balanceado equitativo para evitar rondas desiertas de 1 solo jugador (ej. 9 jugadores -> [3, 3, 3] en vez de [4, 4, 1])
       const numHeats = Math.ceil(playerList.length / 4);
+
+      const distribute = (arr, k) => {
+        const n = arr.length;
+        const base = Math.floor(n / k);
+        const rem = n % k;
+        const buckets = [];
+        let offset = 0;
+        for (let i = 0; i < k; i++) {
+          const size = base + (i < rem ? 1 : 0);
+          buckets.push(arr.slice(offset, offset + size));
+          offset += size;
+        }
+        return buckets;
+      };
+
+      const bucketsA = distribute(playersTeamA, numHeats);
+      const bucketsB = distribute(playersTeamB, numHeats).reverse();
+
       for (let h = 0; h < numHeats; h++) {
-        const heatGroup = [];
-        // Add up to 2 from Team A
-        const a1 = playersTeamA[h * 2];
-        const a2 = playersTeamA[h * 2 + 1];
-        if (a1) heatGroup.push(a1);
-        if (a2) heatGroup.push(a2);
+        const listA = [...(bucketsA[h] || [])];
+        const listB = [...(bucketsB[h] || [])];
 
-        // Add up to 2 from Team B
-        const b1 = playersTeamB[h * 2];
-        const b2 = playersTeamB[h * 2 + 1];
-        if (b1) heatGroup.push(b1);
-        if (b2) heatGroup.push(b2);
+        // Garantizar combate activo: si a un equipo le faltan jugadores en este heat,
+        // rota un jugador del equipo para que siempre haya combate (mínimo 1 de cada equipo)
+        if (listA.length === 0 && playersTeamA.length > 0) {
+          listA.push(playersTeamA[h % playersTeamA.length]);
+        }
+        if (listB.length === 0 && playersTeamB.length > 0) {
+          listB.push(playersTeamB[h % playersTeamB.length]);
+        }
 
+        const heatGroup = [...listA, ...listB];
         if (heatGroup.length > 0) this.heats.push(heatGroup);
       }
     }
@@ -153,6 +197,7 @@ class SuperSmashEngine {
     this.currentHeatIndex = heatIndex;
     this.gameState = 'countdown';
     this.countdownTimer = 3.0;
+    this.heatTimer = 90.0;
     this.projectiles = [];
     this.particles = [];
     this.floatingTexts = [];
@@ -162,17 +207,23 @@ class SuperSmashEngine {
     const teamAIds = (this.teams.teamA || []).map(p => p.id);
     const teamBIds = (this.teams.teamB || []).map(p => p.id);
 
-    // Staggered Spawns on Battlefield
-    const spawnSlots = [
+    // Staggered Spawns on Battlefield: Team A a la izquierda, Team B a la derecha
+    const leftSlots = [
       { x: 380, y: 460 },
+      { x: 420, y: 320 }
+    ];
+    const rightSlots = [
       { x: 900, y: 460 },
-      { x: 420, y: 320 },
       { x: 860, y: 320 }
     ];
+    let leftIdx = 0;
+    let rightIdx = 0;
 
     this.activeFighters = heatPlayers.map((p, idx) => {
       let inTeamA;
-      if (heatPlayers.length === 2) {
+      if (p.team) {
+        inTeamA = (p.team === 'teamA');
+      } else if (heatPlayers.length === 2) {
         inTeamA = (idx === 0);
       } else if (teamAIds.length > 0 || teamBIds.length > 0) {
         if (teamAIds.includes(p.id)) inTeamA = true;
@@ -181,7 +232,9 @@ class SuperSmashEngine {
       } else {
         inTeamA = (idx % 2 === 0);
       }
-      const spawn = spawnSlots[idx % spawnSlots.length];
+      const spawn = inTeamA
+        ? leftSlots[(leftIdx++) % leftSlots.length]
+        : rightSlots[(rightIdx++) % rightSlots.length];
 
       return {
         id: p.id,
@@ -255,6 +308,7 @@ class SuperSmashEngine {
   }
 
   handlePlayerInput(playerId, data) {
+    if (!this.running || this.gameState !== 'brawl') return;
     const f = this.activeFighters.find(p => p.id === playerId);
     if (!f || f.stocks <= 0 || f.isRespawning) return;
 
@@ -487,8 +541,10 @@ class SuperSmashEngine {
         // Floating combat texts
         if (isMeteor) {
           this.addFloatingText('¡METEOR SPIKE!', '#ef4444', 1.1, 1.4, target.x, target.y - 45);
+          if (window.soundEngine && typeof soundEngine.playPunch === 'function') soundEngine.playPunch(0.9);
         } else if (damage > 15) {
           this.addFloatingText('¡SMASH!', '#facc15', 1.0, 1.35, target.x, target.y - 40);
+          if (window.soundEngine && typeof soundEngine.playPunch === 'function') soundEngine.playPunch(0.9);
         } else if (target.damagePercent > 120) {
           this.addFloatingText('¡CRITICAL!', '#f87171', 0.9, 1.25, target.x, target.y - 35);
         }
@@ -535,7 +591,11 @@ class SuperSmashEngine {
     this.screenShake = 16;
     this.addFloatingText('¡SHIELD BREAK!', '#facc15', 1.2, 1.4, target.x, target.y - 45);
 
-    if (window.soundEngine) soundEngine.playOhMyGod();
+    if (window.soundEngine && typeof soundEngine.playShocked === 'function') {
+      soundEngine.playShocked(0.9);
+    } else if (window.soundEngine) {
+      soundEngine.playOhMyGod();
+    }
 
     // Glass Shatter Particles
     for (let i = 0; i < 20; i++) {
@@ -615,7 +675,7 @@ class SuperSmashEngine {
   }
 
   update(dt) {
-    if (!this.running) return;
+    if (!this.running || this.gameState === 'victory') return;
 
     // Countdown
     if (this.gameState === 'countdown') {
@@ -634,8 +694,20 @@ class SuperSmashEngine {
           this.startHeat(this.currentHeatIndex + 1);
         } else {
           this.resolveMatchWinner();
+          return;
         }
       }
+      return;
+    }
+
+    if (this.gameState === 'brawl') {
+      this.heatTimer -= dt;
+      if (this.heatTimer <= 0) {
+        this.heatTimer = 0;
+        this.handleHeatTimeout();
+        return;
+      }
+    } else {
       return;
     }
 
@@ -853,7 +925,15 @@ class SuperSmashEngine {
       f.stocks--;
       this.screenShake = 24;
 
-      if (window.soundEngine) soundEngine.playDeathSound(true);
+      if (f.stocks <= 0) {
+        if (window.soundEngine && typeof soundEngine.playUndertakerBell === 'function') {
+          soundEngine.playUndertakerBell(0.9);
+        } else if (window.soundEngine) {
+          soundEngine.playDeathSound(true);
+        }
+      } else {
+        if (window.soundEngine) soundEngine.playDeathSound(true);
+      }
 
       // Massive Blast Screen-Edge Particle Explosion
       this.createBlastExplosion(f.x, f.y, f.teamColor);
@@ -893,6 +973,8 @@ class SuperSmashEngine {
   }
 
   checkHeatStatus() {
+    if (!this.running || this.gameState !== 'brawl') return;
+
     const teamAAlive = this.activeFighters.filter(p => p.team === 'teamA' && p.stocks > 0).length;
     const teamBAlive = this.activeFighters.filter(p => p.team === 'teamB' && p.stocks > 0).length;
 
@@ -907,21 +989,68 @@ class SuperSmashEngine {
     }
   }
 
+  handleHeatTimeout() {
+    if (this.gameState !== 'brawl') return;
+    this.gameState = 'heat_over';
+    this.heatOverTimer = 3.0;
+
+    const teamAStocks = this.activeFighters.filter(p => p.team === 'teamA').reduce((acc, p) => acc + p.stocks, 0);
+    const teamBStocks = this.activeFighters.filter(p => p.team === 'teamB').reduce((acc, p) => acc + p.stocks, 0);
+
+    if (teamAStocks > teamBStocks) {
+      this.teamScores.teamA += 100;
+      this.addFloatingText('¡TIEMPO! GANA AZUL POR VIDAS', '#60a5fa', 2.0, 1.3, this.width / 2, this.height / 2 - 40);
+    } else if (teamBStocks > teamAStocks) {
+      this.teamScores.teamB += 100;
+      this.addFloatingText('¡TIEMPO! GANA ROJO POR VIDAS', '#f87171', 2.0, 1.3, this.width / 2, this.height / 2 - 40);
+    } else {
+      this.teamScores.teamA += 50;
+      this.teamScores.teamB += 50;
+      this.addFloatingText('¡TIEMPO! EMPATE EN VIDAS', '#facc15', 2.0, 1.3, this.width / 2, this.height / 2 - 40);
+    }
+
+    if (window.soundEngine) soundEngine.playCelebrationJump();
+  }
+
   resolveMatchWinner() {
+    if (this.gameState === 'victory' || this.completed) return;
     this.gameState = 'victory';
+    this.running = false;
+
+    if (this.animationId) {
+      cancelAnimationFrame(this.animationId);
+      this.animationId = null;
+    }
+
     this.winningTeam = this.teamScores.teamA >= this.teamScores.teamB ? 'teamA' : 'teamB';
 
     if (window.soundEngine) soundEngine.playSocialCreditVictory();
 
-    setTimeout(() => {
+    // Render the final victory overlay once
+    this.render();
+
+    if (this.victoryTimeout) {
+      clearTimeout(this.victoryTimeout);
+      this.victoryTimeout = null;
+    }
+
+    this.victoryTimeout = setTimeout(() => {
+      if (this.completed) return;
+      this.completed = true;
+
+      const teamAIds = (this.teams.teamA || []).map(p => p.id || p);
+      const winningTeam = this.winningTeam;
       this.onComplete({
         gameType: 'brawler',
         winningTeam: this.winningTeam,
         scores: this.teamScores,
-        players: this.allPlayers.map(p => ({
-          id: p.id,
-          score: p.team === this.winningTeam ? 100 : 25
-        }))
+        players: this.allPlayers.map(p => {
+          const isWinner = p.team ? (p.team === winningTeam) : (teamAIds.includes(p.id) ? winningTeam === 'teamA' : winningTeam === 'teamB');
+          return {
+            id: p.id,
+            score: isWinner ? 100 : 25
+          };
+        })
       });
     }, 4500);
   }
@@ -1368,11 +1497,20 @@ class SuperSmashEngine {
     ctx.fillStyle = '#facc15';
     ctx.fillText(`RONDA ${this.currentHeatIndex + 1} / ${this.heats.length} (BRAWL POR EQUIPOS)`, this.width / 2, 34);
 
+    const secLeft = Math.max(0, Math.ceil(this.heatTimer));
+    const isUrgent = secLeft <= 10 && this.gameState === 'brawl';
+
     ctx.font = 'bold 15px Arial';
     ctx.fillStyle = '#60a5fa';
-    ctx.fillText(`AZUL: ${this.teamScores.teamA} PTS`, this.width / 2 - 110, 52);
+    ctx.fillText(`AZUL: ${this.teamScores.teamA}`, this.width / 2 - 130, 52);
+
+    ctx.font = '900 16px monospace';
+    ctx.fillStyle = isUrgent ? '#ef4444' : '#38bdf8';
+    ctx.fillText(`⏱️ ${secLeft}s`, this.width / 2, 52);
+
+    ctx.font = 'bold 15px Arial';
     ctx.fillStyle = '#f87171';
-    ctx.fillText(`ROJO: ${this.teamScores.teamB} PTS`, this.width / 2 + 110, 52);
+    ctx.fillText(`ROJO: ${this.teamScores.teamB}`, this.width / 2 + 130, 52);
 
     // Bottom Smash Fighter Dials
     const dialW = 160;
@@ -1502,7 +1640,9 @@ class SuperSmashEngine {
     this.update(dt);
     this.render();
 
-    this.animationId = requestAnimationFrame((t) => this.loop(t));
+    if (this.running) {
+      this.animationId = requestAnimationFrame((t) => this.loop(t));
+    }
   }
 
   stop() {
@@ -1510,6 +1650,10 @@ class SuperSmashEngine {
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
       this.animationId = null;
+    }
+    if (this.victoryTimeout) {
+      clearTimeout(this.victoryTimeout);
+      this.victoryTimeout = null;
     }
   }
 }

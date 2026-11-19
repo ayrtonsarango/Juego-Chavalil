@@ -776,6 +776,31 @@
   100% { transform: scale(0.6) translateY(-10px); opacity: 0; }
 }
 
+/* Punch Pop Spark in 2D Lobby Lounge */
+.room-punch-spark {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  font-family: var(--font-title, sans-serif);
+  font-weight: 900;
+  font-size: 19px;
+  color: #fef08a;
+  background: #dc2626;
+  border: 2.5px solid #1e293b;
+  border-radius: 12px;
+  padding: 3px 10px;
+  box-shadow: 0 4px 0 #1e293b, 0 0 12px rgba(220, 38, 38, 0.6);
+  pointer-events: none;
+  z-index: 30;
+  animation: punchPop 0.45s ease-out forwards;
+}
+
+@keyframes punchPop {
+  0% { transform: translate(-50%, -60%) scale(0.6); opacity: 0; }
+  25% { transform: translate(-50%, -100%) scale(1.25); opacity: 1; }
+  75% { transform: translate(-50%, -120%) scale(1.0); opacity: 1; }
+  100% { transform: translate(-50%, -145%) scale(0.85); opacity: 0; }
+}
+
 .bubble-emoji { font-size: 1.3rem; }
 .bubble-sound { text-transform: uppercase; font-size: 12px; color: #0284c7; }
 

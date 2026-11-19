@@ -29,6 +29,8 @@ class HeadSoccerEngine {
 
     this.running = false;
     this.animationId = null;
+    this.completed = false;
+    this.victoryTimeout = null;
     this.lastTime = performance.now();
 
     // Geometría del estadio
@@ -113,16 +115,40 @@ class HeadSoccerEngine {
 
   init(playerList, teams = {}) {
     this.running = true;
+    this.completed = false;
+    if (this.victoryTimeout) {
+      clearTimeout(this.victoryTimeout);
+      this.victoryTimeout = null;
+    }
+    if (this.animationId) {
+      cancelAnimationFrame(this.animationId);
+      this.animationId = null;
+    }
+
     this.allPlayers = playerList;
     this.teams = teams;
     this.teamScores = { teamA: 0, teamB: 0 };
     this.winningTeam = null;
     this.currentHeatIndex = 0;
 
-    const teamAIds = (teams.teamA || []).map(p => p.id);
-    const teamBIds = (teams.teamB || []).map(p => p.id);
-    let playersA = playerList.filter(p => teamAIds.includes(p.id));
-    let playersB = playerList.filter(p => teamBIds.includes(p.id));
+    const teamAIds = (teams.teamA || []).map(p => p.id || p);
+    const teamBIds = (teams.teamB || []).map(p => p.id || p);
+
+    // Ensure all players have team assigned
+    this.allPlayers.forEach((p, idx) => {
+      if (!p.team) {
+        if (teamAIds.length > 0 && teamAIds.includes(p.id)) {
+          p.team = 'teamA';
+        } else if (teamBIds.length > 0 && teamBIds.includes(p.id)) {
+          p.team = 'teamB';
+        } else {
+          p.team = (idx % 2 === 0) ? 'teamA' : 'teamB';
+        }
+      }
+    });
+
+    let playersA = playerList.filter(p => p.team === 'teamA');
+    let playersB = playerList.filter(p => p.team === 'teamB');
 
     // Fallback if teams were not populated
     if (playersA.length === 0 && playersB.length === 0) {
@@ -138,13 +164,13 @@ class HeadSoccerEngine {
       const p2 = playersB[0] || playerList[1] || playerList[0];
       this.heats.push([p1, p2]);
     } else {
-      // Duelos 1v1 por rondas acumulando marcador global
+      // Duelos 1v1 por rondas acumulando marcador global.
+      // Si un equipo tiene menos jugadores, rotamos para garantizar que ningún chaval juegue solo (1v0)
       const maxHeats = Math.max(playersA.length, playersB.length);
       for (let h = 0; h < maxHeats; h++) {
-        const pair = [];
-        if (playersA[h]) pair.push(playersA[h]);
-        if (playersB[h]) pair.push(playersB[h]);
-        if (pair.length > 0) this.heats.push(pair);
+        const pA = playersA[h] || playersA[h % playersA.length];
+        const pB = playersB[h] || playersB[h % playersB.length];
+        if (pA && pB) this.heats.push([pA, pB]);
       }
     }
 
@@ -175,7 +201,9 @@ class HeadSoccerEngine {
 
     this.activePlayers = heatPlayers.map((p, idx) => {
       let isTeamA;
-      if (heatPlayers.length === 2) {
+      if (p.team) {
+        isTeamA = (p.team === 'teamA');
+      } else if (heatPlayers.length === 2) {
         // En 1v1 el primer jugador es AZUL (izquierda) y el segundo es ROJO (derecha)
         isTeamA = (idx === 0);
       } else if (teamAIds.length > 0 || teamBIds.length > 0) {
@@ -255,8 +283,16 @@ class HeadSoccerEngine {
   }
 
   handlePlayerInput(playerId, input) {
+    if (!this.running || this.gameState === 'victory') return;
     const p = this.activePlayers.find(pl => pl.id === playerId);
     if (!p) return;
+
+    // Si está congelado, bloqueado total (sin saltar ni moverse)
+    if (p.frozen) {
+      p.moveLeft = false;
+      p.moveRight = false;
+      return;
+    }
 
     if (typeof input.left === 'boolean') {
       p.moveLeft = input.left;
@@ -300,7 +336,7 @@ class HeadSoccerEngine {
   }
 
   update(dt) {
-    if (!this.running) return;
+    if (!this.running || this.gameState === 'victory') return;
 
     // Countdown
     if (this.gameState === 'countdown') {
@@ -329,6 +365,7 @@ class HeadSoccerEngine {
           this.startHeat(this.currentHeatIndex + 1);
         } else {
           this.resolveMatchWinner();
+          return;
         }
       }
       return;
@@ -420,6 +457,9 @@ class HeadSoccerEngine {
         p.vx = dirX * p.speed * p.speedMult;
       } else {
         p.vx = 0;
+        p.moveLeft = false;
+        p.moveRight = false;
+        if (p.isGrounded) p.vy = 0;
       }
 
       // Gravedad
@@ -473,6 +513,12 @@ class HeadSoccerEngine {
   }
 
   updateBotAI(p, dt) {
+    if (p.frozen) {
+      p.moveLeft = false;
+      p.moveRight = false;
+      return;
+    }
+
     p.aiDecisionTimer -= dt;
     if (p.aiDecisionTimer > 0) return;
     p.aiDecisionTimer = 0.08 + Math.random() * 0.08;
@@ -627,6 +673,10 @@ class HeadSoccerEngine {
       this.ball.vy = -Math.abs(this.ball.vy) * 0.85;
       this.ball.y = goalLeft.y - this.ball.radius;
       this.screenShake = 6;
+      if (Math.random() < 0.08 && window.soundEngine && typeof soundEngine.playMetalBar === 'function') {
+        soundEngine.playMetalBar(0.38);
+        this.addFloatingText('¡AL LARGUERO!', '#f87171', 1.0, 1.2, this.ball.x, this.ball.y - 25);
+      }
     }
 
     // Travesaño derecho
@@ -635,6 +685,10 @@ class HeadSoccerEngine {
       this.ball.vy = -Math.abs(this.ball.vy) * 0.85;
       this.ball.y = goalRight.y - this.ball.radius;
       this.screenShake = 6;
+      if (Math.random() < 0.08 && window.soundEngine && typeof soundEngine.playMetalBar === 'function') {
+        soundEngine.playMetalBar(0.38);
+        this.addFloatingText('¡AL LARGUERO!', '#f87171', 1.0, 1.2, this.ball.x, this.ball.y - 25);
+      }
     }
 
     // Fondos de cancha
@@ -750,8 +804,17 @@ class HeadSoccerEngine {
           // Freeze opponents
           this.activePlayers.filter(p => p.team !== collector.team).forEach(op => {
             op.frozen = true;
-            op.buffTimer = 3.2;
+            op.buffTimer = 3.5;
+            op.moveLeft = false;
+            op.moveRight = false;
+            op.vx = 0;
+            if (op.isGrounded) op.vy = 0;
+            op.isKicking = false;
+            op.bootAngle = 0;
           });
+          if (window.soundEngine && typeof soundEngine.playShocked === 'function') {
+            soundEngine.playShocked(0.85);
+          }
         } else if (pw.type === 'fireball') {
           this.ball.isFireball = true;
           this.ball.vx *= 1.4;
@@ -766,19 +829,43 @@ class HeadSoccerEngine {
   }
 
   resolveMatchWinner() {
+    if (this.gameState === 'victory' || this.completed) return;
     this.gameState = 'victory';
+    this.running = false;
+
+    if (this.animationId) {
+      cancelAnimationFrame(this.animationId);
+      this.animationId = null;
+    }
+
     this.winningTeam = this.teamScores.teamA >= this.teamScores.teamB ? 'teamA' : 'teamB';
     if (window.soundEngine) soundEngine.playSocialCreditVictory();
 
-    setTimeout(() => {
+    // Render the final victory overlay once
+    this.render();
+
+    if (this.victoryTimeout) {
+      clearTimeout(this.victoryTimeout);
+      this.victoryTimeout = null;
+    }
+
+    this.victoryTimeout = setTimeout(() => {
+      if (this.completed) return;
+      this.completed = true;
+
+      const teamAIds = (this.teams.teamA || []).map(p => p.id || p);
+      const winningTeam = this.winningTeam;
       this.onComplete({
         gameType: 'headsoccer',
         winningTeam: this.winningTeam,
         scores: this.teamScores,
-        players: this.allPlayers.map(p => ({
-          id: p.id,
-          score: p.team === this.winningTeam ? 100 : 25
-        }))
+        players: this.allPlayers.map(p => {
+          const isWinner = p.team ? (p.team === winningTeam) : (teamAIds.includes(p.id) ? winningTeam === 'teamA' : winningTeam === 'teamB');
+          return {
+            id: p.id,
+            score: isWinner ? 100 : 25
+          };
+        })
       });
     }, 4500);
   }
@@ -1303,7 +1390,9 @@ class HeadSoccerEngine {
     this.update(dt);
     this.render();
 
-    this.animationId = requestAnimationFrame(this.loop);
+    if (this.running) {
+      this.animationId = requestAnimationFrame(this.loop);
+    }
   }
 
   stop() {
@@ -1311,6 +1400,10 @@ class HeadSoccerEngine {
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
       this.animationId = null;
+    }
+    if (this.victoryTimeout) {
+      clearTimeout(this.victoryTimeout);
+      this.victoryTimeout = null;
     }
   }
 }

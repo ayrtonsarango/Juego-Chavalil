@@ -17,8 +17,6 @@
 </head>
 <body>
   <div class="player-container">
-    <div id="player-top-badge" class="badge badge-connected" style="display: none;"></div>
-
     <!-- SCREEN 1: AVATAR CREATOR & REGISTRATION -->
     <section id="screen-creator" class="player-screen active">
 
@@ -144,6 +142,10 @@
         </div>
 
         <div class="lobby-pad-action-cluster">
+          <button class="candy-btn-arcade candy-btn-punch" id="btn-lobby-punch" style="background: linear-gradient(135deg, #ef4444, #b91c1c); border-color: #7f1d1d; box-shadow: 0 4px 0 #7f1d1d;">
+            <span class="candy-btn-icon">🥊</span>
+            <span class="candy-btn-label">TORTA</span>
+          </button>
           <button class="candy-btn-arcade candy-btn-jump" id="btn-lobby-jump">
             <span class="candy-btn-icon">🦘</span>
             <span class="candy-btn-label">SALTAR</span>
@@ -190,7 +192,7 @@
 
       <!-- J1 Controls in Lobby -->
       <div class="j1-control-card" id="box-j1-controls" style="display: none;">
-        <div class="j1-control-title">👑 ERES EL J1 (LÍDER DE LA CUADRILLA)</div>
+        <div class="j1-control-title">👑 ERES EL J1 (LÍDER DE LA SALA)</div>
         <div id="j1-lobby-hint" class="j1-lobby-hint">
           ⏳ Esperando a que el Admin inicie la partida en la TV...
         </div>
@@ -412,6 +414,9 @@
         <!-- 9. BUTTON BASH DIANA BUZZER GAMEPAD & PRANK OVERLAYS -->
         <div id="pad-buttonbash" class="pad-layout pad-buttonbash" style="display: none;">
           
+          <!-- Turn Modifier Badge -->
+          <div id="bash-modifier-badge" class="bash-modifier-badge" style="display: none; padding: 8px 16px; border-radius: 9999px; font-weight: 900; font-size: 0.95rem; border: 3px solid #0f172a; box-shadow: 0 4px 0 #0f172a; margin-bottom: 12px; text-align: center; background: #fef08a; color: #0f172a;"></div>
+
           <!-- Normal Buzzer Controls -->
           <div class="bash-active-controls" id="bash-normal-controls">
             <div class="bash-diana-wrapper">
@@ -424,6 +429,23 @@
 
           <!-- PRANK OVERLAYS ON SMARTPHONE -->
           <div id="bash-mobile-prank-overlay" class="bash-mobile-prank" style="display: none;">
+            
+            <!-- PRANK STAGE CALL: MARTA & VIOLETA INCOMING CALL -->
+            <div id="prank-step-call" class="prank-card prank-call-card" style="display: none;">
+              <div class="prank-titlebar" style="background: #22c55e;">
+                <span class="titlebar-icon">📲</span>
+                <span class="titlebar-text">Llamada Entrante</span>
+              </div>
+              <div class="prank-card-body" style="text-align: center; padding: 16px 12px;">
+                <div style="font-size: 2.8rem; margin-bottom: 6px;">🐕</div>
+                <div class="prank-msg-bold">Marta & Violeta</div>
+                <div class="prank-msg-sub">Audio urgente de 14:32 min sobre carlinos y cotilleos</div>
+                <div style="display: flex; gap: 10px; margin-top: 14px;">
+                  <button class="btn btn-danger btn-prank-opt" id="btn-call-reject" style="flex: 1; font-weight: 900;">🔴 Colgar y tirar</button>
+                  <button class="btn btn-success btn-prank-opt" id="btn-call-accept" style="flex: 1; font-weight: 900;">🟢 Escuchar drama</button>
+                </div>
+              </div>
+            </div>
             
             <!-- PRANK STAGE A1: VISTA DELAY ERROR -->
             <div id="prank-step-vista" class="prank-card prank-vista-card" style="display: none;">

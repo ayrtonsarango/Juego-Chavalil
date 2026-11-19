@@ -22,6 +22,9 @@ class BombermanEngine {
     this.running = false;
     this.animationId = null;
     this.lastTime = performance.now();
+    this.completed = false;
+    this.matchEnded = false;
+    this.completeTimeout = null;
 
     // Cuadrícula clásica de 15 columnas x 9 filas
     this.grid = {
@@ -103,6 +106,12 @@ class BombermanEngine {
 
   init(playerList, teams = {}) {
     this.running = true;
+    this.completed = false;
+    this.matchEnded = false;
+    if (this.completeTimeout) {
+      clearTimeout(this.completeTimeout);
+      this.completeTimeout = null;
+    }
     this.gameState = 'countdown';
     this.countdownTimer = 3.0;
     this.roundOverTimer = 0;
@@ -292,7 +301,7 @@ class BombermanEngine {
       return;
     }
 
-    if (this.gameState === 'victory') return;
+    if (this.gameState === 'victory' || !this.running) return;
 
     // Update Floating Texts
     for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
@@ -308,6 +317,9 @@ class BombermanEngine {
       if (this.suddenDeathTimer <= 0) {
         this.addFloatingText('¡MUERTE SÚBITA!', '#ef4444', 1.8, 1.8, this.width / 2, this.height / 2);
         this.screenShake = 12;
+        if (window.soundEngine && typeof soundEngine.playUndertakerBell === 'function') {
+          soundEngine.playUndertakerBell(0.85);
+        }
       }
     }
 
@@ -662,6 +674,7 @@ class BombermanEngine {
   }
 
   checkRoundStatus() {
+    if (this.gameState !== 'playing') return;
     const teamAAlive = this.players.filter(p => p.team === 'teamA' && p.alive).length;
     const teamBAlive = this.players.filter(p => p.team === 'teamB' && p.alive).length;
 
@@ -671,6 +684,7 @@ class BombermanEngine {
   }
 
   finishRound(winningTeam) {
+    if (this.gameState !== 'playing') return;
     this.gameState = 'round_over';
     this.roundOverTimer = 2.5;
 
@@ -686,17 +700,40 @@ class BombermanEngine {
   }
 
   resolveMatchWinner() {
+    if (this.matchEnded) return;
+    this.matchEnded = true;
+    this.gameState = 'victory';
     this.winningTeam = this.teamScores.teamA >= this.teamScores.teamB ? 'teamA' : 'teamB';
     if (window.soundEngine) {
       window.soundEngine.playSocialCreditVictory();
     }
 
-    setTimeout(() => {
+    this.completeTimeout = setTimeout(() => {
+      if (this.completed) return;
+      this.completed = true;
+      this.stop();
+
+      const isFFA = Boolean(this.options.isFFA);
+      let playersPayload;
+      if (isFFA) {
+        const rankTable = [100, 75, 50, 35];
+        const sorted = [...this.players].sort((a, b) => b.score - a.score);
+        playersPayload = sorted.map((p, idx) => ({
+          id: p.id,
+          score: idx < rankTable.length ? rankTable[idx] : 20
+        }));
+      } else {
+        playersPayload = this.players.map(p => ({
+          id: p.id,
+          score: p.team === this.winningTeam ? 100 : 25
+        }));
+      }
+
       this.onComplete({
         gameType: 'bomberman',
         winningTeam: this.winningTeam,
         scores: this.teamScores,
-        players: this.players.map(p => ({ id: p.id, score: (p.team === this.winningTeam ? 100 : 20) }))
+        players: playersPayload
       });
     }, 3500);
   }
@@ -1044,7 +1081,9 @@ class BombermanEngine {
     this.update(dt);
     this.render();
 
-    this.animationId = requestAnimationFrame(this.loop);
+    if (this.running) {
+      this.animationId = requestAnimationFrame(this.loop);
+    }
   }
 
   stop() {
@@ -1052,6 +1091,10 @@ class BombermanEngine {
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
       this.animationId = null;
+    }
+    if (this.completeTimeout) {
+      clearTimeout(this.completeTimeout);
+      this.completeTimeout = null;
     }
   }
 }

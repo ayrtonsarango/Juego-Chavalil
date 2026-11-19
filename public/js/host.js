@@ -184,6 +184,22 @@ async function initNetworkInfo(customIp) {
         initNetworkInfo(e.target.value);
       };
     }
+
+    // Configure Host Dev Tools visibility for Google Cloud Production vs Local Dev
+    const urlParams = new URLSearchParams(window.location.search);
+    const forceDev = urlParams.get('dev') === 'true' || urlParams.get('dev') === '1' || urlParams.get('admin') === 'true';
+    const forceClean = urlParams.get('clean') === 'true' || urlParams.get('clean') === '1';
+
+    const hostDevTools = document.getElementById('host-dev-tools');
+    if (hostDevTools) {
+      if (forceDev) {
+        hostDevTools.style.display = 'flex';
+      } else if (data.isCloud || forceClean) {
+        hostDevTools.style.display = 'none';
+      } else {
+        hostDevTools.style.display = 'flex';
+      }
+    }
   } catch (err) {
     console.error('Error fetching network info', err);
   }
@@ -846,7 +862,7 @@ function updateStandaloneArcadeHud(level, teams) {
   const cfg = CONFIGS[gType] || {
     neon: '🎮 ARCADE CHAVALIL',
     neonBorder: '#38bdf8',
-    tag: '★ EDICIÓN CUADRILLA ★',
+    tag: '★ ARCADE CHAVALIL ★',
     title: level?.title || 'MINIJUEGO',
     sub: level?.lore || '',
     showNeon: true,
@@ -976,6 +992,7 @@ function renderMinigameView(level, teams) {
 // Helper de iconos para cada personaje de la cuadrilla
 function getCharacterEmote(charId) {
   const map = {
+    markel: '🎤',
     ayrton: '🐺',
     djon: '🍦',
     dj: '🍦',
@@ -1094,9 +1111,25 @@ function escapeHtml(str) {
 
 // ================= SOCKET EVENT LISTENERS =================
 
+let knownPlayerIds = new Set();
+
+socket.on('player_joined_room', (data) => {
+  if (window.soundEngine && typeof soundEngine.playDiscordJoin === 'function') {
+    soundEngine.playDiscordJoin();
+  }
+});
+
 socket.on('state_update', (data) => {
   currentGameState = data.gameState;
+  const prevCount = knownPlayerIds.size;
   currentPlayers = data.players || [];
+
+  if (prevCount > 0 && currentPlayers.some(p => !knownPlayerIds.has(p.id))) {
+    if (window.soundEngine && typeof soundEngine.playDiscordJoin === 'function') {
+      soundEngine.playDiscordJoin();
+    }
+  }
+  knownPlayerIds = new Set(currentPlayers.map(p => p.id));
 
   renderLobbyPlayers(currentPlayers);
 
@@ -1352,10 +1385,17 @@ function showPodiumResults(data) {
 
   modalPodiumResults.style.display = 'flex';
 
-  // 3. Audio de victoria
+  // 3. Audio de victoria y tema del ganador
   minigameKillsCount = 0;
   if (window.soundEngine) {
     soundEngine.playSocialCreditVictory();
+    if (winner && (winner.name || winner.avatar?.character)) {
+      setTimeout(() => {
+        if (window.soundEngine && typeof soundEngine.playCharacterTheme === 'function') {
+          soundEngine.playCharacterTheme(winner.avatar?.character, winner.name);
+        }
+      }, 1400);
+    }
   }
   triggerFloatingEmote('🏆', '¡NIVEL COMPLETADO! +1000 SOCIAL CREDIT');
 

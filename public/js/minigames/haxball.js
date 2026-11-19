@@ -20,6 +20,8 @@ class HaxballEngine {
     this.canvas.height = this.height;
 
     this.running = false;
+    this.completed = false;
+    this.victoryTimeout = null;
     this.animationId = null;
     this.lastTime = performance.now();
 
@@ -107,6 +109,11 @@ class HaxballEngine {
 
   init(playerList, teams = {}) {
     this.running = true;
+    this.completed = false;
+    if (this.victoryTimeout) {
+      clearTimeout(this.victoryTimeout);
+      this.victoryTimeout = null;
+    }
     this.gameState = 'countdown';
     this.countdownTimer = 3.0;
     this.matchTime = 90;
@@ -204,6 +211,7 @@ class HaxballEngine {
   }
 
   handlePlayerInput(playerId, input) {
+    if (!this.running) return;
     const p = this.players.find(pl => pl.id === playerId);
     if (!p) return;
 
@@ -281,6 +289,8 @@ class HaxballEngine {
   }
 
   update(dt) {
+    if (!this.running || this.gameState === 'victory') return;
+
     if (this.gameState === 'countdown') {
       this.countdownTimer -= dt;
       if (this.countdownTimer <= 0) {
@@ -685,17 +695,33 @@ class HaxballEngine {
   }
 
   resolveMatchWinner() {
+    if (this.completed) return;
+    this.completed = true;
+    this.gameState = 'victory';
+    this.running = false;
+    if (this.animationId) {
+      cancelAnimationFrame(this.animationId);
+      this.animationId = null;
+    }
+
     this.winningTeam = this.teamScores.teamA >= this.teamScores.teamB ? 'teamA' : 'teamB';
     if (window.soundEngine) {
       window.soundEngine.playSocialCreditVictory();
     }
 
-    setTimeout(() => {
+    this.render();
+
+    this.victoryTimeout = setTimeout(() => {
       this.onComplete({
         gameType: 'haxball',
         winningTeam: this.winningTeam,
         scores: this.teamScores,
-        players: this.players.map(p => ({ id: p.id, score: (p.team === this.winningTeam ? 100 : 20) }))
+        players: this.players.map(p => ({
+          id: p.id,
+          name: p.name,
+          team: p.team,
+          score: (p.team === this.winningTeam ? 100 : 25)
+        }))
       });
     }, 3500);
   }
@@ -1094,6 +1120,10 @@ class HaxballEngine {
 
   stop() {
     this.running = false;
+    if (this.victoryTimeout) {
+      clearTimeout(this.victoryTimeout);
+      this.victoryTimeout = null;
+    }
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
       this.animationId = null;

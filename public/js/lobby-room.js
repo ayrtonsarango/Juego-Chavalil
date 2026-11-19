@@ -368,6 +368,92 @@
       }
       entity.inputs.jump = inputData.jump;
     }
+    if (inputData.punch || inputData.kick || inputData.action) {
+      triggerPlayerPunch(entity);
+    }
+  }
+
+  // Cooldown map for punches between pairs: `${p1.id}_${p2.id}` -> timestamp
+  const punchCooldowns = new Map();
+
+  function triggerPlayerPunch(attacker) {
+    if (!attacker) return;
+    attacker.squashTimer = 0.18;
+    attacker.walkTimer += 1.5;
+    attacker.vx += attacker.facing * 120;
+
+    const punchReach = 65;
+    let hitAny = false;
+
+    for (const victim of playersMap.values()) {
+      if (victim.id === attacker.id) continue;
+      const dx = victim.x - attacker.x;
+      const dy = Math.abs(victim.y - attacker.y);
+      const isFacing = (attacker.facing > 0 && dx > 0) || (attacker.facing < 0 && dx < 0);
+
+      if (Math.abs(dx) < punchReach && dy < 60 && (isFacing || Math.abs(dx) < 32)) {
+        applyPunch(attacker, victim);
+        hitAny = true;
+        break;
+      }
+    }
+
+    if (!hitAny && window.soundEngine && typeof soundEngine.playSwoosh === 'function') {
+      try { soundEngine.playSwoosh(); } catch (_) {}
+    }
+  }
+
+  function applyPunch(attacker, victim) {
+    const pairKey = [attacker.id, victim.id].sort().join('_');
+    const now = performance.now();
+    const lastHit = punchCooldowns.get(pairKey) || 0;
+    if (now - lastHit < 700) return; // 700ms cooldown
+    punchCooldowns.set(pairKey, now);
+
+    // Metal bar: muy raro (2% de probabilidad) y muy potente
+    const isMetal = Math.random() < 0.02;
+
+    if (isMetal) {
+      if (window.soundEngine && typeof soundEngine.playMetalBar === 'function') {
+        soundEngine.playMetalBar(0.42);
+      }
+      spawnPunchSpark((attacker.x + victim.x) / 2, Math.min(attacker.y, victim.y) - 35, '🔨 BONK!');
+    } else {
+      if (window.soundEngine && typeof soundEngine.playPunch === 'function') {
+        soundEngine.playPunch(0.9);
+      }
+      const punchEmotes = ['💥 POW!', '🥊 ZASCA!', '💥 BOOM!', '🥊 TORTA!'];
+      const chosen = punchEmotes[Math.floor(Math.random() * punchEmotes.length)];
+      spawnPunchSpark((attacker.x + victim.x) / 2, Math.min(attacker.y, victim.y) - 35, chosen);
+    }
+
+    // Knockback impulsivo
+    const knockDir = victim.x >= attacker.x ? 1 : -1;
+    victim.vx = knockDir * 380;
+    victim.vy = -340;
+    victim.onGround = false;
+    victim.facing = -knockDir;
+
+    if (victim.dom.entity) {
+      victim.dom.entity.style.filter = 'brightness(1.4) drop-shadow(0 0 8px #ef4444)';
+      setTimeout(() => {
+        if (victim.dom.entity) victim.dom.entity.style.filter = '';
+      }, 180);
+    }
+  }
+
+  function spawnPunchSpark(x, y, text) {
+    if (!stageEl) return;
+    const spark = document.createElement('div');
+    spark.className = 'room-punch-spark';
+    spark.textContent = text;
+    spark.style.left = `${Math.round(x)}px`;
+    spark.style.top = `${Math.round(y)}px`;
+    stageEl.appendChild(spark);
+
+    setTimeout(() => {
+      if (spark.parentNode) spark.parentNode.removeChild(spark);
+    }, 450);
   }
 
   // Trigger emote comic bubble above character
@@ -455,6 +541,21 @@
             entity.y >= plat.y &&
             entity.x >= plat.x1 &&
             entity.x <= plat.x2) {
+          if (plat.id === 'sofa' && entity.vy > 120) {
+            // Super rebote en el sofá de la sala
+            entity.y = plat.y - 4;
+            entity.vy = -680;
+            entity.onGround = false;
+            entity.isJumping = true;
+            entity.squashTimer = 0.22;
+            landedOnPlatform = true;
+            if (Math.random() < 0.4 && window.soundEngine && typeof soundEngine.playHeeHee === 'function') {
+              soundEngine.playHeeHee(0.8);
+            } else if (window.soundEngine && typeof soundEngine.playJump === 'function') {
+              soundEngine.playJump();
+            }
+            break;
+          }
           entity.y = plat.y;
           entity.vy = 0;
           entity.onGround = true;
@@ -473,6 +574,19 @@
           entity.isJumping = false;
         } else {
           entity.onGround = false;
+        }
+      }
+
+      // 7b. Player-to-player collision & punch clash
+      for (const other of playersMap.values()) {
+        if (other.id === entity.id) continue;
+        const dx = other.x - entity.x;
+        const dy = Math.abs(other.y - entity.y);
+        if (Math.abs(dx) < 50 && dy < 45) {
+          const isMovingToward = (entity.vx > 40 && dx > 0) || (entity.vx < -40 && dx < 0);
+          if (isMovingToward) {
+            applyPunch(entity, other);
+          }
         }
       }
 
@@ -542,6 +656,15 @@
         entity.vy = -620;
         entity.onGround = false;
         entity.isJumping = true;
+      }
+    }
+
+    // Bot punch check
+    for (const other of playersMap.values()) {
+      if (other.id === entity.id) continue;
+      if (Math.abs(other.x - entity.x) < 55 && Math.abs(other.y - entity.y) < 50 && Math.random() < 0.05) {
+        triggerPlayerPunch(entity);
+        break;
       }
     }
   }

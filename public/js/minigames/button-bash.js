@@ -65,8 +65,12 @@ class ButtonBashEngine {
     // Thrown darts on board
     this.darts = [];
     this.crazyDarts = [];
+    this.flyingDarts = [];
     this.sparkles = [];
     this.hitEffects = [];
+    this.isLagBuffering = false;
+    this.lagBufferingName = '';
+    this.currentModifier = null;
 
     // Pre-populate shiny sparkles for Marta & Violeta
     for (let i = 0; i < 40; i++) {
@@ -159,6 +163,10 @@ class ButtonBashEngine {
     this.activePopups = [];
     this.darts = [];
     this.crazyDarts = [];
+    this.flyingDarts = [];
+    this.isLagBuffering = false;
+    this.lagBufferingName = '';
+    this.currentModifier = null;
     this.playerScores = {};
 
     // Build the turn-by-turn queue: human players first, then bots (or fallback)
@@ -192,6 +200,67 @@ class ButtonBashEngine {
     this.activeShooterId = this.activeShooter.id;
     this.activeShooterName = this.activeShooter.name || 'Chaval';
 
+    const BASH_MODIFIERS = [
+      {
+        id: 'lag_56k',
+        title: '📶 Lag Bajera 56k (9999ms)',
+        badge: 'PING: 9999ms',
+        tvBanner: '⚠️ AVISO: Latencia de 9.420ms detectada (Vodafone 3G Bajera)',
+        desc: 'El dardo tarda 2 segundos en salir entre que pulsas y reacciona.'
+      },
+      {
+        id: 'slippery_button',
+        title: '🤹 Botón Esquivo',
+        badge: 'BOTÓN REBELDE',
+        tvBanner: '🤹 El botón táctil del móvil ha cobrado consciencia propia',
+        desc: 'El botón del móvil se escapa cada vez que intentas tocarlo.'
+      },
+      {
+        id: 'drunk_curve',
+        title: '🍺 Dardo con 8 Kalimotxos',
+        badge: '8 KALIMOTXOS',
+        tvBanner: '🍺 AVISO: Dardo con 8 kalimotxos encima (Efecto Badostáin)',
+        desc: 'El dardo sale haciendo eses imposibles y se desvía solo.'
+      },
+      {
+        id: 'hyperspeed_ticker',
+        title: '⚡ Modo Hiperespacio',
+        badge: 'HIPERESPACIO 400KM/H',
+        tvBanner: '⚡ MODO HIPERESPACIO: Diana sobrecargada por los altavoces',
+        desc: 'El selector de puntería va a 400 km/h y vibra descalibrado.'
+      },
+      {
+        id: 'marta_violeta_call',
+        title: '📲 Llamada de Emergencia',
+        badge: 'LLAMADA ENTRANTE',
+        tvBanner: '🐕 Marta y Violeta están enviando audios de perros a la pantalla',
+        desc: 'Te entra una llamada urgente de audio de 14 min sobre carlinos.'
+      },
+      {
+        id: 'slowmo_matrix',
+        title: '🐌 Dardo a Cámara Lenta',
+        badge: 'MODO MATRIX',
+        tvBanner: '🐌 MODO MATRIX: Dardo propulsado a pedales (3.5s de suspense)',
+        desc: 'El dardo viaja en slow-motion dramático flotando en el aire.'
+      },
+      {
+        id: 'reverse_controls',
+        title: '🧲 Efecto Imán / Rebote',
+        badge: 'IMÁN DE MAHOU',
+        tvBanner: '🧲 EFECTO IMÁN: Campo magnético de las neveras de la barra',
+        desc: 'Al fijar la mira, rebota en la nevera de Mahou y se va hacia atrás.'
+      },
+      {
+        id: 'quantum_ghost',
+        title: '👻 Dardo Cuántico',
+        badge: 'DESAPARICIÓN CUÁNTICA',
+        tvBanner: '👻 Dardo en superposición cuántica: ¿Dónde va a clavar?',
+        desc: 'El dardo desaparece en el aire y aparece en cualquier rincón.'
+      }
+    ];
+
+    this.currentModifier = BASH_MODIFIERS[this.currentTurnIndex % BASH_MODIFIERS.length];
+
     this.phase = 'aiming_x';
     this.phaseTimer = 0;
     this.lockedX = null;
@@ -200,6 +269,17 @@ class ButtonBashEngine {
     this.tickerY = 0.5;
     this.tickerDirX = 1;
     this.tickerDirY = 1;
+
+    if (this.currentModifier.id === 'hyperspeed_ticker') {
+      this.tickerSpeedX = 4.2;
+      this.tickerSpeedY = 4.8;
+    } else if (this.currentModifier.id === 'slowmo_matrix') {
+      this.tickerSpeedX = 0.65;
+      this.tickerSpeedY = 0.75;
+    } else {
+      this.tickerSpeedX = 1.15;
+      this.tickerSpeedY = 1.35;
+    }
 
     if (window.soundEngine && typeof soundEngine.playMarioCoin === 'function') {
       soundEngine.playMarioCoin();
@@ -211,13 +291,18 @@ class ButtonBashEngine {
         activePlayerId: this.activeShooterId,
         activePlayerName: this.activeShooterName,
         turnIndex: this.currentTurnIndex + 1,
-        totalTurns: this.playerQueue.length
+        totalTurns: this.playerQueue.length,
+        modifier: this.currentModifier
       });
     }
   }
 
   stop() {
     this.running = false;
+    if (this.prankTimeout) {
+      clearTimeout(this.prankTimeout);
+      this.prankTimeout = null;
+    }
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
       this.animationId = null;
@@ -245,12 +330,26 @@ class ButtonBashEngine {
     const now = performance.now();
     if (data.bash || data.shoot || data.attack || data.gas) {
       if (this.phase === 'aiming_x') {
-        this.lockedX = this.tickerX;
+        if (this.currentModifier && this.currentModifier.id === 'reverse_controls') {
+          const jump = (Math.random() > 0.5 ? 0.35 : -0.35);
+          this.lockedX = Math.max(0.08, Math.min(0.92, this.tickerX + jump));
+          this.hitEffects.push({ x: this.board.cx, y: this.board.cy - 120, label: '🧲 ¡REBOTÓ EN LA NEVERA!', life: 1.5 });
+          if (window.soundEngine) soundEngine.playHonk();
+        } else {
+          this.lockedX = this.tickerX;
+        }
         this.phase = 'aiming_y';
         this.lastLockTime = now;
         if (window.soundEngine) soundEngine.playMarioCoin();
-      } else if (this.phase === 'aiming_y' && (now - (this.lastLockTime || 0) > 300)) {
-        this.lockedY = this.tickerY;
+      } else if (this.phase === 'aiming_y' && (now - (this.lastLockTime || 0) > 280)) {
+        if (this.currentModifier && this.currentModifier.id === 'reverse_controls') {
+          const jump = (Math.random() > 0.5 ? 0.35 : -0.35);
+          this.lockedY = Math.max(0.08, Math.min(0.92, this.tickerY + jump));
+          this.hitEffects.push({ x: this.board.cx, y: this.board.cy - 90, label: '🧲 ¡IMÁN MAHOU!', life: 1.5 });
+          if (window.soundEngine) soundEngine.playHonk();
+        } else {
+          this.lockedY = this.tickerY;
+        }
         this.phase = 'thrown';
         this.shootDart(playerId);
       }
@@ -272,50 +371,155 @@ class ButtonBashEngine {
     const hitX = (cx - radius) + this.lockedX * (radius * 2);
     const hitY = (cy - radius) + this.lockedY * (radius * 2);
 
-    // Compute score based on distance from center
+    // Precise Tournament Dartboard physics & scoring
     const dist = Math.hypot(hitX - cx, hitY - cy);
+    const angle = Math.atan2(hitY - cy, hitX - cx);
+
+    const numbers = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
+    let relAngle = angle - (-Math.PI / 2) + (Math.PI / 20);
+    while (relAngle < 0) relAngle += Math.PI * 2;
+    while (relAngle >= Math.PI * 2) relAngle -= Math.PI * 2;
+    const sectorIdx = Math.floor(relAngle / (Math.PI / 10));
+    const num = numbers[sectorIdx % 20];
+
     let pts = 0;
     let label = '¡FUERA!';
 
-    if (dist < 10) {
+    if (dist <= 14) {
       pts = 50;
       label = '🎯 ¡¡DIANAZO 50!!';
-    } else if (dist < 26) {
+    } else if (dist <= 30) {
       pts = 25;
-      label = '★ 25 PUNTOS';
-    } else if (dist < radius) {
-      pts = 10;
-      label = '+10 PTS';
+      label = '★ ¡DIANA 25 PTS! ★';
+    } else if (dist > 92 && dist <= 108) {
+      pts = num * 3;
+      label = `🔥 ¡TRIPLE ${num}! (${pts} PTS)`;
+    } else if (dist > 152 && dist <= 168) {
+      pts = num * 2;
+      label = `⚡ ¡DOBLE ${num}! (${pts} PTS)`;
+    } else if (dist <= 168) {
+      pts = num;
+      label = `★ ${num} PUNTOS (S${num})`;
+    } else if (dist <= 210) {
+      pts = 5;
+      label = '🍺 ¡AL MARCO! (5 PTS)';
     } else {
       pts = 0;
-      label = '¡AL CORCHO! (0 PTS)';
+      label = '🤦 ¡AL CORCHO! (0 PTS)';
+    }
+
+    const modId = this.currentModifier ? this.currentModifier.id : 'normal';
+
+    let targetX = hitX;
+    let targetY = hitY;
+
+    if (modId === 'drunk_curve') {
+      const drunkOffsets = [
+        { x: cx - radius - 60, y: cy + 40, label: '🍺 ¡AL GRIFO DE CERVEZA! (0 PTS)', pts: 0 },
+        { x: cx + radius + 70, y: cy - 30, label: '🥴 ¡AL CUADRO DECORATIVO! (0 PTS)', pts: 0 },
+        { x: cx - 20, y: cy + radius + 55, label: '🤦 ¡AL SUELO POR BORRACHO! (0 PTS)', pts: 0 }
+      ];
+      const pick = drunkOffsets[Math.floor(Math.random() * drunkOffsets.length)];
+      targetX = pick.x;
+      targetY = pick.y;
+      label = pick.label;
+      pts = pick.pts;
+    } else if (modId === 'quantum_ghost') {
+      const ghostOffsets = [
+        { x: cx + 18, y: cy - radius - 35, label: '👻 ¡EN EL MARCO SUPERIOR! (1 PTO)', pts: 1 },
+        { x: cx - radius + 15, y: cy - 20, label: '👻 ¡APARECIÓ DE LA NADA! (1 PTO)', pts: 1 }
+      ];
+      const pick = ghostOffsets[Math.floor(Math.random() * ghostOffsets.length)];
+      targetX = pick.x;
+      targetY = pick.y;
+      label = pick.label;
+      pts = pick.pts;
+    }
+
+    let flightDuration = 0.45;
+    if (modId === 'slowmo_matrix') {
+      flightDuration = 3.2;
+      if (window.soundEngine && typeof soundEngine.playMemeViolin === 'function') {
+        soundEngine.playMemeViolin(0.85);
+      }
+    } else if (modId === 'drunk_curve') {
+      flightDuration = 1.2;
+    } else if (modId === 'quantum_ghost') {
+      flightDuration = 1.3;
     }
 
     const shooter = this.activeShooter || { id: playerId, name: 'Chaval' };
     const shooterColor = shooter.color || '#38bdf8';
 
+    const launchDart = () => {
+      if (window.soundEngine && typeof soundEngine.playSwoosh === 'function') {
+        soundEngine.playSwoosh();
+      }
+      this.flyingDarts.push({
+        startX: this.width / 2,
+        startY: this.height + 40,
+        currentX: this.width / 2,
+        currentY: this.height + 40,
+        targetX,
+        targetY,
+        progress: 0,
+        elapsed: 0,
+        duration: flightDuration,
+        modifier: modId,
+        curveAmpX: (Math.random() > 0.5 ? 240 : -240),
+        curveAmpY: -110,
+        pts,
+        label,
+        shooter,
+        shooterColor
+      });
+    };
+
+    if (modId === 'lag_56k') {
+      this.isLagBuffering = true;
+      this.lagBufferingName = shooter.name;
+      if (window.soundEngine && typeof soundEngine.playHonk === 'function') soundEngine.playHonk();
+      setTimeout(() => {
+        this.isLagBuffering = false;
+        launchDart();
+      }, 1600);
+    } else {
+      launchDart();
+    }
+  }
+
+  onDartLanded(fd) {
     this.darts.push({
-      x: hitX,
-      y: hitY,
-      pts,
-      label,
-      playerId: shooter.id,
-      playerName: shooter.name,
-      color: shooterColor
+      x: fd.targetX,
+      y: fd.targetY,
+      pts: fd.pts,
+      label: fd.label,
+      playerId: fd.shooter.id,
+      playerName: fd.shooter.name,
+      color: fd.shooterColor
     });
 
-    this.playerScores[shooter.id] = (this.playerScores[shooter.id] || 0) + pts;
+    this.playerScores[fd.shooter.id] = (this.playerScores[fd.shooter.id] || 0) + fd.pts;
 
     this.hitEffects.push({
-      x: hitX,
-      y: hitY,
-      label,
-      life: 1.8
+      x: fd.targetX,
+      y: fd.targetY,
+      label: fd.label,
+      life: 2.0
     });
 
     if (window.soundEngine) {
-      if (typeof soundEngine.playSwoosh === 'function') soundEngine.playSwoosh();
-      if (typeof soundEngine.playHonk === 'function') setTimeout(() => soundEngine.playHonk(), 250);
+      if (fd.modifier === 'drunk_curve' && typeof soundEngine.playFaaah === 'function') {
+        soundEngine.playFaaah();
+      } else if (fd.modifier === 'slowmo_matrix' && typeof soundEngine.playHonk === 'function') {
+        soundEngine.playHonk();
+      } else if (fd.modifier === 'quantum_ghost' && typeof soundEngine.playBocina === 'function') {
+        soundEngine.playBocina();
+      } else if (fd.pts >= 25 && typeof soundEngine.playMarioCoin === 'function') {
+        soundEngine.playMarioCoin();
+      } else if (typeof soundEngine.playHonk === 'function') {
+        soundEngine.playHonk();
+      }
     }
 
     // Wait 2.2s so everyone can see the dart hit and score on the board
@@ -651,9 +855,13 @@ class ButtonBashEngine {
   update(dt) {
     this.elapsedGameTime += dt;
 
-    // Ticker Oscillation
+    // Ticker Oscillation with modifier physics
     if (this.phase === 'aiming_x') {
-      this.tickerX += this.tickerDirX * this.tickerSpeedX * dt;
+      let speedX = this.tickerSpeedX;
+      if (this.currentModifier && this.currentModifier.id === 'hyperspeed_ticker' && Math.random() < 0.12) {
+        this.tickerX += (Math.random() - 0.5) * 0.18;
+      }
+      this.tickerX += this.tickerDirX * speedX * dt;
       if (this.tickerX >= 1) {
         this.tickerX = 1;
         this.tickerDirX = -1;
@@ -662,13 +870,55 @@ class ButtonBashEngine {
         this.tickerDirX = 1;
       }
     } else if (this.phase === 'aiming_y') {
-      this.tickerY += this.tickerDirY * this.tickerSpeedY * dt;
+      let speedY = this.tickerSpeedY;
+      if (this.currentModifier && this.currentModifier.id === 'hyperspeed_ticker' && Math.random() < 0.12) {
+        this.tickerY += (Math.random() - 0.5) * 0.18;
+      }
+      this.tickerY += this.tickerDirY * speedY * dt;
       if (this.tickerY >= 1) {
         this.tickerY = 1;
         this.tickerDirY = -1;
       } else if (this.tickerY <= 0) {
         this.tickerY = 0;
         this.tickerDirY = 1;
+      }
+    }
+
+    // Update Flying In-Flight Darts
+    if (this.flyingDarts && this.flyingDarts.length > 0) {
+      for (let i = this.flyingDarts.length - 1; i >= 0; i--) {
+        const fd = this.flyingDarts[i];
+        fd.elapsed += dt;
+        fd.progress = Math.min(1.0, fd.elapsed / fd.duration);
+        const p = fd.progress;
+
+        let curX = fd.startX + (fd.targetX - fd.startX) * p;
+        let curY = fd.startY + (fd.targetY - fd.startY) * p;
+
+        if (fd.modifier === 'drunk_curve') {
+          const wave = Math.sin(p * Math.PI * 4) * fd.curveAmpX * (1 - p);
+          curX += wave;
+          curY += Math.sin(p * Math.PI) * fd.curveAmpY;
+          fd.rot = (wave / 100) * 0.8;
+        } else if (fd.modifier === 'quantum_ghost') {
+          fd.hidden = (p >= 0.25 && p <= 0.8);
+          fd.rot = 0;
+        } else if (fd.modifier === 'lag_56k') {
+          const steppedP = Math.floor(p * 5) / 5;
+          curX = fd.startX + (fd.targetX - fd.startX) * steppedP;
+          curY = fd.startY + (fd.targetY - fd.startY) * steppedP;
+          fd.rot = (p > 0.8) ? 0 : 0.2;
+        } else {
+          fd.rot = Math.atan2(fd.targetY - curY, fd.targetX - curX) - Math.PI / 2;
+        }
+
+        fd.currentX = curX;
+        fd.currentY = curY;
+
+        if (fd.progress >= 1.0) {
+          this.flyingDarts.splice(i, 1);
+          this.onDartLanded(fd);
+        }
       }
     }
 
@@ -729,6 +979,9 @@ class ButtonBashEngine {
 
     // 7B. Active Shooter Turn Banner on TV
     this.renderTurnHeader(ctx);
+
+    // 7C. Lag Buffering Modal (PING: 9999ms)
+    this.renderLagBuffering(ctx);
 
     // 8. Opening Standalone Arcade Splash Banner (first 3.0 seconds)
     if (this.elapsedGameTime < 3.0 && (this.phase === 'aiming_x' || this.phase === 'intro')) {
@@ -839,6 +1092,30 @@ class ButtonBashEngine {
     ctx.fillText(`(${currentTurn}/${totalTurns})`, bx + bw - 24, by + bh / 2);
 
     ctx.restore();
+
+    // Active Goofy Modifier Pill on TV
+    if (this.currentModifier && this.currentModifier.tvBanner) {
+      ctx.save();
+      const mw = 680;
+      const mx = (this.width - mw) / 2;
+      const my = by + bh + 8;
+      const mh = 34;
+
+      ctx.fillStyle = '#fef08a';
+      ctx.beginPath();
+      ctx.roundRect(mx, my, mw, mh, 17);
+      ctx.fill();
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      ctx.font = '900 14px "Fredoka", system-ui, sans-serif';
+      ctx.fillStyle = '#92400e';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(this.currentModifier.tvBanner, mx + mw / 2, my + mh / 2);
+      ctx.restore();
+    }
   }
 
   renderHotBunniesBackground(ctx) {
@@ -1153,6 +1430,114 @@ class ButtonBashEngine {
 
       ctx.restore();
     });
+
+    // 3. In-Flight Animated Darts
+    this.renderFlyingDarts(ctx);
+  }
+
+  renderFlyingDarts(ctx) {
+    if (!this.flyingDarts || this.flyingDarts.length === 0) return;
+    this.flyingDarts.forEach(fd => {
+      if (fd.hidden) return;
+      ctx.save();
+      ctx.translate(fd.currentX, fd.currentY);
+      ctx.rotate(fd.rot || 0);
+
+      const scale = Math.max(0.6, 1.45 - 0.65 * fd.progress);
+      ctx.scale(scale, scale);
+
+      // Dart Shadow
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+      ctx.beginPath();
+      ctx.ellipse(0, 18, 14 * scale, 6 * scale, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Steel needle tip
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.moveTo(0, -22);
+      ctx.lineTo(0, 0);
+      ctx.stroke();
+
+      // Brass Barrel
+      ctx.fillStyle = '#f59e0b';
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(-4, 0, 8, 16, 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Shaft & Flights (Plumas)
+      ctx.fillStyle = fd.shooterColor || '#38bdf8';
+      ctx.beginPath();
+      ctx.moveTo(0, 16);
+      ctx.lineTo(10, 32);
+      ctx.lineTo(-10, 32);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Fun label beside flying dart
+      if (fd.modifier === 'slowmo_matrix') {
+        ctx.font = '900 12px "Fredoka", sans-serif';
+        ctx.fillStyle = '#ef4444';
+        ctx.fillText('🐌 SLOW-MO', 16, 0);
+      } else if (fd.modifier === 'drunk_curve') {
+        ctx.font = '900 12px "Fredoka", sans-serif';
+        ctx.fillStyle = '#f59e0b';
+        ctx.fillText('🥴 WIII', 16, 0);
+      }
+
+      ctx.restore();
+    });
+  }
+
+  renderLagBuffering(ctx) {
+    if (!this.isLagBuffering) return;
+    ctx.save();
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.72)';
+    ctx.fillRect(0, 0, this.width, this.height);
+
+    const cardW = 560;
+    const cardH = 130;
+    const cardX = (this.width - cardW) / 2;
+    const cardY = (this.height - cardH) / 2;
+
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.roundRect(cardX, cardY, cardW, cardH, 20);
+    ctx.fill();
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+
+    // Spinner
+    const spin = this.elapsedGameTime * 8;
+    ctx.save();
+    ctx.translate(cardX + 60, cardY + cardH / 2);
+    ctx.rotate(spin);
+    ctx.strokeStyle = '#0284c7';
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.arc(0, 0, 22, 0, Math.PI * 1.5);
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.font = '900 21px Fredoka, sans-serif';
+    ctx.fillStyle = '#0f172a';
+    ctx.fillText('📶 PING: 9999ms · SUBIENDO DARDO...', cardX + 105, cardY + cardH / 2 - 16);
+
+    ctx.font = 'bold 14px system-ui, sans-serif';
+    ctx.fillStyle = '#64748b';
+    ctx.fillText(`Móvil de ${this.lagBufferingName || 'Chaval'} conectando con satélite de la bajera...`, cardX + 105, cardY + cardH / 2 + 16);
+
+    ctx.restore();
   }
 
   // ULTRA GOOFY OVERLAPPING POPUPS ("Una cosa sobre otra", descentrado cómico)

@@ -11,7 +11,8 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: '*',
-  }
+  },
+  transports: ['websocket', 'polling']
 });
 
 const PORT = process.env.PORT || 3000;
@@ -199,6 +200,9 @@ let gameState = {
   teams: { teamA: [], teamB: [], solo: [] }
 };
 
+let lastCompletedLevelIndex = -1;
+let lastMinigameCompleteTime = 0;
+
 // Players map: socketId -> Player
 const players = new Map();
 
@@ -359,6 +363,13 @@ io.on('connection', (socket) => {
 
     players.set(socket.id, player);
     refreshJ1();
+
+    // Notificación Discord Join cuando alguien entra en la sala
+    io.emit('player_joined_room', {
+      playerName: player.name,
+      playerId: player.id,
+      timestamp: Date.now()
+    });
 
     // Trigger Android inside joke if player is Android!
     if (player.isAndroid) {
@@ -703,6 +714,7 @@ io.on('connection', (socket) => {
       gameState.status = 'minigame';
       gameState.minigameActive = currentLevel;
       gameState.teams = teams;
+      lastCompletedLevelIndex = -1;
 
       broadcastState();
     }
@@ -710,6 +722,22 @@ io.on('connection', (socket) => {
 
   // Minigame simulated resolution (completes test, crowns winners, unlocks next level, shows podium)
   socket.on('minigame_complete', (data) => {
+    // Debounce / level-check guard: reject duplicate minigame_complete events if room is already in 'podium' or for the same level index
+    if (gameState.status === 'podium') {
+      console.warn('[server] Rejected duplicate minigame_complete: room is already in podium state.');
+      return;
+    }
+
+    const currentIdx = gameState.currentLevelIndex;
+    const now = Date.now();
+    if (lastCompletedLevelIndex === currentIdx && (now - lastMinigameCompleteTime < 3000)) {
+      console.warn(`[server] Debounced duplicate minigame_complete for level index ${currentIdx}.`);
+      return;
+    }
+
+    lastCompletedLevelIndex = currentIdx;
+    lastMinigameCompleteTime = now;
+
     const currentLevel = gameState.levels[gameState.currentLevelIndex];
     if (currentLevel) {
       currentLevel.completed = true;
@@ -724,9 +752,9 @@ io.on('connection', (socket) => {
         data.players.forEach(s => {
           const p = players.get(s.id);
           if (!p) return;
-          if (typeof s.score === 'number') {
+          if (typeof s.score === 'number' && !isNaN(s.score)) {
             p.score += Math.round(s.score);
-          } else if (typeof s.rank === 'number') {
+          } else if (typeof s.rank === 'number' && !isNaN(s.rank)) {
             // Rank-based score (e.g. Mario Kart: 1st=100, 2nd=75, 3rd=50, 4th=35, 5th=20, 6th+=15)
             const rankTable = [100, 75, 50, 35, 20];
             const pts = (s.rank >= 1 && s.rank <= rankTable.length) ? rankTable[s.rank - 1] : 15;
@@ -736,13 +764,24 @@ io.on('connection', (socket) => {
       } else if (data?.isFFA && Array.isArray(data?.scores)) {
         data.scores.forEach(s => {
           const p = players.get(s.id);
-          if (p) p.score += (s.score || 0);
+          if (p && typeof s.score === 'number' && !isNaN(s.score)) {
+            p.score += Math.round(s.score);
+          }
         });
-      } else if (gameState.teams && gameState.teams[winningTeam]) {
-        gameState.teams[winningTeam].forEach(member => {
-          const p = players.get(member.id);
-          if (p) p.score += 100;
-        });
+      } else if (gameState.teams) {
+        const losingTeam = winningTeam === 'teamA' ? 'teamB' : 'teamA';
+        if (gameState.teams[winningTeam]) {
+          gameState.teams[winningTeam].forEach(member => {
+            const p = players.get(member.id);
+            if (p) p.score += 100;
+          });
+        }
+        if (gameState.teams[losingTeam]) {
+          gameState.teams[losingTeam].forEach(member => {
+            const p = players.get(member.id);
+            if (p) p.score += 25;
+          });
+        }
       }
     }
 
@@ -859,6 +898,8 @@ io.on('connection', (socket) => {
     gameState.levels = JSON.parse(JSON.stringify(INITIAL_LEVELS));
     gameState.minigameActive = null;
     gameState.teams = { teamA: [], teamB: [], solo: [] };
+    lastCompletedLevelIndex = -1;
+    lastMinigameCompleteTime = 0;
 
     // Remove any test bots so reset returns to a clean lobby
     for (const [id, p] of players) {
@@ -897,6 +938,7 @@ io.on('connection', (socket) => {
     gameState.status = 'minigame';
     gameState.minigameActive = targetLevel;
     gameState.teams = teams;
+    lastCompletedLevelIndex = -1;
 
     broadcastState();
   });

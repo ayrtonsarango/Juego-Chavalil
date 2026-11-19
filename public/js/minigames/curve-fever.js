@@ -23,6 +23,9 @@ class CurveFeverEngine {
     this.running = false;
     this.animationId = null;
     this.lastTime = performance.now();
+    this.completed = false;
+    this.matchEnded = false;
+    this.completeTimeout = null;
 
     // Arena bounds (con margen estético y marco neón)
     this.bounds = {
@@ -106,6 +109,12 @@ class CurveFeverEngine {
 
   init(playerList) {
     this.running = true;
+    this.completed = false;
+    this.matchEnded = false;
+    if (this.completeTimeout) {
+      clearTimeout(this.completeTimeout);
+      this.completeTimeout = null;
+    }
     this.powerups = [];
     this.particles = [];
     this.floatingTexts = [];
@@ -126,16 +135,16 @@ class CurveFeverEngine {
         x: 0,
         y: 0,
         angle: 0,
-        speed: 130,
-        baseSpeed: 130,
-        turnSpeed: 3.4,
+        speed: 195,
+        baseSpeed: 195,
+        turnSpeed: 4.6,
         radius: 3.5,
         alive: true,
         drawing: true,
         drawTimer: 0,
         gapTimer: 0,
-        drawDuration: 2.2 + Math.random() * 1.5,
-        gapDuration: 0.35,
+        drawDuration: 1.8 + Math.random() * 1.0,
+        gapDuration: 0.28,
         turnLeft: false,
         turnRight: false,
         speedMultiplier: 1.0,
@@ -291,8 +300,8 @@ class CurveFeverEngine {
       p.drawing = true;
       p.drawTimer = 0;
       p.gapTimer = 0;
-      p.drawDuration = 2.0 + Math.random() * 1.2;
-      p.gapDuration = 0.35;
+      p.drawDuration = 1.8 + Math.random() * 1.0;
+      p.gapDuration = 0.28;
       p.speedMultiplier = 1.0;
       p.reverseControls = false;
       p.effectTimer = 0;
@@ -363,7 +372,7 @@ class CurveFeverEngine {
       return;
     }
 
-    if (this.gameState === 'victory') {
+    if (this.gameState === 'victory' || !this.running) {
       return;
     }
 
@@ -496,7 +505,7 @@ class CurveFeverEngine {
 
     // Condición de final de ronda: queda 1 jugador superviviente (o 0 si murieron a la vez)
     const requiredAlive = this.activePlayers.length > 1 ? 1 : 0;
-    if (aliveCount <= requiredAlive) {
+    if (this.gameState === 'playing' && aliveCount <= requiredAlive) {
       this.finishRound(lastAlivePlayer);
     }
   }
@@ -505,7 +514,7 @@ class CurveFeverEngine {
     this.activePlayers.forEach(p => {
       if (!p.isBot || !p.alive) return;
 
-      const rayDist = 28;
+      const rayDist = 38;
       const leftAngle = p.angle - 0.65;
       const rightAngle = p.angle + 0.65;
 
@@ -590,7 +599,7 @@ class CurveFeverEngine {
   }
 
   spawnPowerup() {
-    const types = ['speed', 'slow', 'reverse', 'clear'];
+    const types = ['speed', 'slow', 'reverse'];
     const chosenType = types[Math.floor(Math.random() * types.length)];
     const margin = 80;
     this.powerups.push({
@@ -660,6 +669,7 @@ class CurveFeverEngine {
   }
 
   finishRound(winnerPlayer) {
+    if (this.gameState !== 'playing') return;
     this.gameState = 'round_over';
     this.roundOverTimer = 2.8;
 
@@ -676,6 +686,10 @@ class CurveFeverEngine {
   }
 
   resolveTournamentWinner() {
+    if (this.matchEnded) return;
+    this.matchEnded = true;
+    this.gameState = 'victory';
+
     const sorted = this.allPlayers.slice().sort((a, b) => b.totalScore - a.totalScore);
     this.grandWinner = sorted[0];
 
@@ -683,13 +697,29 @@ class CurveFeverEngine {
       window.soundEngine.playSocialCreditVictory();
     }
 
-    setTimeout(() => {
+    const rankTable = [100, 75, 50, 35];
+    const rankedPlayers = sorted.map((p, idx) => ({
+      id: p.id,
+      score: idx < rankTable.length ? rankTable[idx] : 20
+    }));
+
+    this.completeTimeout = setTimeout(() => {
+      if (this.completed) return;
+      this.completed = true;
+      this.stop();
+
       this.onComplete({
         gameType: 'curve',
         isFFA: true,
         winnerId: this.grandWinner ? this.grandWinner.id : null,
-        scores: this.allPlayers.map(p => ({ id: p.id, score: p.totalScore })),
-        ranking: sorted.map(p => ({ id: p.id, name: p.name, score: p.totalScore }))
+        players: rankedPlayers,
+        scores: rankedPlayers,
+        ranking: sorted.map((p, idx) => ({
+          id: p.id,
+          name: p.name,
+          score: idx < rankTable.length ? rankTable[idx] : 20,
+          rawScore: p.totalScore
+        }))
       });
     }, 4000);
   }
@@ -978,7 +1008,9 @@ class CurveFeverEngine {
     this.update(dt);
     this.render();
 
-    this.animationId = requestAnimationFrame(this.loop);
+    if (this.running) {
+      this.animationId = requestAnimationFrame(this.loop);
+    }
   }
 
   stop() {
@@ -986,6 +1018,10 @@ class CurveFeverEngine {
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
       this.animationId = null;
+    }
+    if (this.completeTimeout) {
+      clearTimeout(this.completeTimeout);
+      this.completeTimeout = null;
     }
   }
 }

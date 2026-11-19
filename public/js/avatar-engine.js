@@ -17,6 +17,7 @@ const AVATAR_OPTIONS = {
     { id: '#fecdd3', label: 'Gamba' }
   ],
   hairs: [
+    { id: 'korean_long', label: 'Cantante Coreano' },
     { id: 'ayrton_messy', label: 'Despeinado' },
     { id: 'manu_tousled', label: 'Ondulado Textura' },
     { id: 'adri_crop', label: 'Crop Urbano' },
@@ -48,6 +49,7 @@ const AVATAR_OPTIONS = {
     { id: '#ec4899', label: 'Rosa' }
   ],
   eyes: [
+    { id: 'korean_eyes', label: 'Coreano Idol' },
     { id: 'brown_light', label: 'Marrón Claro' },
     { id: 'amber', label: 'Ámbar' },
     { id: 'chinillo', label: 'Chinillo' },
@@ -91,6 +93,7 @@ const AVATAR_OPTIONS = {
   ],
   accessories: [
     { id: 'none', label: 'Ninguno' },
+    { id: 'white_long_coat', label: 'Abrigo Blanco Largo' },
     { id: 'gorra_brat', label: 'Gorra Brat' },
     { id: 'black_glasses', label: 'Gafas de Pasta' },
     { id: 'tee_black_graphic', label: 'Camiseta Gráfica' },
@@ -403,6 +406,25 @@ const AVATAR_PRESETS = [
     }
   },
   {
+    id: 'markel',
+    name: 'Markel',
+    chip: '🎤 Markel',
+    config: {
+      skin: '#fffbf7',
+      hair: 'korean_long',
+      hairColor: '#09090b',
+      eyes: 'korean_eyes',
+      mouth: 'smirk',
+      shirt: '#09090b',
+      accessory: 'none',
+      handItem: 'none',
+      shoes: 'classic',
+      pet: 'none',
+      height: 'tall',
+      headShape: 'round'
+    }
+  },
+  {
     id: 'random',
     name: 'Aleatorio',
     chip: '🎲 Aleatorio',
@@ -426,6 +448,15 @@ const AVATAR_PRESETS = [
 
 // Opciones específicas y únicas por chaval (formato toggle binario limpio, sin textos redundantes)
 const CHARACTER_SPECIFIC_OPTIONS = {
+  markel: [
+    {
+      id: 'abrigo_blanco',
+      label: 'Abrigo Blanco Largo',
+      prop: 'accessory',
+      on: 'white_long_coat',
+      off: 'none'
+    }
+  ],
   ayrton: [
     {
       id: 'cara_loca',
@@ -601,6 +632,20 @@ function renderAvatarSVG(config = {}, size = 120) {
   const hasHeadsetShades = c.accessory === 'headset_with_shades';
   const effectiveEyes = hasHeadsetShades ? 'meme_shades' : c.eyes;
   switch (effectiveEyes) {
+    case 'korean_eyes':
+    case 'korean_idol':
+      eyesSvg = `
+        <!-- Ojos coreanos estilizados, rasgados y pequeños (Markel) -->
+        <path d="M 34 52 Q 44 47 52 52 Q 44 55 34 52 Z" fill="#ffffff" stroke="#0f172a" stroke-width="2.2" stroke-linejoin="round"/>
+        <ellipse cx="43.5" cy="51.5" rx="3.5" ry="3" fill="#0f172a"/>
+        <circle cx="42.5" cy="50.5" r="1.2" fill="#ffffff"/>
+        <path d="M 32 50.5 Q 43 45.5 53 50.5" fill="none" stroke="#0f172a" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M 60 52 Q 68 47 78 52 Q 68 55 60 52 Z" fill="#ffffff" stroke="#0f172a" stroke-width="2.2" stroke-linejoin="round"/>
+        <ellipse cx="68.5" cy="51.5" rx="3.5" ry="3" fill="#0f172a"/>
+        <circle cx="67.5" cy="50.5" r="1.2" fill="#ffffff"/>
+        <path d="M 59 50.5 Q 69 45.5 80 50.5" fill="none" stroke="#0f172a" stroke-width="2.2" stroke-linecap="round"/>
+      `;
+      break;
     case 'chinillo':
       eyesSvg = `
         <!-- Ojos chinillos / achinados pícaros (Ayrton) -->
@@ -775,6 +820,21 @@ function renderAvatarSVG(config = {}, size = 120) {
   // Hair SVG components
   let hairSvg = '';
   switch (c.hair) {
+    case 'korean_long':
+      hairSvg = `
+        <!-- Pelo Cantante Coreano Largo / Curtain Bangs K-Pop (Markel) -->
+        <!-- Capa trasera / melena que cae por los hombros -->
+        <path d="M 17 50 C 14 30, 26 10, 56 10 C 86 10, 98 30, 95 50 C 97 68, 92 84, 85 92 C 82 86, 84 72, 85 60 C 86 44, 82 32, 70 28 C 64 26, 48 26, 42 28 C 30 32, 26 44, 27 60 C 28 72, 30 86, 27 92 C 20 84, 15 68, 17 50 Z" fill="${c.hairColor}" stroke="#090d16" stroke-width="2.2"/>
+        <!-- Masa principal superior con volumen sedoso -->
+        <path d="M 20 44 C 18 28, 30 14, 56 14 C 82 14, 94 28, 92 44 C 88 34, 76 26, 68 28 C 60 30, 58 38, 56 42 C 54 38, 52 30, 44 28 C 36 26, 24 34, 20 44 Z" fill="${c.hairColor}" stroke="#090d16" stroke-width="2.2"/>
+        <!-- Mechones frontales 'curtains' que enmarcan la cara -->
+        <path d="M 56 22 C 51 28, 42 32, 33 46 C 30 52, 28 62, 29 68 C 32 64, 36 54, 42 46 C 48 38, 53 32, 56 22 Z" fill="${c.hairColor}" stroke="#090d16" stroke-width="2.0" stroke-linejoin="round"/>
+        <path d="M 56 22 C 61 28, 70 32, 79 46 C 82 52, 84 62, 83 68 C 80 64, 76 54, 70 46 C 64 38, 59 32, 56 22 Z" fill="${c.hairColor}" stroke="#090d16" stroke-width="2.0" stroke-linejoin="round"/>
+        <!-- Brillo sedoso superior de idol -->
+        <path d="M 32 20 Q 42 16 50 19" fill="none" stroke="#64748b" stroke-width="2.2" stroke-linecap="round" opacity="0.6"/>
+        <path d="M 62 19 Q 70 16 80 20" fill="none" stroke="#64748b" stroke-width="2.2" stroke-linecap="round" opacity="0.6"/>
+      `;
+      break;
     case 'ayrton_messy':
       hairSvg = `
         <!-- Pelo Despeinado Chavalil (Ayrton) con mechones dinámicos y volumen -->
@@ -1022,6 +1082,10 @@ function renderAvatarSVG(config = {}, size = 120) {
   // Accessories SVG components
   let accSvg = '';
   switch (c.accessory) {
+    case 'white_long_coat':
+      // El abrigo largo blanco se renderiza en la capa de cuerpo/outerwear (debajo de la cabeza y envolviendo brazos y piernas)
+      accSvg = '';
+      break;
     case 'gorra_brat':
       accSvg = `
         <!-- Gorra verde fosforito BRAT (Charli XCX) de Marta -->
@@ -1526,6 +1590,33 @@ function renderAvatarSVG(config = {}, size = 120) {
     <circle cx="78" cy="62" r="5" fill="#f43f5e" opacity="0.25"/>
   `;
 
+  // Abrigo blanco oversize elegante hasta los pies (Markel)
+  const isWhiteLongCoat = c.accessory === 'white_long_coat';
+  const coatSvg = isWhiteLongCoat ? `
+    <!-- Abrigo blanco oversize elegante hasta los pies (Markel) -->
+    <!-- Cuerpo del abrigo largo blanco hasta los pies -->
+    <path d="M 30 81 C 24 88, 22 102, 25 107 L 87 107 C 90 102, 88 88, 82 81 Z" fill="#f8fafc" stroke="#1e293b" stroke-width="2.6" stroke-linejoin="round"/>
+
+    <!-- Abertura central en V mostrando camisa negra interior -->
+    <polygon points="48,85 56,97 64,85" fill="#09090b" stroke="#1e293b" stroke-width="1.8"/>
+
+    <!-- Solapas elegantes de gabardina coreana -->
+    <path d="M 46 86 L 41 93 L 45 94 L 56 98 L 52 86 Z" fill="#ffffff" stroke="#1e293b" stroke-width="1.8" stroke-linejoin="round"/>
+    <path d="M 66 86 L 71 93 L 67 94 L 56 98 L 60 86 Z" fill="#ffffff" stroke="#1e293b" stroke-width="1.8" stroke-linejoin="round"/>
+
+    <!-- Cinturón de abrigo con hebilla moderna -->
+    <rect x="27" y="99" width="58" height="3.5" fill="#e2e8f0" stroke="#1e293b" stroke-width="1.6"/>
+    <rect x="53" y="98" width="6" height="5.5" rx="1" fill="#ffffff" stroke="#1e293b" stroke-width="1.5"/>
+
+    <!-- Corte vertical inferior y botones oscuros -->
+    <line x1="56" y1="102.5" x2="56" y2="107" stroke="#cbd5e1" stroke-width="1.8"/>
+    <circle cx="56" cy="105" r="1.4" fill="#09090b"/>
+
+    <!-- Botones dobles superiores en el pecho -->
+    <circle cx="48" cy="94" r="1.4" fill="#09090b"/>
+    <circle cx="64" cy="94" r="1.4" fill="#09090b"/>
+  ` : '';
+
   return `
     <svg viewBox="0 0 112 112" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg" class="avatar-svg ${isTall ? 'is-tall' : ''} ${isChubby ? 'is-chubby' : ''}">
       <!-- Sombra base -->
@@ -1542,6 +1633,7 @@ function renderAvatarSVG(config = {}, size = 120) {
         <g id="body">
           <path d="${bodyTorsoPath}" fill="${shirtColor}" stroke="#1e293b" stroke-width="${isChubby ? 2.8 : 2.5}"/>
           ${poloCollarSvg}
+          ${coatSvg}
         </g>
 
         <!-- Air Jordans CÓMICAMENTE GRANDES renderizadas por encima de la ropa si está activado -->

@@ -63,8 +63,22 @@ class SoundEngine {
   playChineseRingtone(vol = 0.85) { return this.playAudio('/audio/chinese_ringtone.mp3', vol); }
   playAllahAkbar(vol = 0.95) { return this.playAudio('/audio/allah_akbar.mp3', vol); }
   playNuggetCowboy(vol = 0.95) { return this.playAudio('/audio/nugget_cowboy.mp3', vol); }
+  playAlertaPeru(vol = 0.9) { return this.playAudio('/audio/alerta_peru.mp3', vol); }
+  playDuBistGutGenug(vol = 0.9) { return this.playAudio('/audio/du_bist_gut_genug.mp3', vol); }
+  playSenorDeLaNoche(vol = 0.9) { return this.playAudio('/audio/el_senor_de_la_noche.mp3', vol); }
+  playDiscordJoin(vol = 0.85) { return this.playAudio('/audio/discord_join.mp3', vol); }
+  playPunch(vol = 0.9) { return this.playAudio('/audio/punch.mp3', vol); }
+  playMetalBar(vol = 0.42) { return this.playAudio('/audio/metal_bar.mp3', vol); } // Volumen contenido por ser muy potente
+  playIndianSong(vol = 0.85) { return this.playAudio('/audio/indian_song.mp3', vol); }
+  playHeeHee(vol = 0.9) { return this.playAudio('/audio/hee_hee.mp3', vol); }
+  playUndertakerBell(vol = 0.85) { return this.playAudio('/audio/undertaker_bell.mp3', vol); }
+  playShocked(vol = 0.85) { return this.playAudio('/audio/shocked.mp3', vol); }
 
   // Generic lookup by soundboard ID
+  playMemeEmote(soundName, vol = 0.9) {
+    return this.playSoundByName(soundName, vol);
+  }
+
   playSoundByName(soundName, vol = 0.9) {
     const map = {
       'auuu': '/audio/auuu.mp3',
@@ -84,10 +98,21 @@ class SoundEngine {
       '50_cent': '/audio/50_cent.mp3',
       'chinese_ringtone': '/audio/chinese_ringtone.mp3',
       'allah_akbar': '/audio/allah_akbar.mp3',
-      'nugget_cowboy': '/audio/nugget_cowboy.mp3'
+      'nugget_cowboy': '/audio/nugget_cowboy.mp3',
+      'alerta_peru': '/audio/alerta_peru.mp3',
+      'du_bist_gut_genug': '/audio/du_bist_gut_genug.mp3',
+      'el_senor_de_la_noche': '/audio/el_senor_de_la_noche.mp3',
+      'discord_join': '/audio/discord_join.mp3',
+      'punch': '/audio/punch.mp3',
+      'metal_bar': '/audio/metal_bar.mp3',
+      'indian_song': '/audio/indian_song.mp3',
+      'hee_hee': '/audio/hee_hee.mp3',
+      'undertaker_bell': '/audio/undertaker_bell.mp3',
+      'shocked': '/audio/shocked.mp3'
     };
     if (map[soundName]) {
-      return this.playAudio(map[soundName], vol);
+      const actualVol = soundName === 'metal_bar' ? Math.min(vol, 0.42) : vol;
+      return this.playAudio(map[soundName], actualVol);
     }
     // Fallback if not found
     return this.playHonk();
@@ -96,6 +121,8 @@ class SoundEngine {
   // Character Pick Themes
   playCharacterTheme(charId, optName = '') {
     const combined = `${charId || ''} ${optName || ''}`.toLowerCase();
+    if (combined.includes('markel')) return this.playDuBistGutGenug();
+    if (combined.includes('yago')) return this.playAlertaPeru();
     if (combined.includes('manu')) return this.playAllahAkbar();
     if (combined.includes('asier')) return this.playOhMyGod();
     if (combined.includes('lerga')) return this.playSoundByName('nugget_cowboy');
@@ -106,8 +133,7 @@ class SoundEngine {
     if (combined.includes('ayrton')) return this.playAuu();
     if (combined.includes('djon') || combined.includes('dj')) return this.playBingChilling();
     if (combined.includes('hua')) return this.playChineseRingtone();
-    if (combined.includes('eneko')) return this.playFirstBlood();
-    if (combined.includes('yago')) return this.playWarwick();
+    if (combined.includes('eneko')) return this.playSenorDeLaNoche();
     if (combined.includes('santi')) return this.playDangerAlarm();
     if (combined.includes('lucia')) return this.playHarryPotter();
 
@@ -141,6 +167,9 @@ class SoundEngine {
 
   // Minigame Victory / Social Credit
   playSocialCreditVictory() {
+    if (Math.random() < 0.25) {
+      return this.playIndianSong(0.9);
+    }
     return this.playSocialCredit(0.95);
   }
 

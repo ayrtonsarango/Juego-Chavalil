@@ -35,6 +35,11 @@ function detectIsAndroid() {
 }
 let isAndroidDevice = detectIsAndroid();
 
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 function safeVibrate(pattern) {
   try {
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
@@ -145,10 +150,10 @@ const btnLobbyUnready = document.getElementById('btn-lobby-unready');
 const btnLobbyLeft = document.getElementById('btn-lobby-left');
 const btnLobbyRight = document.getElementById('btn-lobby-right');
 const btnLobbyJump = document.getElementById('btn-lobby-jump');
-let lobbyInput = { left: false, right: false, jump: false };
+const btnLobbyPunch = document.getElementById('btn-lobby-punch');
+let lobbyInput = { left: false, right: false, jump: false, punch: false };
 
 // Controller screen elements
-const playerTopBadge = document.getElementById('player-top-badge');
 const controllerAvatarThumb = document.getElementById('controller-avatar-thumb');
 const controllerPlayerName = document.getElementById('controller-player-name');
 const controllerRoleBadge = document.getElementById('controller-role-badge');
@@ -748,19 +753,16 @@ function updateControllerState(gameState, players) {
     if (screenLobbyPad) screenLobbyPad.classList.remove('active');
     if (screenController) screenController.classList.remove('active');
     if (screenPodiumMobile) screenPodiumMobile.classList.add('active');
-    if (playerTopBadge) playerTopBadge.style.display = 'inline-flex';
     renderMobilePodium(gameState, players, me);
   } else if (gameState.status === 'map' || gameState.status === 'minigame') {
     if (screenCreator) screenCreator.classList.remove('active');
     if (screenLobbyPad) screenLobbyPad.classList.remove('active');
     if (screenPodiumMobile) screenPodiumMobile.classList.remove('active');
     if (screenController) screenController.classList.add('active');
-    if (playerTopBadge) playerTopBadge.style.display = 'inline-flex';
   } else {
     // In lobby: route between screen-creator and screen-lobby-pad based on isPlayerReady
     if (screenController) screenController.classList.remove('active');
     if (screenPodiumMobile) screenPodiumMobile.classList.remove('active');
-    if (playerTopBadge) playerTopBadge.style.display = 'none';
     if (me.ready !== isPlayerReady) {
       setPlayerReadyUI(Boolean(me.ready));
     } else {
@@ -1126,17 +1128,27 @@ socket.on('character_theme_broadcast', (data) => {
 });
 
 let lastButtonBashActiveShooterId = null;
+let currentBashModifier = null;
+let currentBashSlipperyCount = 0;
+let isBashLagBuffering = false;
 
 socket.on('minigame_event_broadcast', (data) => {
   if (!data) return;
   if (data.type === 'buttonbash_turn') {
     lastButtonBashActiveShooterId = data.activePlayerId;
+    currentBashModifier = data.modifier || null;
+    currentBashSlipperyCount = 0;
+    isBashLagBuffering = false;
+
     const isMyTurn = data.activePlayerId === socket.id;
     const btnBashTarget = document.getElementById('btn-bash-target');
     const padButtonBash = document.getElementById('pad-buttonbash');
     const boxBench = document.getElementById('box-bench-spectator');
     const benchHeatStatus = document.getElementById('bench-heat-status');
     const mobilePrankOverlay = document.getElementById('bash-mobile-prank-overlay');
+    const normalControls = document.getElementById('bash-normal-controls');
+    const bashBadge = document.getElementById('bash-modifier-badge');
+    const prankCall = document.getElementById('prank-step-call');
 
     if (isMyTurn) {
       if (boxBench) boxBench.style.display = 'none';
@@ -1144,10 +1156,55 @@ socket.on('minigame_event_broadcast', (data) => {
       if (btnBashTarget) {
         btnBashTarget.disabled = false;
         btnBashTarget.classList.remove('locked');
+        btnBashTarget.style.transform = 'none';
       }
-      if (mobilePrankOverlay) mobilePrankOverlay.style.display = 'none';
+
+      // Configure Modifier on Smartphone
+      if (bashBadge && data.modifier) {
+        bashBadge.style.display = 'block';
+        bashBadge.textContent = `${data.modifier.badge || 'BROMA'}: ${data.modifier.desc}`;
+        bashBadge.style.background = '#fef08a';
+      } else if (bashBadge) {
+        bashBadge.style.display = 'none';
+      }
+
+      // Special prank: Fake emergency call modal
+      if (data.modifier && data.modifier.id === 'marta_violeta_call') {
+        if (mobilePrankOverlay && prankCall) {
+          mobilePrankOverlay.style.display = 'flex';
+          prankCall.style.display = 'block';
+        }
+        if (normalControls) normalControls.style.display = 'none';
+      } else {
+        if (prankCall) prankCall.style.display = 'none';
+        if (mobilePrankOverlay) mobilePrankOverlay.style.display = 'none';
+        if (normalControls) normalControls.style.display = 'flex';
+      }
+
+      // Customize button text based on handicap
+      if (btnBashTarget) {
+        const label = btnBashTarget.querySelector('.buzzer-label');
+        if (label) {
+          if (data.modifier && data.modifier.id === 'hyperspeed_ticker') {
+            label.textContent = '⚡ ¡DALE YA! ⚡';
+          } else if (data.modifier && data.modifier.id === 'lag_56k') {
+            label.textContent = '🎯 LANZAR (LAG)';
+          } else if (data.modifier && data.modifier.id === 'drunk_curve') {
+            label.textContent = '🥴 TIRA MAREADO';
+          } else if (data.modifier && data.modifier.id === 'slowmo_matrix') {
+            label.textContent = '🐌 SLOW-MO';
+          } else if (data.modifier && data.modifier.id === 'reverse_controls') {
+            label.textContent = '🧲 FIJAR BLANCO';
+          } else if (data.modifier && data.modifier.id === 'quantum_ghost') {
+            label.textContent = '👻 FANTASMA';
+          } else {
+            label.textContent = '¡PULSA!';
+          }
+        }
+      }
+
       if (minigameTeamBanner) {
-        minigameTeamBanner.textContent = '🎯 ¡TU TURNO! (Apunta y lanza)';
+        minigameTeamBanner.textContent = `🎯 ¡TU TURNO! (${data.modifier ? data.modifier.title : 'Apunta y lanza'})`;
         minigameTeamBanner.style.background = '#0284c7';
         minigameTeamBanner.style.color = '#ffffff';
       }
@@ -1157,7 +1214,8 @@ socket.on('minigame_event_broadcast', (data) => {
       if (boxBench) {
         boxBench.style.display = 'flex';
         if (benchHeatStatus) {
-          benchHeatStatus.textContent = `🎯 Turno de: ${data.activePlayerName || 'Compañero'}`;
+          const modTag = data.modifier ? ` · ${data.modifier.badge}` : '';
+          benchHeatStatus.textContent = `🎯 Turno de: ${data.activePlayerName || 'Compañero'}${modTag}`;
         }
       }
       if (minigameTeamBanner) {
@@ -1186,9 +1244,16 @@ socket.on('minigame_event_broadcast', (data) => {
   safeVibrate([100, 50, 100]);
 });
 
-socket.on('level_completed_celebration', () => {
+socket.on('level_completed_celebration', (data) => {
   if (window.soundEngine) {
     soundEngine.playSocialCreditVictory();
+  }
+  const winner = data?.winner;
+  const isMe = winner && (winner.id === myPlayerId || (socket && winner.id === socket.id));
+  if (isMe) {
+    safeVibrate([150, 80, 150, 80, 300]);
+  } else {
+    safeVibrate([100, 50, 100]);
   }
   const boxBench = document.getElementById('box-bench-spectator');
   if (boxBench) boxBench.style.display = 'none';
@@ -1493,9 +1558,104 @@ bindTapButton(document.getElementById('btn-hax-kick'),
 
 // 8. Button Bash (Diana Buzzer) Bindings
 bindTapButton(document.getElementById('btn-bash-target'), () => {
+  if (isBashLagBuffering) return;
+
+  const btn = document.getElementById('btn-bash-target');
+  const badge = document.getElementById('bash-modifier-badge');
+
+  // Goofy modifier 1: Slippery button dodging fingers
+  if (currentBashModifier && currentBashModifier.id === 'slippery_button') {
+    if (currentBashSlipperyCount < 3) {
+      currentBashSlipperyCount++;
+      safeVibrate(35);
+      const offsets = [
+        { x: -55, y: -40, text: '¡UY, CASI!' },
+        { x: 55, y: 35, text: '¡NO ME TOQUES!' },
+        { x: -25, y: 50, text: '¡MÁS RÁPIDO!' }
+      ];
+      const off = offsets[currentBashSlipperyCount - 1] || { x: 0, y: 0, text: '¡PULSA!' };
+      if (btn) {
+        btn.style.transform = `translate(${off.x}px, ${off.y}px)`;
+        const label = btn.querySelector('.buzzer-label');
+        if (label) label.textContent = off.text;
+      }
+      return;
+    } else {
+      // 4th tap lands!
+      if (btn) {
+        btn.style.transform = 'none';
+        const label = btn.querySelector('.buzzer-label');
+        if (label) label.textContent = '🎯 ¡LANZADO!';
+      }
+    }
+  }
+
+  // Goofy modifier 2: 56k Modem Lag delay
+  if (currentBashModifier && currentBashModifier.id === 'lag_56k') {
+    isBashLagBuffering = true;
+    safeVibrate([60, 40, 60]);
+    if (btn) {
+      btn.classList.add('locked');
+      const label = btn.querySelector('.buzzer-label');
+      if (label) label.textContent = '⏳ SUBIENDO (0%)...';
+    }
+    if (badge) {
+      badge.textContent = '📶 PING: 9999ms · Subiendo dardo a la nube...';
+      badge.style.background = '#fca5a5';
+    }
+    setTimeout(() => {
+      isBashLagBuffering = false;
+      if (btn) {
+        btn.classList.remove('locked');
+        const label = btn.querySelector('.buzzer-label');
+        if (label) label.textContent = '🚀 ¡ENVIADO!';
+      }
+      if (badge) {
+        badge.textContent = '🚀 ¡Dardo enviado a la diana!';
+        badge.style.background = '#86efac';
+      }
+      safeVibrate([100, 50, 150]);
+      socket.emit('player_input', { bash: true, shoot: true, timestamp: Date.now() });
+    }, 1600);
+    return;
+  }
+
   safeVibrate(50);
   socket.emit('player_input', { bash: true, shoot: true, timestamp: Date.now() });
 });
+
+// Incoming Call prank buttons (Marta & Violeta)
+const btnCallReject = document.getElementById('btn-call-reject');
+if (btnCallReject) {
+  btnCallReject.addEventListener('click', () => {
+    safeVibrate(40);
+    const prankCall = document.getElementById('prank-step-call');
+    const mobilePrankOverlay = document.getElementById('bash-mobile-prank-overlay');
+    const normalControls = document.getElementById('bash-normal-controls');
+    if (prankCall) prankCall.style.display = 'none';
+    if (mobilePrankOverlay) mobilePrankOverlay.style.display = 'none';
+    if (normalControls) normalControls.style.display = 'flex';
+  });
+}
+
+const btnCallAccept = document.getElementById('btn-call-accept');
+if (btnCallAccept) {
+  btnCallAccept.addEventListener('click', () => {
+    safeVibrate([80, 40, 100]);
+    if (window.soundEngine && typeof soundEngine.playFaaah === 'function') {
+      soundEngine.playFaaah();
+    }
+    const prankCall = document.getElementById('prank-step-call');
+    const mobilePrankOverlay = document.getElementById('bash-mobile-prank-overlay');
+    const normalControls = document.getElementById('bash-normal-controls');
+    setTimeout(() => {
+      if (prankCall) prankCall.style.display = 'none';
+      if (mobilePrankOverlay) mobilePrankOverlay.style.display = 'none';
+      if (normalControls) normalControls.style.display = 'flex';
+    }, 800);
+  });
+}
+
 bindTapButton(document.getElementById('btn-bash-react-left'), () => {
   socket.emit('player_input', { bash_cheer: 'vamos' });
 });
@@ -1767,6 +1927,7 @@ function bindLobbyControl(btn, key) {
 bindLobbyControl(btnLobbyLeft, 'left');
 bindLobbyControl(btnLobbyRight, 'right');
 bindLobbyControl(btnLobbyJump, 'jump');
+bindLobbyControl(btnLobbyPunch, 'punch');
 
 // Un-ready button in Lobby Pad
 if (btnLobbyUnready) {
@@ -1804,6 +1965,12 @@ window.addEventListener('keydown', (e) => {
       if (btnLobbyJump) btnLobbyJump.classList.add('is-pressed');
       emitLobbyInput();
     }
+  } else if (e.key === 'f' || e.key === 'F' || e.key === 'j' || e.key === 'J' || e.key === 'Enter') {
+    if (!lobbyInput.punch) {
+      lobbyInput.punch = true;
+      if (btnLobbyPunch) btnLobbyPunch.classList.add('is-pressed');
+      emitLobbyInput();
+    }
   }
 });
 
@@ -1821,6 +1988,10 @@ window.addEventListener('keyup', (e) => {
   } else if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
     lobbyInput.jump = false;
     if (btnLobbyJump) btnLobbyJump.classList.remove('is-pressed');
+    emitLobbyInput();
+  } else if (e.key === 'f' || e.key === 'F' || e.key === 'j' || e.key === 'J' || e.key === 'Enter') {
+    lobbyInput.punch = false;
+    if (btnLobbyPunch) btnLobbyPunch.classList.remove('is-pressed');
     emitLobbyInput();
   }
 });

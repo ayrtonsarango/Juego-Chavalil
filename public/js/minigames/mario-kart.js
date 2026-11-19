@@ -47,6 +47,8 @@ class MarioKartEngine {
     this.m7Buf32 = new Uint32Array(this.m7ImgData.data.buffer);
 
     this.running = false;
+    this.completed = false;
+    this.podiumTimeout = null;
     this.animationId = null;
     this.lastTime = performance.now();
 
@@ -194,6 +196,11 @@ class MarioKartEngine {
 
   init(playerList, teams = {}) {
     this.running = true;
+    this.completed = false;
+    if (this.podiumTimeout) {
+      clearTimeout(this.podiumTimeout);
+      this.podiumTimeout = null;
+    }
     this.raceState = 'countdown';
     this.countdownTimer = 3.5;
     this.raceTimer = 0;
@@ -314,8 +321,9 @@ class MarioKartEngine {
   }
 
   handlePlayerInput(playerId, data) {
+    if (!this.running) return;
     const kart = this.players.find(p => p.id === playerId);
-    if (!kart) return;
+    if (!kart || kart.finished) return;
 
     if (data.steer !== undefined) kart.inputSteer = Math.max(-1, Math.min(1, data.steer));
     if (data.gas !== undefined) kart.inputGas = Boolean(data.gas);
@@ -436,7 +444,7 @@ class MarioKartEngine {
   }
 
   update(dt) {
-    if (!this.running) return;
+    if (!this.running || this.raceState === 'podium') return;
 
     // Decay Screen Shake
     if (this.screenShake > 0) {
@@ -766,15 +774,33 @@ class MarioKartEngine {
   }
 
   checkRaceEnd() {
+    if (this.completed) return;
     const unfinished = this.players.filter(p => !p.finished);
     if (unfinished.length === 0 || (this.finishOrder.length >= 1 && unfinished.every(p => p.isBot))) {
+      this.completed = true;
       this.raceState = 'podium';
 
-      // Calculate scores
+      // Assign final ranks: finished first by finishRank, then unfinished by lapProgress
+      const sorted = [...this.players].sort((a, b) => {
+        if (a.finished && b.finished) return a.finishRank - b.finishRank;
+        if (a.finished) return -1;
+        if (b.finished) return 1;
+        return b.lapProgress - a.lapProgress;
+      });
+
+      sorted.forEach((p, rankIdx) => {
+        p.currentRank = rankIdx + 1;
+      });
+
+      // Standard rank points: 1st=100, 2nd=75, 3rd=50, 4th=35, 5th=20, 6th+=15
+      const rankLadder = [100, 75, 50, 35, 20];
+      const getRankScore = (rank) => (rank >= 1 && rank <= rankLadder.length ? rankLadder[rank - 1] : 15);
+
       let scoreA = 0;
       let scoreB = 0;
       this.players.forEach(p => {
-        const pts = Math.max(1, 9 - p.currentRank);
+        const pts = getRankScore(p.currentRank);
+        p.score = pts;
         if (p.team === 'teamA') scoreA += pts;
         else scoreB += pts;
       });
@@ -784,12 +810,26 @@ class MarioKartEngine {
 
       if (window.soundEngine) soundEngine.playSocialCreditVictory();
 
-      setTimeout(() => {
+      // Set running = false on game over and cancel animation frame
+      this.running = false;
+      if (this.animationId) {
+        cancelAnimationFrame(this.animationId);
+        this.animationId = null;
+      }
+      this.render();
+
+      this.podiumTimeout = setTimeout(() => {
         this.onComplete({
           gameType: 'race',
           winningTeam: this.winningTeam,
           scores: this.teamScores,
-          players: this.players.map(p => ({ id: p.id, rank: p.currentRank, team: p.team }))
+          players: this.players.map(p => ({
+            id: p.id,
+            name: p.name,
+            rank: p.currentRank,
+            score: p.score,
+            team: p.team
+          }))
         });
       }, 5500);
     }
@@ -1557,6 +1597,10 @@ class MarioKartEngine {
 
   stop() {
     this.running = false;
+    if (this.podiumTimeout) {
+      clearTimeout(this.podiumTimeout);
+      this.podiumTimeout = null;
+    }
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
       this.animationId = null;
